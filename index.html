@@ -885,7 +885,7 @@ function toggleTheme(){theme(R.dataset.wb==='dark'?'light':'dark')}
 $('bt').onclick=toggleTheme;
 R.dataset.wb=R.dataset.wb||'dark';
 try{const t=localStorage.getItem('wbtheme2');if(t)R.dataset.wb=t}catch(e){}
-function applyV(){const v=S.v;$('w').setAttribute('transform',`translate(${v.x} ${v.y}) scale(${v.k})`);const c=$('cv').style,s=24*v.k;c.backgroundSize=`${s}px ${s}px`;c.backgroundPosition=`${v.x}px ${v.y}px`;$('bz').textContent=Math.round(v.k*100)+'%';$('zs').value=100*Math.log(v.k/.1)/Math.log(60);ovl();peersEl.forEach(el=>{const d=el._d;if(d)el.style.transform=`translate(${S.v.x+d.x*S.v.k}px,${S.v.y+d.y*S.v.k}px)`});drawCmts();lazyScan();psel()}
+function applyV(){const v=S.v;$('w').setAttribute('transform',`translate(${v.x} ${v.y}) scale(${v.k})`);const c=$('cv').style,s=24*v.k;while(s<18)s*=2;c.backgroundSize=`${s}px ${s}px`;c.backgroundPosition=`${v.x}px ${v.y}px`;$('bz').textContent=Math.round(v.k*100)+'%';$('zs').value=100*Math.log(v.k/.1)/Math.log(60);ovl();peersEl.forEach(el=>{const d=el._d;if(d)el.style.transform=`translate(${S.v.x+d.x*S.v.k}px,${S.v.y+d.y*S.v.k}px)`});drawCmts();lazyScan();psel()}
 const W=e=>({x:(e.clientX-S.v.x)/S.v.k,y:(e.clientY-S.v.y)/S.v.k});
 function zoomAt(cx,cy,nk){nk=Math.max(.1,Math.min(6,nk));const v=S.v,wx=(cx-v.x)/v.k,wy=(cy-v.y)/v.k;v.k=nk;v.x=cx-wx*nk;v.y=cy-wy*nk;applyV()}
 $('cv').addEventListener('wheel',e=>{e.preventDefault();if(e.ctrlKey||e.metaKey)zoomAt(e.clientX,e.clientY,S.v.k*Math.exp(-e.deltaY*.01));else{S.v.x-=e.deltaX;S.v.y-=e.deltaY;applyV()}},{passive:false});
@@ -1266,7 +1266,7 @@ async function aiRun(){const out0=$('air');out0.style.whiteSpace='';out0.style.m
   const ac=AI.ac=new AbortController(),prompt=MODES[AI.mode][1]+(tx?'\n\n文字內容：\n'+tx:'')+(images?`\n\n（另附 ${images.length} 張圖片）`:'');
   const r=await sm(prompt,{images,signal:ac.signal,cache:false,onProgress:p=>{out.textContent=p.text+(p.pct?'… '+p.pct+'%':'')},onText:u=>{AI.text=u.text;out.textContent=u.text}});AI.text=r.text;out.textContent=r.text||'（沒有結果）'}
  catch(e){if(e&&e.name==='AbortError')return;if(e&&e.code==='nolocal'){out.textContent=e.message;return}if(e&&(e.code==='nokey'||e.code==='badkey')){aiSetup(e.code==='nokey'?'請先設定 AI。':'金鑰無效或沒有權限，請重新設定。');return}out.textContent=e&&e.code==='not_granted'?'你尚未同意使用 AI，請再按一次分析並選擇允許。':e&&e.code==='rate_limited'?'使用太頻繁，請稍後再試。':'AI 目前無法使用'+(e&&e.message?'：'+e.message:'')}}
-function aiPut(){if(RO||!AI.text)return;const a=AI.ids.map(i=>S.objs.get(i)).filter(Boolean);if(!a.length)return;const x=Math.max(...a.map(o=>o.x+o.w))+50,y=Math.min(...a.map(o=>o.y)),o={id:rid(),t:'text',x,y,w:10,h:30,r:0,txt:AI.text,s:18,c:'ink',op:1,ww:340,fo:.1,fc:null,bw:1,rd:10,z:Date.now()};put(o);commit([[o.id,null,cl(o)]]);toast('已放到畫布')}
+function aiPut(){if(RO||!AI.text)return;const a=AI.ids.map(i=>S.objs.get(i)).filter(Boolean);if(!a.length)return;const x=Math.max(...a.map(o=>o.x+o.w))+50,y=Math.min(...a.map(o=>o.y)),o={id:rid(),t:'text',x,y,w:10,h:30,r:0,txt:AI.text,s:18,c:'ink',op:1,ww:340,fo:0,fc:null,bw:0,rd:10,z:Date.now()};put(o);commit([[o.id,null,cl(o)]]);toast('已放到畫布')}
 dAdd('click',async e=>{const b=e.target.closest('[data-ai]');if(!b)return;const a=b.dataset.ai;
  if(a==='cfg'){const o=$('air');if(o.querySelector('.aif'))aiRun();else aiSetup('');return}if(a==='key'){DASH.gdlg();return}if(a==='close'){if(AI.ac)AI.ac.abort();$('aip').style.display='none'}else if(a==='stop'){if(AI.ac)AI.ac.abort()}else if(a==='put')aiPut();
  else if(a==='copy'){try{await navigator.clipboard.writeText(AI.text);toast('已複製')}catch(x){toast('無法複製，請手動選取文字')}}
