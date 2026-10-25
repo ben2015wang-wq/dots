@@ -15,7 +15,7 @@ with sync_playwright() as p:
     pg.click('#props [data-f="lk"]');pg.wait_for_timeout(300)
     pg.keyboard.press('Escape');pg.wait_for_timeout(1500)
     t=texts(pg);print([ (o.get('txt'),o.get('runs')) for o in t],pg._errs)
-    ok=any(r.get('h')=='https://example.com/x' and r['t']=='world' for o in t for r in (o.get('runs') or []))
+    ok=any(r.get('lk')=='https://example.com/x' and r['t']=='world' for o in t for r in (o.get('runs') or []))
     print('LINK RUN',ok)
     print('svg link',pg.evaluate("document.querySelectorAll('tspan[data-lk]').length"))
     box=pg.evaluate("(()=>{const e=document.querySelector('tspan[data-lk]');if(!e)return null;const r=e.getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2]})()")

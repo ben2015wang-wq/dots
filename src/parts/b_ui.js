@@ -1,15 +1,16 @@
 // ---------- rich text model
+const LKOK=u=>typeof u==='string'&&/^(https?:|mailto:)/i.test(u)?u:'';
 const PLAIN={},NF={b:false,i:false,ul:false,st:false,c:null};
-const runsOf=o=>o.runs&&o.runs.length?o.runs:(o.txt===''?[]:[{t:o.txt,b:!!o.b,i:!!o.i,ul:!!o.ul,st:!!o.st,h:typeof o.lk==='string'?o.lk:''}]);
-const fmtOn=(o,k)=>o.runs&&o.runs.length?o.runs.every(r=>r[k]):!!o[k==='h'?'lk':k];
-function setFmt(o,k,v){if(k==='h')o.lk=v;else o[k]=v;if(o.runs)o.runs.forEach(r=>{r[k]=v})}
+const runsOf=o=>o.runs&&o.runs.length?o.runs:(o.txt===''?[]:[{t:o.txt,b:!!o.b,i:!!o.i,ul:!!o.ul,st:!!o.st,lk:LKOK(o.lk)}]);
+const fmtOn=(o,k)=>o.runs&&o.runs.length?o.runs.every(r=>r[k]):!!o[k];
+function setFmt(o,k,v){o[k]=v;if(o.runs)o.runs.forEach(r=>{r[k]=v})}
 function setColor(o,c){o.c=c;if(o.runs)o.runs.forEach(r=>{delete r.c})}
 const plainOf=runs=>runs.map(r=>r.t).join('');
 const MC=document.createElement('canvas').getContext('2d'),MW=new Map();
 function chW(ch,f,o){const k=(f.b?'b':'n')+(f.i?'i':'n')+o.s+(o.ff||'s')+ch;let w=MW.get(k);if(w===undefined){MC.font=`${f.i?'italic ':''}${f.b?'700':'400'} ${o.s}px ${FF[o.ff]||FF.s}`;w=MC.measureText(ch).width;MW.set(k,w);if(MW.size>30000)MW.clear()}return w}
 const brk=ch=>ch===' '||ch==='-'||/[⺀-￯]/.test(ch);
 function layout(o){const runs=runsOf(o),ww=o.ww>0?o.ww:0,paras=[];let para=[];
- runs.forEach(r=>{const f={b:!!r.b,i:!!r.i,ul:!!r.ul,st:!!r.st,c:r.c||null,h:typeof r.h==='string'&&r.h||null};r.t.split('\n').forEach((p,k)=>{if(k>0){paras.push(para);para=[]}for(const ch of p)para.push({ch,f})})});paras.push(para);
+ runs.forEach(r=>{const f={b:!!r.b,i:!!r.i,ul:!!r.ul,st:!!r.st,c:r.c||null,lk:LKOK(r.lk)||null};r.t.split('\n').forEach((p,k)=>{if(k>0){paras.push(para);para=[]}for(const ch of p)para.push({ch,f})})});paras.push(para);
  const lines=[];let n=o.ln0||0;
  paras.forEach(p=>{let chars=p;let pre=0;if(o.ls&&p.length){const pf=o.ls==='bullet'?'• ':(++n)+'. ';chars=[...pf].map(ch=>({ch,f:PLAIN,p:true})).concat(p);pre=chars.length-p.length}
   const hang=ww&&o.ls&&(o.al||'left')==='left'?chars.slice(0,pre).reduce((a,c)=>a+chW(c.ch,{},o),0):0;
@@ -22,15 +23,15 @@ function layout(o){const runs=runsOf(o),ww=o.ww>0?o.ww:0,paras=[];let para=[];
   push()});
  return lines}
 function segsOf(line){const out=[];line.chars.forEach(c=>{const l=out[out.length-1];if(l&&l.f===c.f)l.t+=c.ch;else out.push({t:c.ch,f:c.f})});return out}
-function linesToRuns(lines){const out=[];lines.forEach((ln,i)=>{if(i>0&&ln.hard)out.push({t:'\n',...NF});segsOf({chars:ln.chars.filter(c=>!c.p)}).forEach(s=>{if(s.t)out.push({t:s.t,b:!!s.f.b,i:!!s.f.i,ul:!!s.f.ul,st:!!s.f.st,...(s.f.c?{c:s.f.c}:{}),...(s.f.h?{h:s.f.h}:{})})})});return out}
+function linesToRuns(lines){const out=[];lines.forEach((ln,i)=>{if(i>0&&ln.hard)out.push({t:'\n',...NF});segsOf({chars:ln.chars.filter(c=>!c.p)}).forEach(s=>{if(s.t)out.push({t:s.t,b:!!s.f.b,i:!!s.f.i,ul:!!s.f.ul,st:!!s.f.st,...(s.f.c?{c:s.f.c}:{}),...(s.f.lk?{lk:s.f.lk}:{})})})});return out}
 function textSVG(o,c,w){const al=o.al||'left',an=al==='center'?'middle':al==='right'?'end':'start',X=al==='center'?w/2:al==='right'?w:0,lines=layout(o);
- const at=f=>`${f.b?' font-weight="700"':''}${f.i?' font-style="italic"':''}${f.ul||f.st||f.h?` text-decoration="${[(f.ul||f.h)&&'underline',f.st&&'line-through'].filter(Boolean).join(' ')}"`:''}${f.h?` fill="#2563eb" data-lk="${esc(f.h)}"`:f.c?` fill="${esc(f.c)}"`:''}`;
+ const at=f=>`${f.b?' font-weight="700"':''}${f.i?' font-style="italic"':''}${f.ul||f.st||f.lk?` text-decoration="${[(f.ul||f.lk)&&'underline',f.st&&'line-through'].filter(Boolean).join(' ')}"`:''}${f.lk?` fill="#2563eb" data-lk="${esc(f.lk)}"`:f.c?` fill="${esc(f.c)}"`:''}`;
  return `<text font-size="${o.s}" fill="${c}" font-weight="400" font-family="${FF[o.ff]||FF.s}" text-anchor="${an}" style="white-space:pre">${lines.map((ln,i)=>{const sg=segsOf(ln);if(!sg.length)sg.push({t:' ',f:PLAIN});return sg.map((s,k)=>`<tspan${k?'':` x="${X+(al==='left'?ln.ind:0)}" dy="${i?1.25:1}em"`}${at(s.f)}>${esc(s.t)}</tspan>`).join('')}).join('')}</text>`}
-const runsHTML=o=>runsOf(o).map(r=>r.t.split('\n').map(esc).join('<br>')===''?'':`<span style="${r.b?'font-weight:700;':''}${r.i?'font-style:italic;':''}${r.ul||r.st?`text-decoration:${[r.ul&&'underline',r.st&&'line-through'].filter(Boolean).join(' ')};`:''}${r.c&&!r.h?`color:${esc(r.c)};`:''}">${r.h?`<a href="${esc(r.h)}" data-ul="1">`:''}${r.t.split('\n').map(esc).join('<br>')}${r.h?'</a>':''}</span>`).join('');
+const runsHTML=o=>runsOf(o).map(r=>r.t.split('\n').map(esc).join('<br>')===''?'':`<span style="${r.b?'font-weight:700;':''}${r.i?'font-style:italic;':''}${r.ul||r.st?`text-decoration:${[r.ul&&'underline',r.st&&'line-through'].filter(Boolean).join(' ')};`:''}${r.c&&!r.lk?`color:${esc(r.c)};`:''}">${r.lk?`<a href="${esc(r.lk)}" data-ul="1">`:''}${r.t.split('\n').map(esc).join('<br>')}${r.lk?'</a>':''}</span>`).join('');
 function rgb2hex(s){const m=s.match(/\d+(\.\d+)?/g);if(!m)return s;return'#'+m.slice(0,3).map(x=>Math.round(+x).toString(16).padStart(2,'0')).join('')}
 function domToRuns(root){const out=[],rc=getComputedStyle(root).color;
- const fmtOf=el=>{const cs=getComputedStyle(el),w=cs.fontWeight;let ul=false,st=false;const ha=el.closest&&el.closest('a[data-ul]'),h=ha&&root.contains(ha)?(ha.getAttribute('href')||''):'';for(let n=el;n&&n!==root.parentNode;n=n.parentElement){if(n.tagName==='A')continue;const d=getComputedStyle(n).textDecorationLine||'';if(d.includes('underline'))ul=true;if(d.includes('line-through'))st=true}return{b:w==='bold'||parseInt(w)>=600,i:cs.fontStyle==='italic'||cs.fontStyle==='oblique',ul,st,c:!h&&cs.color!==rc?rgb2hex(cs.color):null,h:h||null}};
- const add=(t,f)=>{if(!t)return;const l=out[out.length-1];if(l&&l.b===f.b&&l.i===f.i&&l.ul===f.ul&&l.st===f.st&&(l.c||null)===(f.c||null)&&(l.h||null)===(f.h||null))l.t+=t;else{const r={t,b:f.b,i:f.i,ul:f.ul,st:f.st};if(f.c)r.c=f.c;if(f.h)r.h=f.h;out.push(r)}};
+ const fmtOf=el=>{const cs=getComputedStyle(el),w=cs.fontWeight;let ul=false,st=false;const ha=el.closest&&el.closest('a[data-ul]'),h=ha&&root.contains(ha)?LKOK(ha.getAttribute('href')):'';for(let n=el;n&&n!==root.parentNode;n=n.parentElement){if(n.tagName==='A')continue;const d=getComputedStyle(n).textDecorationLine||'';if(d.includes('underline'))ul=true;if(d.includes('line-through'))st=true}return{b:w==='bold'||parseInt(w)>=600,i:cs.fontStyle==='italic'||cs.fontStyle==='oblique',ul,st,c:!h&&cs.color!==rc?rgb2hex(cs.color):null,lk:h||null}};
+ const add=(t,f)=>{if(!t)return;const l=out[out.length-1];if(l&&l.b===f.b&&l.i===f.i&&l.ul===f.ul&&l.st===f.st&&(l.c||null)===(f.c||null)&&(l.lk||null)===(f.lk||null))l.t+=t;else{const r={t,b:f.b,i:f.i,ul:f.ul,st:f.st};if(f.c)r.c=f.c;if(f.lk)r.lk=f.lk;out.push(r)}};
  const endsNL=()=>{const l=out[out.length-1];return !l||l.t.endsWith('\n')};
  const walk=n=>{if(n.nodeType===3){add(n.nodeValue.replace(/​/g,''),fmtOf(n.parentElement));return}if(n.nodeType!==1)return;if(n.tagName==='BR'){add('\n',NF);return}
   const blk=/^(DIV|P|LI)$/.test(n.tagName);if(blk&&out.length&&!endsNL())add('\n',NF);n.childNodes.forEach(walk)};
@@ -52,7 +53,7 @@ function props(){
  if(sel.length===1)h+=`<label>角度${nvi('r',Math.round(((f.r||0)%360+360)%360),0,360,1,1,'°')}</label>`;
  if(has('text')){h+=sl('s','字級',12,160,gv('s',28));h+=sl('ww','換行寬度',0,1200,gv('ww',0)||0,1,'',10);
   const on=k=>(f?fmtOn(f,k):gv(k,false))?' on':'',al=gv('al','left'),ls=gv('ls',''),B=(k,t,tt,sty='')=>`<button class="b sm${on(k)}" data-f="${k}" title="${tt}" style="font-weight:700;${sty}">${t}</button>`,V=(k,v,ico,tt,cur)=>`<button class="b sm${cur===v?' on':''}" data-f="${k}" data-v="${v}" title="${tt}">${ico}</button>`;
-  h+=`<div class="row" style="gap:3px">${B('b','B','粗體 (Ctrl+B)')}${B('i','I','斜體 (Ctrl+I)','font-style:italic')}${B('ul','U','底線 (Ctrl+U)','text-decoration:underline')}${B('st','S','刪除線','text-decoration:line-through')}<button class="b sm${f&&fmtOn(f,'h')?' on':''}" data-f="lk" title="文字連結 (Ctrl+K)">連結</button></div><div class="row" style="gap:3px">${V('al','left',ic('al1'),'靠左',al)}${V('al','center',ic('al2'),'置中',al)}${V('al','right',ic('al3'),'靠右',al)}${V('ls','bullet',ic('lb'),'項目符號',ls)}${V('ls','number',ic('ln'),'編號清單',ls)}</div><select data-ff="1">${[['s','預設字體'],['f','襯線體'],['m','等寬體']].map(([v,n])=>`<option value="${v}" ${gv('ff','s')===v?'selected':''}>${n}</option>`).join('')}</select><div style="font-size:10px;color:var(--mut)">編輯文字時，選取部分文字再按 B／I／U／S 或顏色，只會套用到選取的字。</div>`}
+  h+=`<div class="row" style="gap:3px">${B('b','B','粗體 (Ctrl+B)')}${B('i','I','斜體 (Ctrl+I)','font-style:italic')}${B('ul','U','底線 (Ctrl+U)','text-decoration:underline')}${B('st','S','刪除線','text-decoration:line-through')}<button class="b sm${f&&fmtOn(f,'lk')?' on':''}" data-f="lk" title="文字連結 (Ctrl+K)">連結</button></div><div class="row" style="gap:3px">${V('al','left',ic('al1'),'靠左',al)}${V('al','center',ic('al2'),'置中',al)}${V('al','right',ic('al3'),'靠右',al)}${V('ls','bullet',ic('lb'),'項目符號',ls)}${V('ls','number',ic('ln'),'編號清單',ls)}</div><select data-ff="1">${[['s','預設字體'],['f','襯線體'],['m','等寬體']].map(([v,n])=>`<option value="${v}" ${gv('ff','s')===v?'selected':''}>${n}</option>`).join('')}</select><div style="font-size:10px;color:var(--mut)">編輯文字時，選取部分文字再按 B／I／U／S 或顏色，只會套用到選取的字。</div>`}
  if(has('pen','line','arrow'))h+=sl('sw','線寬',1,24,gv('sw',3));
  if(has('rect','ellipse'))h+=sl('sw','邊框粗細',0,24,gv('sw',2));
  if(has('text','img'))h+=sl('bw','邊框粗細',0,16,gv('bw',0));

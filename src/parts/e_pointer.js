@@ -100,15 +100,15 @@ function linkPrompt(){if(RO)return;
   try{document.execCommand('styleWithCSS',false,true);if(n){document.execCommand('createLink',false,n);const sl=getSelection();if(sl.rangeCount){const rg=sl.getRangeAt(0);ta.querySelectorAll('a:not([data-ul])').forEach(x=>{if(rg.intersectsNode(x))x.setAttribute('data-ul','1')})}}else document.execCommand('unlink')}catch(e){return}
   syncTa(ta._o);paint(ta._o);ta._pos();put(ta._o);fmtState();return}
  const os=[...S.sel].map(i=>S.objs.get(i)).filter(o=>o&&o.t==='text');if(!os.length)return toast('請先選取文字物件，或編輯文字後選取要加上連結的字');
- const cur=(runsOf(os[0]).find(r=>r.h)||{}).h||'',u=prompt('輸入連結網址（留空會移除連結）',cur||'https://');if(u===null)return;
+ const cur=(runsOf(os[0]).find(r=>r.lk)||{}).lk||'',u=prompt('輸入連結網址（留空會移除連結）',cur||'https://');if(u===null)return;
  const n=normUrl(u);if(n===null)return toast('只支援 http、https 或 mailto 連結');
- const before=os.map(cl);os.forEach(o=>{setFmt(o,'h',n);paint(o);put(o)});commit(os.map((o,i)=>[o.id,before[i],cl(o)]));props()}
+ const before=os.map(cl);os.forEach(o=>{setFmt(o,'lk',n);paint(o);put(o)});commit(os.map((o,i)=>[o.id,before[i],cl(o)]));props()}
 function hitLink(x,y,ed){const q=ed?'#ta a[data-ul]':'#w [data-lk]';for(const n of document.querySelectorAll(q))for(const r of n.getClientRects())if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)return n;return null}
 let pd0=null;dAdd('pointerdown',e=>{pd0=[e.clientX,e.clientY,!!(ta._o&&!ta.hidden)];if(lkp&&!lkp.contains(e.target))lkp.style.display='none'},true);
 function openLink(h){if(h&&/^(https?:|mailto:)/i.test(h))window.open(h,'_blank','noopener')}
 // link popup (like Canva): shows the address with open / edit / remove
 let lkp=null;
-function relink(o,h,nh){const rs=runsOf(o);o.runs=rs.map(r=>r.h===h?{...r,h:nh||undefined}:r).map(r=>{if(!r.h)delete r.h;return r});if(!nh&&o.lk===h)o.lk=''}
+function relink(o,h,nh){const rs=runsOf(o);o.runs=rs.map(r=>r.lk===h?{...r,lk:nh||undefined}:r).map(r=>{if(!r.lk)delete r.lk;return r});if(!nh&&o.lk===h)o.lk=''}
 function lkShow(r,h,o){if(!lkp){lkp=document.createElement('div');lkp.id='lkp';lkp.style.cssText='position:fixed;z-index:9;display:none;gap:4px;align-items:center;padding:5px 6px;background:var(--pn);border:1px solid var(--bd);border-radius:10px;box-shadow:var(--sh);backdrop-filter:blur(10px);font-size:12px;color:var(--ink);max-width:min(92vw,420px)';
   lkp.innerHTML='<span data-lp="u" style="max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#2563eb;cursor:pointer"></span><button class="b sm" data-lp="o">開啟</button><button class="b sm" data-lp="e">編輯</button><button class="b sm" data-lp="x">移除</button>';
   lkp.addEventListener('mousedown',e=>e.preventDefault());
