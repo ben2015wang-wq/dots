@@ -1,0 +1,23 @@
+
+const DOTS=(function(){
+const ACT={on:false},dAdd=(t,f,o)=>document.addEventListener(t,e=>{if(ACT.on)f(e)},o),wAdd=(t,f,o)=>addEventListener(t,e=>{if(ACT.on)f(e)},o);
+let BP='b/_/',BID=null,ITEM=null,PGS=[{id:'p1',name:'頁面 1'}],unsubs=[],firstSnap=true,RO=false,dirty=false,PRES=false;
+const pgObjs=()=>[...S.objs.values()].filter(o=>(o.pg||PGS[0].id)===S.pg);
+const $=id=>document.getElementById(id),NS='http://www.w3.org/2000/svg';
+const IC={left:'M15 6l-6 6 6 6',hist:'M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8M3 3v5h5M12 7v5l3 2',play:'M7 5l12 7-12 7z',cmt:'M4 5h16v11H9l-5 4z',share:'M4 12v7h16v-7M12 3v12M8 7l4-4 4 4',warn:'M12 4l9 16H3zM12 10v4M12 17h.01',al1:'M4 6h16M4 10h10M4 14h16M4 18h10',al2:'M4 6h16M7 10h10M4 14h16M7 18h10',al3:'M4 6h16M10 10h10M4 14h16M10 18h10',lb:'M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01',ln:'M10 6h10M10 12h10M10 18h10M4 5l1-1v4M4 11h2l-2 3h2M4 17h2v1H4v1h2',eye:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 100 6 3 3 0 000-6z',eyeoff:'M3 3l18 18M10.6 6.2A9.6 9.6 0 0112 6c6 0 10 6 10 6a17 17 0 01-3 3.6M6.5 7.5A17 17 0 002 12s4 7 10 7a9.7 9.7 0 003.5-.7',lock:'M6 11h12v9H6zM8 11V8a4 4 0 018 0v3',unlock:'M6 11h12v9H6zM8 11V8a4 4 0 017.5-2',layers:'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5',up:'M6 15l6-6 6 6',down:'M6 9l6 6 6-6',x:'M6 6l12 12M18 6L6 18',plus:'M12 5v14M5 12h14',ai:'M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z',select:'M5 3l14 8-6 2-2 6z',hand:'M8 13V6a1.5 1.5 0 013 0v5m0-6a1.5 1.5 0 013 0v6m0-4a1.5 1.5 0 013 0v7a6 6 0 01-6 6h-1a6 6 0 01-5-3l-2-4a1.5 1.5 0 012-2l2 2',pen:'M4 20l1-4L16 5l3 3L8 19z',hl:'M4 21h7M9 16l7-7 3 3-7 7z',eraser:'M7 20h12M5 14l8-8 5 5-6 6H8z',text:'M5 6V4h14v2M12 4v16M9 20h6',rect:'M4 6h16v12H4z',ellipse:'M12 5c5 0 8 3 8 7s-3 7-8 7-8-3-8-7 3-7 8-7z',arrow:'M5 19L19 5M10 5h9v9',line:'M5 19L19 5',image:'M4 5h16v14H4zM4 16l5-5 4 4 3-3 4 4M9 9.5h.01',undo:'M9 14L4 9l5-5M4 9h10a6 6 0 010 12h-3',redo:'M15 14l5-5-5-5M20 9H10a6 6 0 000 12h3',sun:'M12 8a4 4 0 100 8 4 4 0 000-8zM12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5',moon:'M20 14A8 8 0 0110 4a8 8 0 1010 10z',dl:'M12 4v12m-5-5l5 5 5-5M5 20h14',help:'M9 9a3 3 0 116 0c0 2-3 2-3 4M12 17h.01',dup:'M8 8h11v11H8zM5 15V5h10',del:'M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13',front:'M8 8h11v11H8z',back:'M5 5h11v11H5z',fit:'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5',fill:'M4 4h16v16H4z',check:'M5 12l5 5 9-10'};
+const ic=n=>`<svg viewBox="0 0 24 24"><path d="${IC[n]}"/></svg>`;
+const PAL=['ink','#ef4444','#f59e0b','#22c55e','#3b82f6','#8b5cf6','#ec4899','#a8a29e'];
+const col=c=>c==='ink'?'var(--ink)':c;
+const TOOLS=[['select','選取','V'],['hand','平移','H'],['pen','畫筆','P'],['hl','螢光筆','L'],['eraser','橡皮擦','E'],['text','文字','T'],['rect','矩形','R'],['ellipse','圓形','O'],['arrow','箭頭','A'],['line','直線','N'],['image','圖片','I'],['cmt','評論','C']];
+const S={objs:new Map(),sel:new Set(),tool:'select',d:{c:'ink',sw:3,s:28,op:1,fo:0,fc:null,bw:0,rd:10,ww:0},recent:[],layers:[{id:'l1',name:'圖層 1',vis:true,lock:false}],al:'l1',pg:'p1',v:{x:0,y:0,k:1}};const cid=Math.random().toString(36).slice(2);
+const els=new Map(),busy=new Set(),hist=[],redo=[];let db=null,room=null,me='u'+Math.random().toString(36).slice(2,6),myc='#3b82f6',space=false;
+const rid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-3);
+const cl=o=>o?JSON.parse(JSON.stringify(o)):null;
+const hex=c=>c==='ink'?(R.dataset.wb==='dark'?'#f5f5f4':'#1c1917'):c;
+// ---------- UI build
+$('tools').innerHTML=TOOLS.map(([t,n,k])=>`<button class="b" data-t="${t}" data-k="${k}" title="${n} (${k})">${ic(t)}</button>`).join('');
+$('top').innerHTML=`<button class="b" id="bu" title="復原 (Ctrl+Z)">${ic('undo')}</button><button class="b" id="br" title="重做 (Ctrl+Shift+Z)">${ic('redo')}</button><div class="sp"></div><button class="b" id="bv" title="版本紀錄">${ic('hist')}</button><button class="b" id="bl" title="圖層 (F)">${ic('layers')}</button><button class="b on" id="bai" title="AI 分析（開／關）">${ic('ai')}</button><button class="b" id="bt" title="切換深淺色 (M)"></button><button class="b" id="bpl" title="放映 (F5)">${ic('play')}</button><button class="b" id="bsh" title="分享與權限">${ic('share')}</button><button class="b" id="be" title="匯出與備份 (Ctrl+E)">${ic('dl')}</button><button class="b" id="bh" title="快捷鍵 (?)">${ic('help')}</button>`;
+const FF={s:"-apple-system,'PingFang TC','Noto Sans TC','Segoe UI',sans-serif",f:"Georgia,'Songti TC','Noto Serif TC',serif",m:"ui-monospace,Menlo,Consolas,monospace"};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const R=document.documentElement;
+function toast(m){const t=$('toast');t.textContent=m;t.style.opacity=1;clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.opacity=0,2200)}
