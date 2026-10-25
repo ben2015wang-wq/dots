@@ -43,11 +43,13 @@ function props(){
  const has=(...a)=>a.some(x=>ty.has(x)),show=!RO&&(sel.length||!['select','hand','eraser','image','cmt'].includes(S.tool));
  $('props').style.display=show?'flex':'none';if(!show)return;
  const gv=(k,d)=>f?(f[k]??d):(S.d[k]??d),cc=gv('c','ink'),sw=c=>`<button data-c="${c}" class="${c===cc?'on':''}" style="background:${col(c)}"></button>`;
- const sl=(p,lab,mn,mx,v,sc=1,u='',stp=1)=>`<label>${lab}<span>${p==='ww'&&!v?'自動':Math.round(v)+u}</span></label><input type="range" data-p="${p}" data-sc="${sc}" data-u="${u}" min="${mn}" max="${mx}" step="${stp}" value="${v}">`;
+ const LIM={s:[1,999],ww:[0,5000],w:[5,5000],sw:[0,100],bw:[0,100],rd:[0,500]},nvi=(p,v,mn,mx,sc,stp,u,ph='')=>`<span class="nvw"><input type="number" class="nv" data-pn="${p}" data-mn="${mn}" data-mx="${mx}" data-sc="${sc}" step="${stp}" value="${v}" placeholder="${ph}">${u}</span>`;
+ const sl=(p,lab,mn,mx,v,sc=1,u='',stp=1)=>{const L=LIM[p]||[mn,mx];return `<label>${lab}${nvi(p,p==='ww'&&!v?'':Math.round(v),L[0],L[1],sc,stp,u,p==='ww'?'自動':'')}</label><input type="range" data-p="${p}" data-sc="${sc}" data-u="${u}" min="${mn}" max="${mx}" step="${stp}" value="${Math.min(mx,Math.max(mn,v))}">`};
  const onlyImg=ty.size===1&&has('img'),tx=has('text')&&!has('rect','ellipse'),fo=f?(f.fo??(f.fill?.18:0)):S.d.fo;
  let h=`<label>${onlyImg?'邊框顏色':'顏色'}</label><div class="sw">${[...PAL,...S.recent].map(sw).join('')}<div class="cp" title="自訂調色"><input type="color" data-col="c" value="${hex(cc)}"></div></div>`;
  if(has('rect','ellipse','text'))h+=`<div class="row" style="align-items:center;gap:8px"><span style="font-size:11px;color:var(--mut)">${tx?'背景色':'填色'}</span><div class="cp" title="${tx?'背景色':'填色'}"><input type="color" data-col="fc" value="${hex(gv('fc',null)||cc)}"></div><button class="b" style="width:auto;padding:0 8px;font-size:11px;height:24px" data-a="fcauto">同線色</button></div>`;
  if(sel.length===1&&['img','rect','ellipse'].includes(f.t))h+=sl('w','尺寸（寬）',20,1600,f.w);
+ if(sel.length===1)h+=`<label>角度${nvi('r',Math.round(((f.r||0)%360+360)%360),0,360,1,1,'°')}</label>`;
  if(has('text')){h+=sl('s','字級',12,160,gv('s',28));h+=sl('ww','換行寬度',0,1200,gv('ww',0)||0,1,'',10);
   const on=k=>(f?fmtOn(f,k):gv(k,false))?' on':'',al=gv('al','left'),ls=gv('ls',''),B=(k,t,tt,sty='')=>`<button class="b sm${on(k)}" data-f="${k}" title="${tt}" style="font-weight:700;${sty}">${t}</button>`,V=(k,v,ico,tt,cur)=>`<button class="b sm${cur===v?' on':''}" data-f="${k}" data-v="${v}" title="${tt}">${ico}</button>`;
   h+=`<div class="row" style="gap:3px">${B('b','B','粗體 (Ctrl+B)')}${B('i','I','斜體 (Ctrl+I)','font-style:italic')}${B('ul','U','底線 (Ctrl+U)','text-decoration:underline')}${B('st','S','刪除線','text-decoration:line-through')}<button class="b sm${f&&fmtOn(f,'h')?' on':''}" data-f="lk" title="文字連結 (Ctrl+K)">連結</button></div><div class="row" style="gap:3px">${V('al','left',ic('al1'),'靠左',al)}${V('al','center',ic('al2'),'置中',al)}${V('al','right',ic('al3'),'靠右',al)}${V('ls','bullet',ic('lb'),'項目符號',ls)}${V('ls','number',ic('ln'),'編號清單',ls)}</div><select data-ff="1">${[['s','預設字體'],['f','襯線體'],['m','等寬體']].map(([v,n])=>`<option value="${v}" ${gv('ff','s')===v?'selected':''}>${n}</option>`).join('')}</select><div style="font-size:10px;color:var(--mut)">編輯文字時，選取部分文字再按 B／I／U／S 或顏色，只會套用到選取的字。</div>`}
@@ -67,7 +69,9 @@ function setp(k,v){S.d[k]=v;if(k==='c'){chg(o=>{setColor(o,v);return{}})}else ch
 dAdd('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.t)setTool(b.dataset.t);if(b.dataset.c){if(!applySelColor(col(b.dataset.c)==='var(--ink)'?hex('ink'):b.dataset.c)){setp('c',b.dataset.c)}props()}if(b.dataset.a)act(b.dataset.a)});
 dAdd('input',e=>{const t=e.target,p=t.dataset.p;if(t.dataset.col){if(t.dataset.col==='c'&&applySelColor(t.value))return;setp(t.dataset.col,t.value);return}if(!p)return;const v=+t.value;
  if(p==='w')chg(o=>{const r=o.h/o.w,cx=o.x+o.w/2,cy=o.y+o.h/2,h=v*r;return{w:v,h,x:cx-v/2,y:cy-h/2}});else setp(p,v/(+t.dataset.sc||1));
- t.previousElementSibling.lastChild.textContent=p==='ww'&&!v?'自動':Math.round(v)+(t.dataset.u||'')});
+ const nb=t.previousElementSibling.querySelector('.nv');if(nb)nb.value=p==='ww'&&!v?'':Math.round(v)});
+dAdd('change',e=>{const t=e.target,p=t.dataset.pn;if(!p)return;if(t.value===''&&p!=='ww'||!isFinite(+t.value))return props();let v=Math.max(+t.dataset.mn,Math.min(+t.dataset.mx,+t.value||0));
+ if(p==='w')chg(o=>{const r=o.h/o.w,cx=o.x+o.w/2,cy=o.y+o.h/2,h=v*r;return{w:v,h,x:cx-v/2,y:cy-h/2}});else if(p==='r')chg({r:+(((v%360)+360)%360).toFixed(1)});else setp(p,v/(+t.dataset.sc||1));props();ovl()});
 dAdd('change',e=>{const t=e.target;if(t.id==='lsel'){chg({l:t.value});props();return}if(t.dataset.ff){setp('ff',t.value);props();refocus();return}if(t.dataset.col){const v=t.value;if(!PAL.includes(v)&&!S.recent.includes(v)){S.recent.unshift(v);S.recent.length=Math.min(S.recent.length,4);savePrefs()}props();refocus()}else if(t.dataset.p)props()});
 // ---------- theme / view
 function theme(t){if(t)R.dataset.wb=t;$('bt').innerHTML=ic(R.dataset.wb==='dark'?'sun':'moon');try{localStorage.setItem('wbtheme2',R.dataset.wb)}catch(e){}savePrefs()}
