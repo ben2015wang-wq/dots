@@ -86,3 +86,8 @@ select{background:var(--card);border:1px solid var(--bd);border-radius:10px;padd
 .gfab{display:none;position:fixed;left:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));width:46px;height:46px;padding:0;border-radius:50%;border:1px solid var(--bd2);background:var(--card);box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:20;place-items:center;overflow:hidden}
 .gfab .av{width:100%;height:100%;border-radius:50%;object-fit:cover;display:grid;place-items:center;font-weight:600;background:var(--hv);color:var(--mu)}
 @media(max-width:800px){.gfab{display:grid}body.nav .gfab{display:none}}
+
+#side{height:100%;overflow-y:auto}
+.foot{margin:auto -12px 0;padding:10px 12px calc(12px + env(safe-area-inset-bottom,0px))}
+.foot .acc{border-radius:12px}
+#syncst{display:none}

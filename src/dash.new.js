@@ -20,7 +20,7 @@ const WQ=new Map(),WF=new Set();let wt=0,wfail=0;
 function wq(path,fields,opt={}){const q=WQ.get(path)||{f:{}};if(opt.del){q.del=true;q.f={}}else{q.del=false;Object.assign(q.f,fields);if(opt.full)q.full=cln(opt.full)}WQ.set(path,q);if(ddb&&!wt)wt=setTimeout(wflush,250);syncState()}
 function wflush(){wt=0;if(!ddb)return;for(const[p,q]of[...WQ]){if(WF.has(p))continue;WQ.delete(p);wsend(p,q)}if(WQ.size&&!wt)wt=setTimeout(wflush,300)}
 async function wsend(p,q){WF.add(p);try{const r=ddb.doc(p);if(q.del)await r.delete();else{try{await r.update(q.f)}catch(e){if(q.full)await r.set(q.full);else throw e}}wfail=0}catch(e){wfail++;if(!WQ.has(p))WQ.set(p,q)}WF.delete(p);syncState();if(WQ.size&&!wt)wt=setTimeout(wflush,wfail?4000:300)}
-function syncState(){const e=$('#syncst');if(!e)return;const n=WQ.size+WF.size;e.textContent=window.__STANDALONE?'儲存在此瀏覽器':!ddb?(UID?'本機模式（無法連線）':'本機模式（未登入）'):n?`同步中…（${n}）`:'已同步到雲端';e.style.opacity=ddb&&!n?.6:1}
+function syncState(){const e=$('#syncst');if(!e)return;const n=WQ.size+WF.size;const t=window.__STANDALONE?'儲存在此瀏覽器':!ddb?(UID?'本機模式（無法連線）':'本機模式（未登入）'):n?`同步中…（${n}）`:'已同步到雲端';e.textContent=t;const sp=$('#gacc .t span');if(sp&&!window.__STANDALONE)sp.textContent=(window.__FB?'Google 帳號 · ':UID?'Claude 帳號 · ':'')+t}
 const itemFields=o=>{const f={};CORE.forEach(k=>{if(o[k]!==undefined)f[k]=o[k]});return f};
 function saveItem(o,extra){wq('dash/i_'+o.id,Object.assign(itemFields(o),extra||{}),{full:o});saveLocalState()}
 function saveFolder(f){wq('dash/f_'+f.id,{name:f.name,parent:f.parent||null,color:f.color,ord:f.ord,owner:f.owner||null},{full:f});saveLocalState()}
@@ -156,7 +156,7 @@ document.addEventListener('click',e=>{const m=$('#tpm');if(!m||m.style.display!=
 // ---------- account panel (identity comes from the viewer's Claude sign-in)
 let CLU=null;
 const GA={listeners:[],user:()=>null};
-function accUI(){accUI0();const f=$('#gfab'),g=$('#gacc');if(f&&g){const av=g.querySelector('.av');f.innerHTML=av?av.outerHTML:'';f.title=(g.querySelector('b')||{}).textContent||'帳號'}}
+function accUI(){accUI0();try{syncState()}catch(e){}const f=$('#gfab'),g=$('#gacc');if(f&&g){const av=g.querySelector('.av');f.innerHTML=av?av.outerHTML:'';f.title=(g.querySelector('b')||{}).textContent||'帳號'}}
 function accUI0(){const b=$('#gacc');if(!b)return;const u=CLU;if(window.__FB&&window.__ACCT&&window.__ACCT.user){const a=window.__ACCT.user;b.innerHTML=(a.photo?`<img class="av" src="${esc(a.photo)}" alt="" referrerpolicy="no-referrer">`:`<span class="av">${esc((a.name||'?').charAt(0).toUpperCase())}</span>`)+`<span class="t"><b>${esc(a.name||'已登入')}</b><span>Google 帳號 · 雲端同步</span></span>`;return}if(window.__STANDALONE){const a=(window.__ACCT||{}).user||{};b.innerHTML=(a.photo?`<img class="av" src="${esc(a.photo)}" alt="">`:a.name?`<span class="av">${esc(a.name.charAt(0).toUpperCase())}</span>`:`<span class="av">${ic('lock')}</span>`)+`<span class="t"><b>${esc(a.name||'本機使用者')}</b><span>資料存在這個瀏覽器</span></span>`;return}b.innerHTML=(u&&u.avatarUrl?`<img class="av" src="${u.avatarUrl}" alt="">`:`<span class="av">${u&&u.name?esc(u.name.charAt(0).toUpperCase()):ic('lock')}</span>`)+`<span class="t"><b>${UID?esc((u&&u.name)||'已登入'):'尚未登入'}</b><span>${UID?'Claude 帳號':'登入後才能同步與分享'}</span></span>`}
 let PFP='';
 function profForm(a){if(!(window.__ACCT&&window.__ACCT.updateProfile))return'';PFP=a.photo||'';
