@@ -99,9 +99,8 @@ const COVPOOL={board:[0,1,2,6,9],doc:[7,3],slide:[8,4],image:[5,9]};
 function thumb(i){if(i.cover==null)return dotsCover();const h=((i.seed||0)*57)%360,sd=i.seed||0,k=(+i.cover%COV.length+COV.length)%COV.length,g='g'+i.id;
  const A=`hsl(${h} 65% 68%)`,B=`hsl(${(h+45)%360} 70% 70%)`,C=`hsl(${(h+200)%360} 60% 72%)`;
  return `<svg viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="${g}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(${h} 30% 25%)"/><stop offset="1" stop-color="hsl(${(h+50)%360} 34% 12%)"/></linearGradient></defs><rect width="160" height="100" fill="url(#${g})"/>${COV[k](h,A,B,C)}</svg>`}
-// default cover: 3x3 dot grid with one filled dot, follows theme
-function dotsCover(){let c='';for(let r=0;r<3;r++)for(let q=0;q<3;q++){const on=r===1&&q===2,x=64+q*16,y=34+r*16;c+=`<circle cx="${x}" cy="${y}" r="5.2" fill="${on?'var(--cvf,#1c1c1e)':'none'}" stroke="var(--cvl,#8a8a8a)" stroke-width=".7"/>`}
- return `<svg viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice"><rect width="160" height="100" fill="var(--cvb,#fafaf9)"/>${c}</svg>`}
+// no captured preview yet: an empty canvas (what a blank board really looks like), no icon
+function dotsCover(){return `<svg viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice"><defs><pattern id="dcp" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r=".7" fill="var(--cvl,#8a8a8a)" fill-opacity=".45"/></pattern></defs><rect width="160" height="100" fill="var(--cvb,#fafaf9)"/><rect width="160" height="100" fill="url(#dcp)"/></svg>`}
 // ---------- folders (nested, coloured, orderable)
 const kids=p=>st.folders.filter(f=>(f.parent||null)===(p||null)).sort((a,b)=>(a.ord||0)-(b.ord||0)||a.name.localeCompare(b.name,'zh-Hant'));
 const desc=id=>{const o=[];const w=p=>kids(p).forEach(f=>{o.push(f.id);w(f.id)});w(id);return o};

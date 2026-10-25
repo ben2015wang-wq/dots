@@ -51,7 +51,7 @@ function subscribe(){unsubs.forEach(f=>{try{f()}catch(e){}});unsubs=[];if(!db)re
   s.docChanges().forEach(c=>{const id=c.doc.id;if(c.type==='removed'){if(!busy.has(id)&&!pend.has(id)){S.objs.delete(id);unpaint(id);S.sel.delete(id)}}else if(!busy.has(id)&&!pend.has(id)){const d=cln(c.doc.data());if(d&&d.t){if(d.u===cid&&S.objs.has(id))return;d.id=id;const old=S.objs.get(id);if(d.t==='img'&&old&&old.src&&old.iid===d.iid)d.src=old.src;else if(d.t==='img'&&d.iid&&IMG.has(d.iid))d.src=IMG.get(d.iid);S.objs.set(id,d);paint(d)}}});
   ovl();props();
   if(firstSnap){const empty=!s.docs||!s.docs.length;if(s.metadata&&s.metadata.fromCache&&empty){if(!fcTimer)fcTimer=setTimeout(()=>{if(firstSnap){firstSnap=false;seedBoard()}},2500);return}clearTimeout(fcTimer);firstSnap=false;seedBoard()}},e=>{db=null;syncUI();toast('同步中斷，改為本機模式');if(firstSnap){firstSnap=false;loadLocal();seedBoard()}}))}
-let verTimer=0;
+let verTimer=0,thTimer=0;
 function open(it){ITEM=it;BID=it.id;BP='b/'+it.id+'/';if(room)room.presence({n:me,c:myc,e:PF.emoji,b:BID,p:(it.pages&&it.pages[0]&&it.pages[0].id)||'p1'}).catch(()=>{});ROLE=it.role||'edit';RO=ROLE!=='edit';PGS=it.pages&&it.pages.length?it.pages.map(p=>({...p})):[{id:'p1',name:'頁面 1'}];ACT.on=true;PRES=false;
  const D=$('dots');D.classList.add('on');D.classList.toggle('ro',RO);D.classList.remove('pres');
  S.objs.clear();els.forEach(g=>g.remove());els.clear();S.sel.clear();hist.length=0;redo.length=0;pend.clear();infl.clear();fails.clear();CM.clear();VERS=[];dirty=false;lastVerHash='';cmOpen=null;lastErr=null;ta._o=null;ta.hidden=true;
@@ -60,13 +60,13 @@ function open(it){ITEM=it;BID=it.id;BP='b/'+it.id+'/';if(room)room.presence({n:m
  syncLayers();layerUI();pgUI();$('ititle').value=it.name;$('ititle').readOnly=RO;theme();setTool('select');applyV();ub();props();drawCmts();
  $('brand').dataset.role=RO?(ROLE==='comment'?'可留言':'唯讀'):'';
  if(db)subscribe();else{loadLocal();seedBoard()}
- syncUI();clearInterval(verTimer);verTimer=setInterval(()=>{if(ACT.on&&db&&!RO&&dirty)saveVersion('',true)},600000)}
+ syncUI();clearInterval(verTimer);verTimer=setInterval(()=>{if(ACT.on&&db&&!RO&&dirty)saveVersion('',true)},600000);clearInterval(thTimer);thTimer=setInterval(async()=>{if(!ACT.on||RO||document.hidden)return;const u=await snap();if(u)DASH.thumb(BID,u)},12000)}
 function snap(){return new Promise(res=>{try{if(RO)return res(null);const a=pgObjs().filter(o=>o.t!=='frame');if(!a.length||S.pg!==PGS[0].id)return res(null);const fr=S.objs.get('fr-'+S.pg);let x1,y1,x2,y2;if(fr){x1=fr.x;y1=fr.y;x2=fr.x+fr.w;y2=fr.y+fr.h}else{const b=bounds(a);x1=b.x1;y1=b.y1;x2=b.x2;y2=b.y2}let w=x2-x1+(fr?0:60),h=y2-y1+(fr?0:60);const cx=(x1+x2)/2,cy=(y1+y2)/2;if(w/h>1.6)h=w/1.6;else w=h*1.6;
  const cs=getComputedStyle($('dots')),inner=$('L').innerHTML.replace(/var\(--ink\)/g,cs.getPropertyValue('--ink').trim()).replace(/var\(--page\)/g,cs.getPropertyValue('--page').trim()||'#fff'),bg=cs.getPropertyValue('--bg').trim();
  const s=`<svg xmlns="${NS}" width="480" height="300" viewBox="${cx-w/2} ${cy-h/2} ${w} ${h}"><rect x="${cx-w/2}" y="${cy-h/2}" width="${w}" height="${h}" fill="${bg}"/>${inner}</svg>`,im=new Image();
  im.onload=()=>{const c=document.createElement('canvas');c.width=480;c.height=300;c.getContext('2d').drawImage(im,0,0);const u=c.toDataURL('image/jpeg',.72);res(u.length<200000?u:null)};im.onerror=()=>res(null);im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(s)}catch(e){res(null)}})}
 function indexText(){const t=[...S.objs.values()].filter(o=>o.t==='text'&&o.txt).map(o=>o.txt).concat([...CM.values()].flatMap(c=>(c.th||[]).map(m=>m.t))).join(' ').replace(/\s+/g,' ').trim();return t.slice(0,2500)}
-async function close(){if(!ACT.on)return;endPres();finishEdit();closeCmt();clearInterval(verTimer);const wasDirty=dirty&&!RO,u=await snap();
+async function close(){if(!ACT.on)return;endPres();finishEdit();closeCmt();clearInterval(verTimer);clearInterval(thTimer);const wasDirty=dirty&&!RO,u=await snap();
  if(!RO){if(u)DASH.thumb(BID,u);DASH.patch(BID,{ix:indexText()})}
  await Promise.race([flushNow(),new Promise(r=>setTimeout(r,5000))]);
  if(wasDirty&&db)await Promise.race([saveVersion('',true),new Promise(r=>setTimeout(r,6000))]);
