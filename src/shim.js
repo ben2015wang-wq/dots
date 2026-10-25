@@ -105,12 +105,28 @@ const READY=(async()=>{if(!CFG)return;
     resetProfile:async()=>{await FS.doc('profiles/'+FU.uid).set({name:GN,nameLower:GN.toLowerCase(),photo:GP,custom:false},{merge:true});PRF={name:GN,photo:GP,custom:false};const m=await fbUser.me();m.name=GN;m.avatarUrl=GP;window.__ACCT.user={...cur(),email:FU.email,custom:false}}};
    if(!PRF.custom){try{await FS.doc('profiles/'+FU.uid).set({name:GN,nameLower:GN.toLowerCase(),photo:GP},{merge:true})}catch(e){}}}
  }catch(e){console.error(e);window.__fbError=e.message||String(e);if(document.body){const t=document.createElement('div');t.textContent='無法連線到 Firebase，已改用本機模式：'+window.__fbError;t.style.cssText='position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:999;background:#b45309;color:#fff;padding:8px 14px;border-radius:10px;font:13px sans-serif;max-width:90vw';document.addEventListener('DOMContentLoaded',()=>{});setTimeout(()=>document.body&&document.body.appendChild(t),400);setTimeout(()=>t.remove(),9000)}}})();
-const AIP={anthropic:{n:'Anthropic（Claude）',m:'claude-sonnet-5-5',ms:['claude-sonnet-5-5','claude-opus-5-5','claude-haiku-5-5','claude-fable-5-1'],ph:'sk-ant-…'},openai:{n:'OpenAI（ChatGPT）',m:'gpt-4o',ms:['gpt-4o','gpt-4o-mini'],ph:'sk-…',base:'https://api.openai.com/v1'},gemini:{n:'Google Gemini',m:'gemini-2.0-flash',ms:['gemini-2.0-flash','gemini-1.5-pro'],ph:'AIza…'},custom:{n:'自訂（OpenAI 相容端點，例如 OpenRouter、Ollama）',m:'',ms:[],ph:'API 金鑰（本機模型可留空）'}};
+const AIP={anthropic:{n:'Anthropic（Claude）',m:'claude-sonnet-5-5',ms:['claude-sonnet-5-5','claude-opus-5-5','claude-haiku-5-5','claude-fable-5-1'],ph:'sk-ant-…'},openai:{n:'OpenAI（ChatGPT）',m:'gpt-4o',ms:['gpt-4o','gpt-4o-mini'],ph:'sk-…',base:'https://api.openai.com/v1'},gemini:{n:'Google Gemini',m:'gemini-2.0-flash',ms:['gemini-2.0-flash','gemini-1.5-pro'],ph:'AIza…'},local:{n:'本機模型（免金鑰、免費，在你的裝置上執行）',m:'auto',ms:['auto','chrome','webllm'],ph:''},custom:{n:'自訂（OpenAI 相容端點，例如 OpenRouter、Ollama）',m:'',ms:[],ph:'API 金鑰（本機模型可留空）'}};
 const aiCfg=()=>{let c={};try{c=JSON.parse(localStorage.getItem('dots-ai')||'{}')}catch(e){}if(!c.provider){let k='',m='';try{k=localStorage.getItem('dots-aikey')||'';m=localStorage.getItem('dots-aimodel')||''}catch(e){}if(k)c={provider:'anthropic',key:k,model:m}}return c};
 window.__AICFG=aiCfg;window.__AIP=AIP;
 const b2b64=b=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(b)});
-const sample=async(input,o={})=>{const c=aiCfg(),pv=c.provider;if(!pv||(pv!=='custom'&&!c.key)||(pv==='custom'&&!c.base))throw {code:'nokey',message:'尚未設定 AI'};
- const model=c.model||AIP[pv].m;if(!model)throw {code:'nokey',message:'尚未設定模型'};
+
+// ---- on-device models: Chrome built-in Prompt API, or WebLLM (WebGPU) ----
+const WL_MODEL='Qwen2.5-1.5B-Instruct-q4f16_1-MLC',WL_URL='https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.79/+esm';
+let CHS=null,WLE=null;
+const flatTxt=input=>typeof input==='string'?input:input.map(m=>(m.role==='assistant'?'助理：':'使用者：')+m.content).join('\n');
+async function chromeAvail(){try{if(typeof LanguageModel==='undefined')return'no';return await LanguageModel.availability()}catch(e){return'no'}}
+async function localRun(input,o,mode){const txt=flatTxt(input);let eng=mode;
+ if(eng==='auto'){const a=await chromeAvail();eng=(a==='available'||a==='downloadable'||a==='downloading')?'chrome':'webllm'}
+ if(eng==='chrome'){const a=await chromeAvail();if(a==='no'||a==='unavailable')throw {code:'nolocal',message:'這個瀏覽器沒有內建 AI（需要較新的桌面版 Chrome，並啟用 Prompt API）。可改選 webllm。'};
+  if(!CHS){o.onProgress&&o.onProgress({text:'準備瀏覽器內建模型…',pct:0});CHS=await LanguageModel.create({monitor(m){m.addEventListener('downloadprogress',e=>o.onProgress&&o.onProgress({text:'下載模型中',pct:Math.round(e.loaded*100)}))}})}
+  let text='';const st=CHS.promptStreaming(txt,{signal:o.signal});const rd=st.getReader();for(;;){const {done,value}=await rd.read();if(done)break;text=(typeof value==='string'&&value.startsWith(text)&&text)?value:text+value;o.onText&&o.onText({text,delta:''})}return{text,truncated:false}}
+ if(!navigator.gpu)throw {code:'nolocal',message:'這個瀏覽器不支援 WebGPU，無法在本機執行模型。請改用桌面版 Chrome 或 Edge，或改用有金鑰的服務。'};
+ if(!WLE){o.onProgress&&o.onProgress({text:'載入本機模型引擎…',pct:0});let w;try{w=await import(WL_URL)}catch(e){throw {code:'network',message:'無法載入本機模型引擎，請檢查網路'}}
+  WLE=await w.CreateMLCEngine(WL_MODEL,{initProgressCallback:p=>o.onProgress&&o.onProgress({text:'下載並載入模型（只需第一次，約 1 GB）',pct:Math.round((p.progress||0)*100)})})}
+ let text='';const it=await WLE.chat.completions.create({messages:[{role:'user',content:txt}],stream:true,max_tokens:1024});
+ for await(const ch of it){if(o.signal&&o.signal.aborted)throw new DOMException('Aborted','AbortError');const t=(((ch.choices||[])[0]||{}).delta||{}).content||'';if(t){text+=t;o.onText&&o.onText({text,delta:t})}}return{text,truncated:false}}
+const sample=async(input,o={})=>{const c=aiCfg(),pv=c.provider;if(!pv||(pv!=='custom'&&pv!=='local'&&!c.key)||(pv==='custom'&&!c.base))throw {code:'nokey',message:'尚未設定 AI'};
+ if(pv==='local')return localRun(input,o,c.model||'auto');const model=c.model||AIP[pv].m;if(!model)throw {code:'nokey',message:'尚未設定模型'};
  const imgs=[];if(o.images&&o.images.length)for(const im of o.images)imgs.push({type:im.type||'image/png',data:await b2b64(im)});
  const msgs=typeof input==='string'?[{role:'user',content:input}]:input.map(m=>({role:m.role,content:m.content}));
  let url,headers={'content-type':'application/json'},body,pick;
@@ -128,7 +144,7 @@ const sample=async(input,o={})=>{const c=aiCfg(),pv=c.provider;if(!pv||(pv!=='cu
  const rd=r.body.getReader(),dec=new TextDecoder();let buf='',text='';
  for(;;){const {done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});let i;while((i=buf.indexOf('\n'))>=0){const ln=buf.slice(0,i).trim();buf=buf.slice(i+1);if(!ln.startsWith('data:')||ln.includes('[DONE]'))continue;try{const t=pick(JSON.parse(ln.slice(5)));if(t){text+=t;o.onText&&o.onText({text,delta:t})}}catch(e){}}}
  return {text,truncated:false}};
-sample.limits=async()=>({images:true});sample.json=async(i,o)=>JSON.parse((await sample(i,o)).text);
+sample.limits=async()=>({images:aiCfg().provider!=='local'});sample.json=async(i,o)=>JSON.parse((await sample(i,o)).text);
 const caps={db:async()=>{await READY;if(MODE==='firebase')return fbDb;await init();return db},user:async()=>{await READY;return MODE==='firebase'?fbUser:user},room:async()=>{await READY;return MODE==='firebase'?fbRoom:room},downloads:async()=>downloads,sample:async()=>sample};
 window.claude={use:async n=>caps[n]?caps[n]():null};
 })();

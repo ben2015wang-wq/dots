@@ -109,12 +109,28 @@ const READY=(async()=>{if(!CFG)return;
     resetProfile:async()=>{await FS.doc('profiles/'+FU.uid).set({name:GN,nameLower:GN.toLowerCase(),photo:GP,custom:false},{merge:true});PRF={name:GN,photo:GP,custom:false};const m=await fbUser.me();m.name=GN;m.avatarUrl=GP;window.__ACCT.user={...cur(),email:FU.email,custom:false}}};
    if(!PRF.custom){try{await FS.doc('profiles/'+FU.uid).set({name:GN,nameLower:GN.toLowerCase(),photo:GP},{merge:true})}catch(e){}}}
  }catch(e){console.error(e);window.__fbError=e.message||String(e);if(document.body){const t=document.createElement('div');t.textContent='無法連線到 Firebase，已改用本機模式：'+window.__fbError;t.style.cssText='position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:999;background:#b45309;color:#fff;padding:8px 14px;border-radius:10px;font:13px sans-serif;max-width:90vw';document.addEventListener('DOMContentLoaded',()=>{});setTimeout(()=>document.body&&document.body.appendChild(t),400);setTimeout(()=>t.remove(),9000)}}})();
-const AIP={anthropic:{n:'Anthropic（Claude）',m:'claude-sonnet-5-5',ms:['claude-sonnet-5-5','claude-opus-5-5','claude-haiku-5-5','claude-fable-5-1'],ph:'sk-ant-…'},openai:{n:'OpenAI（ChatGPT）',m:'gpt-4o',ms:['gpt-4o','gpt-4o-mini'],ph:'sk-…',base:'https://api.openai.com/v1'},gemini:{n:'Google Gemini',m:'gemini-2.0-flash',ms:['gemini-2.0-flash','gemini-1.5-pro'],ph:'AIza…'},custom:{n:'自訂（OpenAI 相容端點，例如 OpenRouter、Ollama）',m:'',ms:[],ph:'API 金鑰（本機模型可留空）'}};
+const AIP={anthropic:{n:'Anthropic（Claude）',m:'claude-sonnet-5-5',ms:['claude-sonnet-5-5','claude-opus-5-5','claude-haiku-5-5','claude-fable-5-1'],ph:'sk-ant-…'},openai:{n:'OpenAI（ChatGPT）',m:'gpt-4o',ms:['gpt-4o','gpt-4o-mini'],ph:'sk-…',base:'https://api.openai.com/v1'},gemini:{n:'Google Gemini',m:'gemini-2.0-flash',ms:['gemini-2.0-flash','gemini-1.5-pro'],ph:'AIza…'},local:{n:'本機模型（免金鑰、免費，在你的裝置上執行）',m:'auto',ms:['auto','chrome','webllm'],ph:''},custom:{n:'自訂（OpenAI 相容端點，例如 OpenRouter、Ollama）',m:'',ms:[],ph:'API 金鑰（本機模型可留空）'}};
 const aiCfg=()=>{let c={};try{c=JSON.parse(localStorage.getItem('dots-ai')||'{}')}catch(e){}if(!c.provider){let k='',m='';try{k=localStorage.getItem('dots-aikey')||'';m=localStorage.getItem('dots-aimodel')||''}catch(e){}if(k)c={provider:'anthropic',key:k,model:m}}return c};
 window.__AICFG=aiCfg;window.__AIP=AIP;
 const b2b64=b=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(b)});
-const sample=async(input,o={})=>{const c=aiCfg(),pv=c.provider;if(!pv||(pv!=='custom'&&!c.key)||(pv==='custom'&&!c.base))throw {code:'nokey',message:'尚未設定 AI'};
- const model=c.model||AIP[pv].m;if(!model)throw {code:'nokey',message:'尚未設定模型'};
+
+// ---- on-device models: Chrome built-in Prompt API, or WebLLM (WebGPU) ----
+const WL_MODEL='Qwen2.5-1.5B-Instruct-q4f16_1-MLC',WL_URL='https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.79/+esm';
+let CHS=null,WLE=null;
+const flatTxt=input=>typeof input==='string'?input:input.map(m=>(m.role==='assistant'?'助理：':'使用者：')+m.content).join('\n');
+async function chromeAvail(){try{if(typeof LanguageModel==='undefined')return'no';return await LanguageModel.availability()}catch(e){return'no'}}
+async function localRun(input,o,mode){const txt=flatTxt(input);let eng=mode;
+ if(eng==='auto'){const a=await chromeAvail();eng=(a==='available'||a==='downloadable'||a==='downloading')?'chrome':'webllm'}
+ if(eng==='chrome'){const a=await chromeAvail();if(a==='no'||a==='unavailable')throw {code:'nolocal',message:'這個瀏覽器沒有內建 AI（需要較新的桌面版 Chrome，並啟用 Prompt API）。可改選 webllm。'};
+  if(!CHS){o.onProgress&&o.onProgress({text:'準備瀏覽器內建模型…',pct:0});CHS=await LanguageModel.create({monitor(m){m.addEventListener('downloadprogress',e=>o.onProgress&&o.onProgress({text:'下載模型中',pct:Math.round(e.loaded*100)}))}})}
+  let text='';const st=CHS.promptStreaming(txt,{signal:o.signal});const rd=st.getReader();for(;;){const {done,value}=await rd.read();if(done)break;text=(typeof value==='string'&&value.startsWith(text)&&text)?value:text+value;o.onText&&o.onText({text,delta:''})}return{text,truncated:false}}
+ if(!navigator.gpu)throw {code:'nolocal',message:'這個瀏覽器不支援 WebGPU，無法在本機執行模型。請改用桌面版 Chrome 或 Edge，或改用有金鑰的服務。'};
+ if(!WLE){o.onProgress&&o.onProgress({text:'載入本機模型引擎…',pct:0});let w;try{w=await import(WL_URL)}catch(e){throw {code:'network',message:'無法載入本機模型引擎，請檢查網路'}}
+  WLE=await w.CreateMLCEngine(WL_MODEL,{initProgressCallback:p=>o.onProgress&&o.onProgress({text:'下載並載入模型（只需第一次，約 1 GB）',pct:Math.round((p.progress||0)*100)})})}
+ let text='';const it=await WLE.chat.completions.create({messages:[{role:'user',content:txt}],stream:true,max_tokens:1024});
+ for await(const ch of it){if(o.signal&&o.signal.aborted)throw new DOMException('Aborted','AbortError');const t=(((ch.choices||[])[0]||{}).delta||{}).content||'';if(t){text+=t;o.onText&&o.onText({text,delta:t})}}return{text,truncated:false}}
+const sample=async(input,o={})=>{const c=aiCfg(),pv=c.provider;if(!pv||(pv!=='custom'&&pv!=='local'&&!c.key)||(pv==='custom'&&!c.base))throw {code:'nokey',message:'尚未設定 AI'};
+ if(pv==='local')return localRun(input,o,c.model||'auto');const model=c.model||AIP[pv].m;if(!model)throw {code:'nokey',message:'尚未設定模型'};
  const imgs=[];if(o.images&&o.images.length)for(const im of o.images)imgs.push({type:im.type||'image/png',data:await b2b64(im)});
  const msgs=typeof input==='string'?[{role:'user',content:input}]:input.map(m=>({role:m.role,content:m.content}));
  let url,headers={'content-type':'application/json'},body,pick;
@@ -132,7 +148,7 @@ const sample=async(input,o={})=>{const c=aiCfg(),pv=c.provider;if(!pv||(pv!=='cu
  const rd=r.body.getReader(),dec=new TextDecoder();let buf='',text='';
  for(;;){const {done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});let i;while((i=buf.indexOf('\n'))>=0){const ln=buf.slice(0,i).trim();buf=buf.slice(i+1);if(!ln.startsWith('data:')||ln.includes('[DONE]'))continue;try{const t=pick(JSON.parse(ln.slice(5)));if(t){text+=t;o.onText&&o.onText({text,delta:t})}}catch(e){}}}
  return {text,truncated:false}};
-sample.limits=async()=>({images:true});sample.json=async(i,o)=>JSON.parse((await sample(i,o)).text);
+sample.limits=async()=>({images:aiCfg().provider!=='local'});sample.json=async(i,o)=>JSON.parse((await sample(i,o)).text);
 const caps={db:async()=>{await READY;if(MODE==='firebase')return fbDb;await init();return db},user:async()=>{await READY;return MODE==='firebase'?fbUser:user},room:async()=>{await READY;return MODE==='firebase'?fbRoom:room},downloads:async()=>downloads,sample:async()=>sample};
 window.claude={use:async n=>caps[n]?caps[n]():null};
 })();
@@ -581,15 +597,15 @@ function aiForm(){const c=(window.__AICFG&&window.__AICFG())||{},P=window.__AIP|
  <select id="aipv" style="width:100%;margin-bottom:8px">${Object.keys(P).map(k=>`<option value="${k}"${k===pv?' selected':''}>${esc(P[k].n)}</option>`).join('')}</select>
  <div id="aibase" style="display:${pv==='custom'?'block':'none'};margin-bottom:8px"><input id="aiurl" class="ssr" style="width:100%" placeholder="端點網址，例如 https://openrouter.ai/api/v1" value="${esc(pv==='custom'?c.base||'':'')}"></div>
  <input id="aimod" class="ssr" list="aiml" style="width:100%;margin-bottom:8px" placeholder="模型名稱" value="${esc(c.model||cur.m)}"><datalist id="aiml">${(cur.ms||[]).map(x=>`<option value="${esc(x)}">`).join('')}</datalist>
- <input id="aik" type="password" class="ssr" autocomplete="off" style="width:100%" placeholder="${esc(cur.ph)}" value="${c.key?'••••••••••••':''}">
+ <p class="fine" id="ailoc" style="display:${pv==='local'?'block':'none'};margin:0 0 8px">不需要金鑰、完全免費，模型直接在你的電腦上執行，內容不會送出。第一次使用要下載模型（約 1 GB），需要支援 WebGPU 的桌面版 Chrome／Edge；品質和速度不如雲端模型，也無法分析圖片。模型名稱欄可填：auto（自動選擇）、chrome（瀏覽器內建 AI）、webllm（下載開源模型）。</p><input id="aik" type="password" class="ssr" autocomplete="off" style="width:100%;display:${pv==='local'?'none':'block'}" placeholder="${esc(cur.ph)}" value="${c.key?'••••••••••••':''}">
  <div style="display:flex;gap:8px;margin-top:8px"><button class="btn sm" data-g="aisave">儲存</button>${c.provider?'<button class="btn sm gh" data-g="aiclr">移除</button>':''}<span class="fine" id="aim" style="align-self:center;margin:0"></span></div></div>`}
 window.__aiForm=aiForm;
 function gDlg(){gDlg0();const m=$('#gam');if(!window.__STANDALONE||!m||m.querySelector('.aif'))return;const f=m.querySelector('.fine');if(f)f.insertAdjacentHTML('beforebegin',aiForm())}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-g="aisave"],[data-g="aiclr"]');if(!b)return;const msg=$('#aim');if(b.dataset.g==='aiclr'){try{localStorage.removeItem('dots-ai');localStorage.removeItem('dots-aikey');localStorage.removeItem('dots-aimodel')}catch(x){}if(b.closest('#air')){window.__AISETUP();toast('已移除 AI 設定');return}gDlg();toast('已移除 AI 設定');return}
  const pv=$('#aipv').value,old=window.__AICFG()||{},kv=$('#aik').value.trim(),key=/^•+$/.test(kv)&&old.provider===pv?old.key:(/^•+$/.test(kv)?'':kv),model=$('#aimod').value.trim(),base=($('#aiurl')||{value:''}).value.trim();
- if(pv!=='custom'&&!key){msg.textContent='請輸入金鑰';return}if(!model){msg.textContent='請輸入模型名稱';return}if(pv==='custom'&&!/^https?:\/\//.test(base)){msg.textContent='請輸入完整的端點網址';return}
+ if(pv!=='custom'&&pv!=='local'&&!key){msg.textContent='請輸入金鑰';return}if(!model){msg.textContent='請輸入模型名稱';return}if(pv==='custom'&&!/^https?:\/\//.test(base)){msg.textContent='請輸入完整的端點網址';return}
  try{localStorage.setItem('dots-ai',JSON.stringify({provider:pv,key,model,base:pv==='custom'?base:''}))}catch(x){msg.textContent='無法儲存（瀏覽器封鎖了儲存空間）';return}if(b.closest('#air')){toast('已儲存 AI 設定');window.__AIRERUN&&window.__AIRERUN();return}gDlg();toast('已儲存 AI 設定')});
-document.addEventListener('change',e=>{if(e.target.id!=='aipv')return;const P=window.__AIP,pv=e.target.value,cur=P[pv];$('#aibase').style.display=pv==='custom'?'block':'none';$('#aimod').value=cur.m;$('#aik').value='';$('#aik').placeholder=cur.ph;$('#aiml').innerHTML=(cur.ms||[]).map(x=>`<option value="${esc(x)}">`).join('')});
+document.addEventListener('change',e=>{if(e.target.id!=='aipv')return;const P=window.__AIP,pv=e.target.value,cur=P[pv];$('#aibase').style.display=pv==='custom'?'block':'none';$('#aimod').value=cur.m;$('#aik').value='';$('#aik').placeholder=cur.ph;$('#aik').style.display=pv==='local'?'none':'block';$('#ailoc').style.display=pv==='local'?'block':'none';$('#aiml').innerHTML=(cur.ms||[]).map(x=>`<option value="${esc(x)}">`).join('')});
 </script><style>
 #dots{--page:#ffffff;--bg:#fafaf9;--dot:#d6d3d1;--ink:#1c1917;--pn:rgba(255,255,255,.86);--bd:rgba(0,0,0,.08);--mut:#78716c;--ac:#3b82f6;--hv:rgba(0,0,0,.06);--sh:0 8px 30px rgba(0,0,0,.10);color-scheme:light}
 :root[data-wb="dark"] #dots{--page:#1c1c20;--bg:#0c0a09;--dot:#35312e;--ink:#f5f5f4;--pn:rgba(28,25,23,.86);--bd:rgba(255,255,255,.09);--mut:#a8a29e;--hv:rgba(255,255,255,.09);--sh:0 8px 30px rgba(0,0,0,.5);color-scheme:dark}
@@ -1203,12 +1219,12 @@ function aiHead(){const hasT=AI.ids.some(i=>(S.objs.get(i)||{}).t==='text');$('a
 function aiOpen(){if(!AI.on)return toast('AI 分析目前是關閉的，可點上方 ✦ 開啟');const ids=[...S.sel].filter(i=>{const o=S.objs.get(i);return o&&(o.t==='text'||o.t==='img')});if(!ids.length)return toast('請先選取文字或圖片');AI.ids=ids;if(AI.mode==='r'&&!ids.some(i=>S.objs.get(i).t==='text'))AI.mode='a';$('aip').style.display='flex';aiHead();aiRun()}
 function aiSetup(msg){const out=$('air');out.style.whiteSpace='normal';out.style.maxHeight='52vh';out.innerHTML=(msg?`<div class="fine" style="margin:0 0 8px">${msg}</div>`:'')+(window.__aiForm?window.__aiForm():'')}
 window.__AISETUP=()=>aiSetup('');window.__AIRERUN=()=>aiRun();
-function aiReady(){const c=(window.__AICFG&&window.__AICFG())||{};return !!(c.provider&&(c.provider==='custom'?c.base:c.key))}
+function aiReady(){const c=(window.__AICFG&&window.__AICFG())||{};return !!(c.provider&&(c.provider==='local'||(c.provider==='custom'?c.base:c.key)))}
 async function aiRun(){const out0=$('air');out0.style.whiteSpace='';out0.style.maxHeight='';if(!aiReady()){aiSetup('使用 AI 分析前，請先導入你自己的 AI。選擇服務、填入金鑰與模型後按「儲存」，就會立刻開始分析。');return}if(AI.ac)AI.ac.abort();const out=$('air'),os=AI.ids.map(i=>S.objs.get(i)).filter(Boolean),tx=os.filter(o=>o.t==='text').map(o=>o.txt).join('\n---\n'),im=os.filter(o=>o.t==='img');AI.text='';out.textContent='分析中…';
  try{const sm=await claude.use('sample');if(!sm)throw{code:'unavailable'};let images;if(im.length){await loadImgs(im);const lim=await sm.limits();const srcs=im.map(imgSrc).filter(s=>s&&s.startsWith('data:'));if(lim.images&&srcs.length)images=srcs.map(d2b);else toast('目前環境不支援圖片分析，只會分析文字')}
   const ac=AI.ac=new AbortController(),prompt=MODES[AI.mode][1]+(tx?'\n\n文字內容：\n'+tx:'')+(images?`\n\n（另附 ${images.length} 張圖片）`:'');
-  const r=await sm(prompt,{images,signal:ac.signal,cache:false,onText:u=>{AI.text=u.text;out.textContent=u.text}});AI.text=r.text;out.textContent=r.text||'（沒有結果）'}
- catch(e){if(e&&e.name==='AbortError')return;if(e&&(e.code==='nokey'||e.code==='badkey')){aiSetup(e.code==='nokey'?'請先設定 AI。':'金鑰無效或沒有權限，請重新設定。');return}out.textContent=e&&e.code==='not_granted'?'你尚未同意使用 AI，請再按一次分析並選擇允許。':e&&e.code==='rate_limited'?'使用太頻繁，請稍後再試。':'AI 目前無法使用'+(e&&e.message?'：'+e.message:'')}}
+  const r=await sm(prompt,{images,signal:ac.signal,cache:false,onProgress:p=>{out.textContent=p.text+(p.pct?'… '+p.pct+'%':'')},onText:u=>{AI.text=u.text;out.textContent=u.text}});AI.text=r.text;out.textContent=r.text||'（沒有結果）'}
+ catch(e){if(e&&e.name==='AbortError')return;if(e&&e.code==='nolocal'){out.textContent=e.message;return}if(e&&(e.code==='nokey'||e.code==='badkey')){aiSetup(e.code==='nokey'?'請先設定 AI。':'金鑰無效或沒有權限，請重新設定。');return}out.textContent=e&&e.code==='not_granted'?'你尚未同意使用 AI，請再按一次分析並選擇允許。':e&&e.code==='rate_limited'?'使用太頻繁，請稍後再試。':'AI 目前無法使用'+(e&&e.message?'：'+e.message:'')}}
 function aiPut(){if(RO||!AI.text)return;const a=AI.ids.map(i=>S.objs.get(i)).filter(Boolean);if(!a.length)return;const x=Math.max(...a.map(o=>o.x+o.w))+50,y=Math.min(...a.map(o=>o.y)),o={id:rid(),t:'text',x,y,w:10,h:30,r:0,txt:AI.text,s:18,c:'ink',op:1,ww:340,fo:.1,fc:null,bw:1,rd:10,z:Date.now()};put(o);commit([[o.id,null,cl(o)]]);toast('已放到畫布')}
 dAdd('click',async e=>{const b=e.target.closest('[data-ai]');if(!b)return;const a=b.dataset.ai;
  if(a==='cfg'){const o=$('air');if(o.querySelector('.aif'))aiRun();else aiSetup('');return}if(a==='key'){DASH.gdlg();return}if(a==='close'){if(AI.ac)AI.ac.abort();$('aip').style.display='none'}else if(a==='stop'){if(AI.ac)AI.ac.abort()}else if(a==='put')aiPut();
