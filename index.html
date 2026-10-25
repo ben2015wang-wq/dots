@@ -926,7 +926,8 @@ const IMG=new Map(),TINY='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEA
 function pathOf(o){const p=o.pts;if(p.length<2)return`M${p[0][0]} ${p[0][1]}l.01 0`;if(o.cv&&p.length===2){const a=p[0],b=p[1];return o.cd==='v'?`M${a[0]} ${a[1]}C${a[0]} ${(a[1]+b[1])/2} ${b[0]} ${(a[1]+b[1])/2} ${b[0]} ${b[1]}`:`M${a[0]} ${a[1]}C${(a[0]+b[0])/2} ${a[1]} ${(a[0]+b[0])/2} ${b[1]} ${b[0]} ${b[1]}`}let d=`M${p[0][0]} ${p[0][1]}`;for(let i=1;i<p.length-1;i++){const a=p[i],b=p[i+1];d+=`Q${a[0]} ${a[1]} ${(a[0]+b[0])/2} ${(a[1]+b[1])/2}`}const l=p[p.length-1];return d+`L${l[0]} ${l[1]}`}
 const imgSrc=o=>o.src||(o.iid&&IMG.get(o.iid))||null;
 function glassSVG(o,pd){const k=Math.max(.4,Math.min(2.2,(o.fo>0?o.fo:.14)/.14)),x=-pd,y=-pd,w=o.w+2*pd,h=o.h+2*pd,r=Math.min(o.rd??22,w/2,h/2),i='gl'+String(o.id).replace(/[^\w]/g,''),a=v=>Math.min(1,v*k).toFixed(3);
- return `<defs><linearGradient id="${i}f" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="${a(.30)}"/><stop offset=".5" stop-color="#fff" stop-opacity="${a(.09)}"/><stop offset="1" stop-color="#fff" stop-opacity="${a(.20)}"/></linearGradient>
+ return `<defs><linearGradient id="${i}f" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--ink)" stop-opacity="${a(.14)}"/><stop offset=".5" stop-color="var(--ink)" stop-opacity="${a(.05)}"/><stop offset="1" stop-color="var(--ink)" stop-opacity="${a(.12)}"/></linearGradient>
+<linearGradient id="${i}h" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="${a(.26)}"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity="${a(.10)}"/></linearGradient>
 <linearGradient id="${i}r" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset=".38" stop-color="#fff" stop-opacity=".16"/><stop offset=".62" stop-color="#fff" stop-opacity=".12"/><stop offset="1" stop-color="#fff" stop-opacity=".7"/></linearGradient>
 <linearGradient id="${i}g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
 <clipPath id="${i}c"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}"/></clipPath>
@@ -934,6 +935,8 @@ function glassSVG(o,pd){const k=Math.max(.4,Math.min(2.2,(o.fo>0?o.fo:.14)/.14))
 <filter id="${i}b" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="3"/></filter></defs>
 <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="#808080" fill-opacity=".001" filter="url(#${i}s)" pointer-events="none"/>
 <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="url(#${i}f)" pointer-events="all"/>
+<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="url(#${i}h)" pointer-events="none"/>
+<rect x="${x+.5}" y="${y+.5}" width="${w-1}" height="${h-1}" rx="${r}" fill="none" stroke="var(--ink)" stroke-opacity=".2" stroke-width="1" pointer-events="none"/>
 <g clip-path="url(#${i}c)" pointer-events="none"><rect x="${x}" y="${y}" width="${w}" height="${h*.5}" fill="url(#${i}g)" opacity=".55"/><rect x="${x+1}" y="${y+1}" width="${w-2}" height="${h-2}" rx="${r}" fill="none" stroke="#fff" stroke-opacity="${a(.22)}" stroke-width="5" filter="url(#${i}b)"/></g>
 <rect x="${x+.7}" y="${y+.7}" width="${w-1.4}" height="${h-1.4}" rx="${r}" fill="none" stroke="url(#${i}r)" stroke-width="1.4" pointer-events="none"/>`}
 function paint(o){if(typeof o.h==='string'){o.lk=o.h;o.h=Math.max(20,Math.round((o.s||28)*1.25))}if((o.pg||PGS[0].id)!==S.pg){unpaint(o.id);return}let g=els.get(o.id);if(!g){g=document.createElementNS(NS,'g');g.dataset.id=o.id;els.set(o.id,g);layerEl(o.t==='frame'?'__f':o.l).appendChild(g)}
