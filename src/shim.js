@@ -1,3 +1,4 @@
+window.DOTS_FIREBASE={apiKey:"AIzaSyBfuO5iP4SXyYDjiYdeecUPT4T7sOaqOvw",authDomain:"dots-1773a.firebaseapp.com",projectId:"dots-1773a",storageBucket:"dots-1773a.firebasestorage.app",messagingSenderId:"804197027890",appId:"1:804197027890:web:531a27fbfa1f2064a1ec2b"};
 // DOTS standalone runtime: a local stand-in for the Claude page runtime (db / user / room / downloads).
 // Data lives in this browser's IndexedDB; tabs of the same browser stay in sync through BroadcastChannel.
 (function(){
