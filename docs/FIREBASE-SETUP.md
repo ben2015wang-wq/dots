@@ -7,25 +7,27 @@
 4. **專案設定 → 一般 → 你的應用程式 → 新增網頁應用程式**，複製 `firebaseConfig`。
 
 ## 2. 貼上安全規則（Firestore → 規則）
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /data/users/{uid}/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
-    }
-    match /profiles/{uid} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == uid;
-    }
-    match /presence/{id}       { allow read, write: if request.auth != null; }
-    match /dash/{id}           { allow read, write: if request.auth != null; }
-    match /thumbs/{id}         { allow read, write: if request.auth != null; }
-    match /b/{board}/{col}/{id} { allow read, write: if request.auth != null; }
-  }
-}
-```
-這份規則只要求「有登入」。任何登入的人都能讀寫所有作品；作品的「分享名單」只由頁面本身執行，懂技術的人可以繞過。
+規則檔在專案根目錄的 `firestore.rules`。打開它，**整份複製**，貼到 Firebase 主控台的 Firestore Database → 規則，按「發布」。
+
+**順序很重要：** 先確認網站已更新成新版（會用 `where` 查詢自己的作品），**再**發布規則。舊版網頁會一次讀取所有作品，新規則會拒絕這種查詢，舊版會看不到任何作品。發布後請把已開著的分頁重新整理。
+
+這份規則在伺服器端執行：
+- 每個作品只有建立者、分享名單內的人、或（依連結模式）知道連結的人能讀取；
+- 連結模式有三種：知道連結可編輯、知道連結僅檢視、關閉連結（只有名單）；
+- 只有建立者能改分享設定、資料夾位置與擁有者；其他編輯者只能改內容、名稱與時間；
+- 每個人只能寫入自己的在線狀態、個人資料與私人資料區（星號、垃圾桶標記等）。
+
+### 發布後怎麼確認沒問題
+1. 用你自己的帳號登入，作品庫要正常顯示、能開啟並編輯。
+2. 把一個作品設成「關閉連結」，用另一個 Google 帳號開啟連結，應該看到「連結已關閉或沒有權限」。
+3. 設成「知道連結僅檢視」，用另一個帳號開啟，應該是唯讀。
+4. 若全部作品突然消失或出現「權限不足」，到規則頁面的「記錄」（歷史版本）把上一版還原，再回報問題。
+
+### 費用提醒
+規則會在存取每個作品的內容時讀取一次該作品的設定文件（算 1 次讀取）。多人頻繁編輯時，讀取次數會比以前多。免費額度每天 5 萬次讀取，使用量大時請留意用量頁面。
+
+### 安全規則尚未在真實環境測試
+這份規則是依資料結構撰寫，我這邊沒有 Firebase 模擬器可以驗證。請照上面的確認步驟實測；也可以用主控台規則頁面的「規則遊樂場」模擬讀寫。
 
 ## 3. 把設定放進網頁（二選一）
 - **寫死在檔案裡（建議，團隊共用）**：用文字編輯器開 `dots-standalone.html`，在最前面的 `<script>` 之前加入

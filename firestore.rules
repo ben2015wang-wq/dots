@@ -1,0 +1,129 @@
+rules_version = '2';
+
+// DOTS Firestore security rules.
+//
+// Data layout used by the app
+//   dash/i_<id>   one document per work (owner, acl, memberIds, editIds, viewIds, cmtIds, ...)
+//   dash/f_<id>   one document per folder (owner)
+//   b/<id>/...    the content of a work: objs, imgs, vers, vparts, cmt, meta
+//   thumbs/<id>   card preview of a work
+//   presence/...  who is online right now
+//   profiles/<uid> public display name / avatar
+//   data/users/<uid>/...  private per-user documents (prefs, marks, ...)
+//
+// Link modes (acl.mode on the work): "open" = anyone signed in who has the link can edit,
+// "view" = anyone signed in who has the link can only view, "list" = link is off, only the
+// owner and the people on the share list can open it.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function me() { return request.auth.uid; }
+
+    // ---- helpers over a "dash/i_<id>" document's data ----
+    function modeOf(d) { return d.get('acl', {}).get('mode', 'open'); }
+    function ownerOf(d) { return d.get('owner', null); }
+    function isOwnerOf(d) { return ownerOf(d) == me(); }
+    function canReadItem(d) {
+      return isOwnerOf(d)
+          || me() in d.get('memberIds', [])
+          || modeOf(d) != 'list';
+    }
+    function canEditItem(d) {
+      return isOwnerOf(d)
+          || me() in d.get('editIds', [])
+          || modeOf(d) == 'open';
+    }
+    function canCommentItem(d) {
+      return canEditItem(d) || me() in d.get('cmtIds', []);
+    }
+
+    // the item document that governs a board's content
+    function itemPath(bid) { return /databases/$(database)/documents/dash/$('i_' + bid); }
+    function itemData(bid) { return get(itemPath(bid)).data; }
+    // A board whose item document does not exist yet (just created, the item write is still
+    // in flight) may be written by any signed in user; once the item exists it governs access.
+    function boardRead(bid) { return signedIn() && (!exists(itemPath(bid)) || canReadItem(itemData(bid))); }
+    function boardEdit(bid) { return signedIn() && (!exists(itemPath(bid)) || canEditItem(itemData(bid))); }
+    function boardComment(bid) { return signedIn() && (!exists(itemPath(bid)) || canCommentItem(itemData(bid))); }
+
+    // ---- works and folders ----
+    // Fields only the owner may change on a shared work.
+    function ownerOnlyKeys() {
+      return ['owner', 'acl', 'memberIds', 'editIds', 'viewIds', 'cmtIds',
+              'folder', 'star', 'trash', 'type', 'ord', 'seed'];
+    }
+
+    match /dash/{docId} {
+      allow read: if signedIn() && (
+          resource.data.get('owner', null) == me()
+          || me() in resource.data.get('memberIds', [])
+          || (docId.matches('i_.*') && modeOf(resource.data) != 'list')
+          || docId in ['seeded', 'migrated', 'index']
+      );
+
+      // a new work or folder must be created by (and owned by) the signed-in user
+      allow create: if signedIn() && (
+          ((docId.matches('i_.*') || docId.matches('f_.*')) && request.resource.data.get('owner', null) == me())
+          || docId in ['seeded', 'migrated', 'index']
+      );
+
+      allow update: if signedIn() && (
+          // the owner (may not hand the work to someone else)
+          (isOwnerOf(resource.data) && request.resource.data.get('owner', null) == me())
+          // works created before owners existed
+          || (docId.matches('i_.*') && ownerOf(resource.data) == null)
+          // other editors may rename it, refresh its index/preview time and so on, but not
+          // change ownership, sharing, folder placement, etc.
+          || (docId.matches('i_.*') && canEditItem(resource.data)
+              && !request.resource.data.diff(resource.data).affectedKeys().hasAny(ownerOnlyKeys()))
+          // anyone who can open it may record that they opened it (only their own entry)
+          || (docId.matches('i_.*') && canReadItem(resource.data)
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['seen'])
+              && request.resource.data.get('seen', {}).diff(resource.data.get('seen', {})).affectedKeys().hasOnly([me()]))
+          || docId in ['seeded', 'migrated', 'index']
+      );
+
+      allow delete: if signedIn() && (
+          isOwnerOf(resource.data)
+          || (docId.matches('i_.*') && ownerOf(resource.data) == null)
+          || docId in ['seeded', 'migrated', 'index']
+      );
+    }
+
+    // ---- board content ----
+    match /b/{bid}/cmt/{docId} {
+      allow read: if boardRead(bid);
+      allow write: if boardComment(bid);
+    }
+    match /b/{bid}/{col}/{docId} {
+      allow read: if boardRead(bid);
+      allow write: if boardEdit(bid);
+    }
+
+    // ---- card previews follow the same access as the work itself ----
+    match /thumbs/{bid} {
+      allow read: if boardRead(bid);
+      allow write: if boardEdit(bid);
+    }
+
+    // ---- who is online: anyone signed in may see it, you may only write your own entries ----
+    match /presence/{pid} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && pid.matches(me() + '_.*') && request.resource.data.get('uid', null) == me();
+      allow delete: if signedIn() && pid.matches(me() + '_.*');
+    }
+
+    // ---- public profile (name, avatar) ----
+    match /profiles/{uid} {
+      allow read: if signedIn();
+      allow write: if signedIn() && uid == me();
+    }
+
+    // ---- private per-user data ----
+    match /data/users/{uid}/{document=**} {
+      allow read, write: if signedIn() && uid == me();
+    }
+  }
+}

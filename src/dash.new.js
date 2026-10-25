@@ -7,7 +7,7 @@ const FCOL=['#ef4444','#f59e0b','#22c55e','#3b82f6','#8b5cf6','#ec4899','#14b8a6
 const R=document.documentElement,THUMBS={},cid=uid();let ddb=null,UID=null,UDB=null,usrN=null,UOWN=false;try{const t=localStorage.getItem('wbtheme2');if(t)R.dataset.wb=t}catch(e){}
 // ---------- state: one document per item / folder (no more whole-index overwrite)
 const st={items:[],folders:[]},by=id=>st.items.find(i=>i.id===id),fby=id=>st.folders.find(f=>f.id===id);
-const CORE=['name','type','folder','star','trash','ts','pages','owner','acl','ord','seed'];
+const CORE=['name','type','folder','star','trash','ts','pages','owner','acl','memberIds','editIds','viewIds','cmtIds','ord','seed'];
 function seedData(){const n=Date.now(),r=(k,name,type,folder,star,ago)=>({id:'s'+k,name,type,folder,star,trash:false,ts:n-ago,seed:(k*137)%997});
  return{folders:[{id:'fs1',name:'專案 A',parent:null,color:FCOL[3],ord:1},{id:'fs2',name:'設計探索',parent:null,color:FCOL[4],ord:2},{id:'fs3',name:'封存',parent:null,color:FCOL[7],ord:3}],items:[
  r(1,'產品路線圖','board','fs1',1,.4*H),r(2,'品牌視覺探索','board','fs2',1,3*H),r(3,'使用者訪談紀錄','doc','fs1',0,7*H),r(4,'第四季營運簡報','slide','fs1',0,30*H),r(5,'登陸頁線框','board','fs2',0,2*D),r(6,'行銷活動腦力激盪','board',null,0,3*D),r(7,'設計系統規範','doc','fs2',1,5*D),r(8,'會議白板 10/21','board',null,0,6*D),r(9,'專案時程','board','fs1',0,9*D),r(10,'插畫素材 01','image','fs2',0,12*D),r(11,'競品分析','slide',null,0,16*D),r(12,'頭像草稿','image','fs2',0,21*D),r(13,'年度回顧','slide','fs3',0,40*D),r(14,'App 流程圖','board','fs3',0,66*D)]}}
@@ -30,7 +30,7 @@ async function cloneBoard(src,dst){if(!ddb)return;for(const c of['objs','imgs','
 // incoming docs
 const SEEN=new Set();
 function applyDoc(id,d,removed){if(!removed)SEEN.add(id);
- if(id.startsWith('i_')){const k=id.slice(2);if(removed){st.items=st.items.filter(i=>i.id!==k);return}if(WQ.has(id)||WF.has(id)){const o=by(k);if(o)return}d.id=k;const o=by(k);if(o)Object.assign(o,d);else st.items.push(d)}
+ if(id.startsWith('i_')){const k=id.slice(2);if(removed){st.items=st.items.filter(i=>i.id!==k);return}if(WQ.has(id)||WF.has(id)){const o=by(k);if(o)return}d.id=k;const o=by(k);const it2=o?Object.assign(o,d):(st.items.push(d),d);if(PERS()&&it2.owner===UID&&it2.acl&&(it2.acl.members||[]).length&&!it2.memberIds){aclIds(it2);saveItem(it2)}}
  else if(id.startsWith('f_')){const k=id.slice(2);if(removed){st.folders=st.folders.filter(f=>f.id!==k);return}if(WQ.has(id)||WF.has(id))return;if(PERS()&&d.owner!==UID)return;d.id=k;const o=fby(k);if(o)Object.assign(o,d);else st.folders.push(d)}}
 let firstDash=true,dashTimer=0,legacy=null,haveMarkers={};
 function afterFirst(){firstDash=false;clearTimeout(dashTimer);
@@ -51,9 +51,19 @@ let LIVE={},livesig='',PDOCS=[];
 function liveCalc(){const now=Date.now(),m={};PDOCS.forEach(d=>{let v;try{v=cln(d.data())}catch(e){return}const p=v&&v.p;if(!p||!p.b||!p.n||now-(v.ts||0)>20000||v.uid===UID)return;(m[p.b]=m[p.b]||[]).push({n:p.n,ed:!!((p.s&&p.s.length)||p.ed)})});const sig=JSON.stringify(m);if(sig!==livesig){livesig=sig;LIVE=m;render()}}
 function liveWatch(x){if(!window.__FB)return;try{x.collection('presence').onSnapshot(s=>{PDOCS=s.docs||[];liveCalc()},()=>{});setInterval(liveCalc,5000)}catch(e){}}
 const liveChip=id=>{const a=LIVE[id];if(!a||!a.length)return'';const nm=a.slice(0,2).map(x=>esc(x.n)).join('、')+(a.length>2?' 等'+a.length+'人':''),ed=a.some(x=>x.ed);return`<span class="live" title="${esc(a.map(x=>x.n).join('、'))}"><i></i>${nm} ${ed?'正在編輯':'正在檢視'}</span>`};
-function connect(x){ddb=x;if(!x)return;syncState();liveWatch(x);
- x.collection('dash').onSnapshot(s=>{s.docChanges().forEach(c=>{const id=c.doc.id;if(id==='index'){if(c.type!=='removed')legacy=cln(c.doc.data());return}if(id==='seeded'||id==='migrated'){haveMarkers[id]=c.type!=='removed';return}applyDoc(id,c.type==='removed'?null:cln(c.doc.data()),c.type==='removed')});
-  if(firstDash){const empty=!s.docs||!s.docs.length;if(s.metadata&&s.metadata.fromCache&&empty){if(!dashTimer)dashTimer=setTimeout(()=>{if(firstDash)afterFirst()},2500);return}afterFirst()}else render();saveLocalState()},()=>{ddb=null;syncState()});
+const FIRSTS=new Set(),RECW=new Set();
+function dashChg(s){s.docChanges().forEach(c=>{const id=c.doc.id;if(id==='index'){if(c.type!=='removed')legacy=cln(c.doc.data());return}if(id==='seeded'||id==='migrated'){haveMarkers[id]=c.type!=='removed';return}applyDoc(id,c.type==='removed'?null:cln(c.doc.data()),c.type==='removed')})}
+function dashHandler(tag,need){return s=>{dashChg(s);if(firstDash){const empty=!s.docs||!s.docs.length;if(s.metadata&&s.metadata.fromCache&&empty){if(!dashTimer)dashTimer=setTimeout(()=>{if(firstDash)afterFirst()},2500);return}FIRSTS.add(tag);if(FIRSTS.size>=need)afterFirst()}else render();saveLocalState()}}
+// items opened through a link (not mine, not on a share list) are watched one by one
+function watchOne(id){if(!ddb||RECW.has(id))return;RECW.add(id);ddb.doc('dash/i_'+id).onSnapshot(s=>{if(s.exists)applyDoc('i_'+id,cln(s.data()),false);else{const o=by(id);if(o&&o.owner!==UID)applyDoc('i_'+id,null,true)}render()},e=>{RECW.delete(id);if(e&&e.code==='permission-denied'){const o=by(id);if(o&&o.owner!==UID){st.items=st.items.filter(i=>i.id!==id);render()}}})}
+function watchRec(){Object.keys(REC).sort((a,b)=>REC[b]-REC[a]).slice(0,40).forEach(id=>{const o=by(id);if(!o||o.owner!==UID)watchOne(id)})}
+function connect(x){ddb=x;if(!x)return;syncState();liveWatch(x);const err=()=>{ddb=null;syncState()};
+ if(PERS()&&x.collection('dash').where){
+  x.collection('dash').where('owner','==',UID).onSnapshot(dashHandler('own',2),err);
+  x.collection('dash').where('memberIds','array-contains',UID).onSnapshot(dashHandler('mem',2),()=>{FIRSTS.add('mem');if(firstDash&&FIRSTS.size>=2)afterFirst()});
+  watchRec();
+  try{x.doc('data/users/'+UID+'/marks').onSnapshot(s=>{if(s.exists){const d=cln(s.data());MK={star:d.star||{},trash:d.trash||{},gone:d.gone||{}};try{localStorage.setItem('dots-marks:'+UID,JSON.stringify(MK))}catch(e){}render()}},()=>{})}catch(e){}
+ }else x.collection('dash').onSnapshot(dashHandler('all',1),err);
 }
 // ---------- thumbnails: loaded lazily, only for cards that scroll into view
 const TQ=[];let tfly=0;const tseen=new Set();
@@ -61,9 +71,20 @@ function wantThumb(id){if(THUMBS[id]||tseen.has(id)||!ddb)return;tseen.add(id);T
 function tpump(){while(tfly<4&&TQ.length){const id=TQ.shift();tfly++;ddb.doc('thumbs/'+id).get().then(s=>{tfly--;if(s.exists){const v=s.data();if(v&&v.d){THUMBS[id]=v.d;const c=$(`.card[data-id="${id}"] .th`);if(c){const b=[...c.querySelectorAll('button')];c.querySelectorAll('svg:not(.i),img').forEach(e=>e.remove());c.insertAdjacentHTML('afterbegin',`<img src="${THUMBS[id]}" alt="">`)}}}tpump()}).catch(()=>{tfly--;tseen.delete(id);tpump()})}}
 const IO=typeof IntersectionObserver!=='undefined'?new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){IO.unobserve(e.target);wantThumb(e.target.dataset.id)}}),{rootMargin:'300px'}):null;
 // ---------- access control (enforced by this page only — see share dialog text)
-function roleOf(it){const a=it.acl;if(!a||a.mode!=='list')return'edit';if(it.owner&&it.owner===UID)return'edit';if(!it.owner&&UID)return'edit';if(UOWN)return'edit';const m=(a.members||[]).find(m=>UID&&m.id===UID);return m?m.role:'none'}
+// per-user star / trash / hidden marks (stored in the user's own private doc; shared items are not affected)
+let MK={star:{},trash:{},gone:{}};
+function marksLoad(){try{const j=JSON.parse(localStorage.getItem('dots-marks:'+UID));if(j)MK={star:j.star||{},trash:j.trash||{},gone:j.gone||{}}}catch(e){}}
+function marksSave(){try{localStorage.setItem('dots-marks:'+UID,JSON.stringify(MK))}catch(e){}clearTimeout(marksSave.h);marksSave.h=setTimeout(()=>{if(UDB&&UID)UDB.doc('data/users/'+UID+'/marks').set(MK).catch(()=>{})},600)}
+const isStar=i=>{if(!PERS())return!!i.star;const v=MK.star[i.id];return v!==undefined?!!v:(i.owner===UID&&!!i.star)};
+const isTrash=i=>{if(!PERS())return!!i.trash;const v=MK.trash[i.id];return v!==undefined?!!v:(i.owner===UID&&!!i.trash)};
+function setMark(i,k,v){if(!PERS()){i[k]=v;saveItem(i);return}if(v)MK[k][i.id]=1;else if(i.owner===UID&&i[k])MK[k][i.id]=0;else delete MK[k][i.id];marksSave()}
+function mark(L,k,v,msg){L.forEach(id=>{const o=by(id);if(o)setMark(o,k,v)});render();if(msg)toast(msg)}
+function mvf(L,fid,msg){let skip=0;L.forEach(id=>{const o=by(id);if(!o)return;if(PERS()&&o.owner&&o.owner!==UID){skip++;return}o.folder=fid;saveItem(o);setMark(o,'trash',false)});render();toast(skip?'別人分享給你的作品無法移到你的資料夾':msg)}
+function delOne(id){const o=by(id);if(o&&PERS()&&o.owner&&o.owner!==UID){MK.gone[id]=1;delete MK.trash[id];delete MK.star[id];delete REC[id];recSave();marksSave();st.items=st.items.filter(i=>i.id!==id);saveLocalState()}else delItem(id)}
+function aclIds(it){const m=(it.acl&&it.acl.members)||[],by=r=>m.filter(x=>x.role===r).map(x=>x.id);it.memberIds=m.map(x=>x.id);it.editIds=by('edit');it.viewIds=by('view');it.cmtIds=by('comment')}
+function roleOf(it){const a=it.acl;if(!a||(a.mode!=='list'&&a.mode!=='view'))return'edit';if(it.owner&&it.owner===UID)return'edit';if(!it.owner&&UID)return'edit';if(UOWN)return'edit';const m=(a.members||[]).find(m=>UID&&m.id===UID);return m?m.role:(a.mode==='view'?'view':'none')}
 const PERS=()=>!!window.__FB&&!!UID;
-const visible=i=>{if(roleOf(i)==='none')return false;if(!PERS())return true;return i.owner===UID||!!(i.acl&&(i.acl.members||[]).some(m=>m.id===UID))||!!REC[i.id]};
+const visible=i=>{if(roleOf(i)==='none')return false;if(!PERS())return true;if(MK.gone[i.id])return false;return i.owner===UID||!!(i.acl&&(i.acl.members||[]).some(m=>m.id===UID))||!!REC[i.id]};
 const DASH={patch(id,p){const it=by(id);if(!it)return;Object.assign(it,p);const f={};Object.keys(p).forEach(k=>{f[k]=p[k]===undefined?null:p[k]});wq('dash/i_'+id,f,{full:it});saveLocalState()},thumb(id,u){THUMBS[id]=u;tseen.add(id);if(ddb)wq('thumbs/'+id,{d:u},{full:{d:u}})},exit(){return closeEd()},art(id){const it=by(id);return it?thumb(it).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '):''},share(id){shareDlg(id)},gdlg(){gDlg()}};
 function setTheme(t){R.dataset.wb=t;try{localStorage.setItem('wbtheme2',t)}catch(e){}$('#thm').innerHTML=ic(t==='dark'?'sun':'moon')}
 const V={nav:'all',q:'',type:'all',sort:'new',mode:'grid',sel:new Set()};
@@ -107,15 +128,15 @@ const desc=id=>{const o=[];const w=p=>kids(p).forEach(f=>{o.push(f.id);w(f.id)})
 const path=id=>{const o=[];let f=fby(id),g=0;while(f&&g++<20){o.unshift(f.name);f=f.parent?fby(f.parent):null}return o.join(' / ')};
 // ---------- listing + content search
 const snip=(it,q)=>{const t=it.ix||'',k=t.toLowerCase().indexOf(q);if(k<0)return'';const a=Math.max(0,k-14);return(a?'…':'')+t.slice(a,k+q.length+30)};
-function list(){let a=st.items.filter(visible);a=a.filter(i=>V.nav==='trash'?i.trash:!i.trash);
- if(V.nav==='star')a=a.filter(i=>i.star);else if(V.nav==='recent')a=a.filter(i=>REC[i.id]);else if(V.nav==='shared')a=a.filter(i=>i.owner!==UID);else if(!['all','trash'].includes(V.nav))a=a.filter(i=>i.folder===V.nav);
+function list(){let a=st.items.filter(visible);a=a.filter(i=>V.nav==='trash'?isTrash(i):!isTrash(i));
+ if(V.nav==='star')a=a.filter(isStar);else if(V.nav==='recent')a=a.filter(i=>REC[i.id]);else if(V.nav==='shared')a=a.filter(i=>i.owner!==UID);else if(!['all','trash'].includes(V.nav))a=a.filter(i=>i.folder===V.nav);
  if(V.type!=='all')a=a.filter(i=>i.type===V.type);
  if(V.q){const q=V.q.toLowerCase();a=a.filter(i=>i.name.toLowerCase().includes(q)||(i.ix||'').toLowerCase().includes(q)||T[i.type].includes(q))}
  const f=V.nav==='recent'?(x,y)=>(REC[y.id]||0)-(REC[x.id]||0):{new:(x,y)=>y.ts-x.ts,old:(x,y)=>x.ts-y.ts,name:(x,y)=>x.name.localeCompare(y.name,'zh-Hant'),type:(x,y)=>T[x.type].localeCompare(T[y.type],'zh-Hant')||y.ts-x.ts}[V.sort];return a.sort(f)}
 const card=i=>{const q=V.q.toLowerCase(),hit=q&&!i.name.toLowerCase().includes(q)?snip(i,q):'',lock=i.acl&&i.acl.mode==='list';
- return`<article class="card${V.sel.has(i.id)?' sel':''}" draggable="true" data-id="${i.id}"><div class="th">${THUMBS[i.id]?`<img src="${THUMBS[i.id]}" alt="">`:thumb(i)}<button class="st${i.star?' on':''}" data-a="star" title="加上星號" aria-label="加上星號">${ic('star')}</button><button class="mn" data-a="menu" title="更多操作" aria-label="更多操作">${ic('dots')}</button>${liveChip(i.id)}</div><div class="ft"><div class="nm" title="${esc(i.name)}">${esc(i.name)}</div><div class="mt"><span class="tg">${T[i.type]}</span>${lock?`<span title="已限制分享對象">${ic('lock')}</span>`:''}<span title="${full(i.ts)}">${V.nav==='recent'&&REC[i.id]?'開啟於 '+rel(REC[i.id]):rel(i.ts)}</span></div>${hit?`<div class="hit">內容：${esc(hit)}</div>`:''}</div></article>`};
-function nav(){const live=st.items.filter(i=>!i.trash&&visible(i)),c=f=>live.filter(f).length,row=(id,ico,l,n)=>`<div class="nv${V.nav===id?' on':''}" data-nav="${id}" tabindex="0">${ic(ico)}<span class="l">${l}</span><span class="n">${n}</span></div>`;
- $('#nv').innerHTML=(PERS()?`<div class="wsn">${esc(((CLU&&CLU.name)||(window.__ACCT&&window.__ACCT.user&&window.__ACCT.user.name)||'我')+' 的工作頁面')}</div>`:'')+row('all','all','所有作品',live.length)+row('recent','clock','最近開啟',c(i=>REC[i.id]))+(PERS()?row('shared','share','與我共用',c(i=>i.owner!==UID)):'')+row('star','star','已加星號',c(i=>i.star))+row('trash','trash','垃圾桶',st.items.filter(i=>i.trash&&visible(i)).length)+`<div class="nv" data-help="1" tabindex="0">${ic('help')}<span class="l">功能介紹</span></div>`;
+ return`<article class="card${V.sel.has(i.id)?' sel':''}" draggable="true" data-id="${i.id}"><div class="th">${THUMBS[i.id]?`<img src="${THUMBS[i.id]}" alt="">`:thumb(i)}<button class="st${isStar(i)?' on':''}" data-a="star" title="加上星號" aria-label="加上星號">${ic('star')}</button><button class="mn" data-a="menu" title="更多操作" aria-label="更多操作">${ic('dots')}</button>${liveChip(i.id)}</div><div class="ft"><div class="nm" title="${esc(i.name)}">${esc(i.name)}</div><div class="mt"><span class="tg">${T[i.type]}</span>${lock?`<span title="已限制分享對象">${ic('lock')}</span>`:''}<span title="${full(i.ts)}">${V.nav==='recent'&&REC[i.id]?'開啟於 '+rel(REC[i.id]):rel(i.ts)}</span></div>${hit?`<div class="hit">內容：${esc(hit)}</div>`:''}</div></article>`};
+function nav(){const live=st.items.filter(i=>!isTrash(i)&&visible(i)),c=f=>live.filter(f).length,row=(id,ico,l,n)=>`<div class="nv${V.nav===id?' on':''}" data-nav="${id}" tabindex="0">${ic(ico)}<span class="l">${l}</span><span class="n">${n}</span></div>`;
+ $('#nv').innerHTML=(PERS()?`<div class="wsn">${esc(((CLU&&CLU.name)||(window.__ACCT&&window.__ACCT.user&&window.__ACCT.user.name)||'我')+' 的工作頁面')}</div>`:'')+row('all','all','所有作品',live.length)+row('recent','clock','最近開啟',c(i=>REC[i.id]))+(PERS()?row('shared','share','與我共用',c(i=>i.owner!==UID)):'')+row('star','star','已加星號',c(isStar))+row('trash','trash','垃圾桶',st.items.filter(i=>isTrash(i)&&visible(i)).length)+`<div class="nv" data-help="1" tabindex="0">${ic('help')}<span class="l">功能介紹</span></div>`+(window.__INST?`<div class="nv" data-install="1" tabindex="0">${ic('plus')}<span class="l">安裝成 App</span></div>`:'');
  const rows=(p,d)=>kids(p).map(f=>{const k=kids(f.id),open=f.open!==false;return`<div class="nv${V.nav===f.id?' on':''}" data-nav="${f.id}" data-f="${f.id}" tabindex="0" style="padding-left:${10+d*14}px"><button class="tg2${k.length?'':' h'}${open?' o':''}" data-a="ftog" aria-label="展開或收合">${ic('chev')}</button><svg class="i" viewBox="0 0 24 24" style="color:${f.color||'var(--mu)'}"><path d="${P.folder}" fill="${f.color||'none'}" fill-opacity=".25"/></svg><span class="l">${esc(f.name)}</span><span class="n">${c(i=>i.folder===f.id)}</span><button class="x" data-a="fmenu" title="資料夾選項" aria-label="資料夾選項">${ic('dots')}</button></div>`+(open?rows(f.id,d+1):'')}).join('');
  $('#fl').innerHTML=rows(null,0)||'<div class="mu">還沒有資料夾，按上方 ＋ 新增</div>'}
 function render(){nav();const a=list();[...V.sel].forEach(id=>{if(!a.some(i=>i.id===id))V.sel.delete(id)});
@@ -135,12 +156,12 @@ function renameFolder(id){const r=$(`[data-f="${id}"] .l`);if(!r)return;const f=
 function newFolder(parent){const sib=kids(parent||null),f={id:uid(),name:'新資料夾',owner:UID||null,parent:parent||null,color:FCOL[7],ord:(sib.length?Math.max(...sib.map(x=>x.ord||0)):0)+1};st.folders.push(f);if(parent){const p=fby(parent);p.open=true}saveFolder(f);nav();renameFolder(f.id)}
 function create(type,tpl){const me=UID||null,it={id:uid(),name:tpl?tpl.name:'未命名'+T[type],type,folder:fby(V.nav)?V.nav:null,star:false,trash:false,ts:Date.now(),seed:Math.floor(Math.random()*997),owner:me};if(tpl)it.tpl=tpl.id;st.items.push(it);if(['trash','star','recent'].includes(V.nav))V.nav='all';V.type='all';V.q='';$('#q').value='';V.sel=new Set([it.id]);saveItem(it,tpl?{tpl:tpl.id}:{});render();if(tpl)openItem(it.id);else rename(it.id)}
 function menu(m,x,y){const e=$('#menu');e.innerHTML='';m.forEach(k=>{const d=document.createElement('div');if(k==='-'){d.className='ms'}else{d.className='mi'+(k[2]?' d':'');d.textContent=k[0];d.onclick=()=>{e.style.display='none';k[1]()}}e.appendChild(d)});e.style.display='block';e.style.left=Math.max(8,Math.min(x,innerWidth-e.offsetWidth-8))+'px';e.style.top=Math.max(8,Math.min(y,innerHeight-e.offsetHeight-8))+'px'}
-function folderPick(L,x,y){const m=[['頂層（不放在資料夾）',()=>mv(L,i=>i.folder=null,'已移出資料夾')]];const w=(p,d)=>kids(p).forEach(f=>{m.push([' '.repeat(d)+f.name,()=>mv(L,i=>{i.folder=f.id;i.trash=false},'已移至「'+f.name+'」')]);w(f.id,d+1)});w(null,0);menu(m,x,y)}
+function folderPick(L,x,y){const m=[['頂層（不放在資料夾）',()=>mvf(L,null,'已移出資料夾')]];const w=(p,d)=>kids(p).forEach(f=>{m.push([' '.repeat(d)+f.name,()=>mvf(L,f.id,'已移至「'+f.name+'」')]);w(f.id,d+1)});w(null,0);menu(m,x,y)}
 function itemMenu(id,x,y){const L=ids(id),it=by(id),m=[];
- if(it.trash)m.push(['還原',()=>mv(L,i=>i.trash=false,'已還原')],['永久刪除',()=>{L.forEach(delItem);V.sel.clear();render();toast('已永久刪除')},1]);
- else{const s=!it.star;if(L.length===1)m.push(['開啟',()=>openItem(id)],['重新命名',()=>rename(id)]);if(L.length===1)m.push(['分享與權限…',()=>shareDlg(id)]);m.push([s?'加上星號':'移除星號',()=>mv(L,i=>i.star=s,'已更新星號')],['建立副本',()=>dup(L)],'-',['移到資料夾…',()=>folderPick(L,x,y)]);if(it.folder)m.push(['移出資料夾',()=>mv(L,i=>i.folder=null,'已移出資料夾')]);m.push('-',['移到垃圾桶',()=>mv(L,i=>i.trash=true,'已移到垃圾桶'),1])}
+ if(isTrash(it))m.push(['還原',()=>mark(L,'trash',false,'已還原')],[PERS()&&it.owner&&it.owner!==UID?'從我的清單移除':'永久刪除',()=>{L.forEach(delOne);V.sel.clear();render();toast('已永久刪除')},1]);
+ else{const s=!isStar(it);if(L.length===1)m.push(['開啟',()=>openItem(id)],['重新命名',()=>rename(id)]);if(L.length===1)m.push(['分享與權限…',()=>shareDlg(id)]);m.push([s?'加上星號':'移除星號',()=>mark(L,'star',s,'已更新星號')],['建立副本',()=>dup(L)],'-',['移到資料夾…',()=>folderPick(L,x,y)]);if(it.folder)m.push(['移出資料夾',()=>mvf(L,null,'已移出資料夾')]);m.push('-',['移到垃圾桶',()=>mark(L,'trash',true,'已移到垃圾桶'),1])}
  menu(m,x,y)}
-async function dup(L){for(const x of L){const o=by(x);if(!o)continue;const n={...cln(o),id:uid(),name:o.name+' 副本',ts:Date.now(),owner:UID||o.owner||null};delete n.data;delete n.tpl;st.items.push(n);saveItem(n,{ix:o.ix||''});if(ddb){toast('正在複製內容…');await cloneBoard(o.id,n.id)}if(THUMBS[o.id])DASH.thumb(n.id,THUMBS[o.id])}render();toast('已建立副本')}
+async function dup(L){for(const x of L){const o=by(x);if(!o)continue;const n={...cln(o),id:uid(),name:o.name+' 副本',ts:Date.now(),owner:UID||o.owner||null};delete n.data;delete n.tpl;if(o.owner!==UID)['acl','memberIds','editIds','viewIds','cmtIds','seen'].forEach(k=>delete n[k]);st.items.push(n);saveItem(n,{ix:o.ix||''});if(ddb){toast('正在複製內容…');await cloneBoard(o.id,n.id)}if(THUMBS[o.id])DASH.thumb(n.id,THUMBS[o.id])}render();toast('已建立副本')}
 function folderMenu(id,x,y){const f=fby(id),sib=kids(f.parent||null),i=sib.findIndex(s=>s.id===id),m=[['重新命名',()=>renameFolder(id)],['新增子資料夾',()=>newFolder(id)],['顏色…',()=>menu(FCOL.map(c=>[({'#ef4444':'紅','#f59e0b':'橙','#22c55e':'綠','#3b82f6':'藍','#8b5cf6':'紫','#ec4899':'粉','#14b8a6':'青','#a8a29e':'灰'})[c],()=>{f.color=c;saveFolder(f);render()}]),x,y)],'-'];
  if(i>0)m.push(['上移',()=>swapOrd(sib[i-1],f)]);if(i<sib.length-1)m.push(['下移',()=>swapOrd(f,sib[i+1])]);
  m.push(['移到…',()=>{const bad=new Set([id,...desc(id)]),mm=[['頂層',()=>reparent(f,null)]];const w=(p,d)=>kids(p).forEach(g=>{if(bad.has(g.id))return;mm.push([' '.repeat(d)+g.name,()=>reparent(f,g.id)]);w(g.id,d+1)});w(null,0);menu(mm,x,y)}],'-',['刪除資料夾',()=>delFolder(id),1]);menu(m,x,y)}
@@ -148,11 +169,11 @@ function swapOrd(a,b){const ids=kids(a.parent||null);ids.forEach((f,i)=>{if(f.or
 function reparent(f,p){const sib=kids(p);f.parent=p;f.ord=(sib.length?Math.max(...sib.map(x=>x.ord||0)):0)+1;if(p)fby(p).open=true;saveFolder(f);render();toast('已移動資料夾')}
 function delFolder(id){const f=fby(id);st.items.forEach(i=>{if(i.folder===id){i.folder=f.parent||null;saveItem(i)}});st.folders.forEach(g=>{if(g.parent===id){g.parent=f.parent||null;saveFolder(g)}});st.folders=st.folders.filter(g=>g.id!==id);wq('dash/f_'+id,null,{del:true});saveLocalState();if(V.nav===id)V.nav=f.parent||'all';render();toast('已刪除資料夾「'+f.name+'」，其中的作品與子資料夾已上移一層')}
 // ---------- share link (anyone with the link can open it)
-function linkBlock(it,a){const u=linkFor(it.id),lock=a.mode==='list';
+function linkBlock(it,a){const u=linkFor(it.id),lock=a.mode==='list',vw=a.mode==='view';
  if(!window.__STANDALONE&&!window.__FB)return '';
  if(!u)return `<p class="fine">這個頁面是以本機檔案開啟（file://），無法產生可分享的連結。請把網頁部署到網站後再使用。</p>`;
  return `<div class="lk"><div class="lkr"><input id="lku" readonly value="${esc(u)}"><button class="btn" data-s="copy">複製連結</button></div>
- <p class="fine">${window.__FB?(lock?'目前限制名單：只有名單內的人能用這個連結開啟。要讓知道連結的人都能編輯，請選下方第一項。':'知道這個連結的人，登入 Google 後都可以編輯。'):'目前是本機模式，作品只存在這個瀏覽器裡，這個連結只在這台裝置的這個瀏覽器有效。要讓別人用連結開啟，需要先設定 Firebase（見左下角帳號）。'}</p></div>`}
+ <p class="fine">${window.__FB?(lock?'連結目前是關閉的：只有名單內的人能開啟。要重新開放連結，請選下方第一或第二項。':vw?'知道這個連結的人，登入 Google 後只能檢視，不能編輯。':'知道這個連結的人，登入 Google 後都可以編輯。'):'目前是本機模式，作品只存在這個瀏覽器裡，這個連結只在這台裝置的這個瀏覽器有效。要讓別人用連結開啟，需要先設定 Firebase（見左下角帳號）。'}</p></div>`}
 const ROLES={edit:'可編輯',comment:'可留言',view:'僅檢視'};
 const linkFor=id=>location.origin==='null'||location.protocol==='file:'?'':location.origin+location.pathname+location.search+'#/b/'+id;
 async function copyText(t){try{await navigator.clipboard.writeText(t);return true}catch(e){const i=document.createElement('textarea');i.value=t;i.style.cssText='position:fixed;opacity:0';document.body.appendChild(i);i.select();let ok=false;try{ok=document.execCommand('copy')}catch(x){}i.remove();return ok}}
@@ -160,18 +181,19 @@ function shareDlg(id){const it=by(id);if(!it)return;let m=$('#shm');if(!m){m=doc
  const isOwner=!it.owner||it.owner===UID||UOWN,a=it.acl||{mode:'open',members:[]},seen=Object.keys(it.seen||{}).filter(k=>k!==it.owner&&!(a.members||[]).some(x=>x.id===k));
  m.innerHTML=`<div class="mb"><div class="mh"><b>分享「${esc(it.name)}」</b><button class="ib" data-s="x">${ic('x')}</button></div>
  ${linkBlock(it,a)}
- ${window.__STANDALONE?'':`<label class="rd"><input type="radio" name="sm" value="open" ${a.mode!=='list'?'checked':''} ${isOwner?'':'disabled'}> 知道連結的人都可以編輯${window.__FB?'（需登入 Google）':''}</label>
- <label class="rd"><input type="radio" name="sm" value="list" ${a.mode==='list'?'checked':''} ${isOwner?'':'disabled'}> 只有下方名單中的人可以開啟（建立者永遠可編輯）</label>
+ ${window.__STANDALONE?'':`<label class="rd"><input type="radio" name="sm" value="open" ${a.mode!=='list'&&a.mode!=='view'?'checked':''} ${isOwner?'':'disabled'}> 知道連結的人都可以編輯${window.__FB?'（需登入 Google）':''}</label>
+ <label class="rd"><input type="radio" name="sm" value="view" ${a.mode==='view'?'checked':''} ${isOwner?'':'disabled'}> 知道連結的人只能檢視</label>
+ <label class="rd"><input type="radio" name="sm" value="list" ${a.mode==='list'?'checked':''} ${isOwner?'':'disabled'}> 關閉連結：只有下方名單中的人可以開啟（建立者永遠可編輯）</label>
  <div class="ml" id="sml">載入名單…</div>`}
  ${!window.__STANDALONE&&isOwner?`<input id="ssr" class="ssr" placeholder="搜尋要加入名單的人…" autocomplete="off"><div class="ml" id="ssh"></div>`:''}
  ${!window.__STANDALONE&&isOwner&&seen.length?`<div class="mu" style="padding:6px 0 2px">曾經開啟過的人，點一下加入名單：</div><div class="ml" id="ssn"></div>`:''}
- ${window.__STANDALONE?'':`<p class="fine">這是在作品庫與編輯器頁面中執行的權限：不會顯示、也不會讓名單外的人開啟。但資料本身存放在共享資料庫，懂技術的人仍可能繞過，所以請不要用它保護機密內容。${UID?'':'你目前尚未登入，無法辨識身分，限制名單的作品只有建立者之外的人看不到。'}</p>`}
+ ${window.__STANDALONE?'':`<p class="fine">${window.__FB?'權限由 Firestore 安全規則在伺服器端執行，名單外的人即使知道連結也讀不到內容。前提是專案已部署 firestore.rules（見說明文件）；尚未部署時，只有畫面層級的限制，請不要用它保護機密內容。':'這是在作品庫與編輯器頁面中執行的權限：不會顯示、也不會讓名單外的人開啟。但資料本身存放在共享資料庫，懂技術的人仍可能繞過，所以請不要用它保護機密內容。'}${UID?'':'你目前尚未登入，無法辨識身分。'}</p>`}
  <div class="row2">${isOwner||window.__STANDALONE?'':'<span class="mu">只有建立者可以更改權限</span>'}<button class="btn" data-s="x">完成</button></div></div>`;m.style.display='grid';m.dataset.id=id;
  const people=async(idsl)=>{let ps={};try{if(usrN&&idsl.length)ps=await usrN.profiles(idsl)}catch(e){}return idsl.map(k=>({id:k,name:(ps[k]&&ps[k].name)||'使用者 '+k.slice(0,4)+(ps[k]&&ps[k].isMe?'（你）':'')}))};
  (async()=>{const mem=a.members||[],all=await people([...(it.owner?[it.owner]:[]),...mem.map(x=>x.id),...seen]);const nm=k=>(all.find(x=>x.id===k)||{}).name||k;
   const ml=$('#sml');if(ml)ml.innerHTML=(it.owner?`<div class="mr"><span>${esc(nm(it.owner))}</span><span class="mu">建立者</span></div>`:'<div class="mr"><span class="mu">尚無建立者（舊作品）</span></div>')+mem.map(x=>`<div class="mr"><span>${esc(nm(x.id))}</span>${isOwner?`<select data-s="role" data-k="${x.id}">${Object.entries(ROLES).map(([k,l])=>`<option value="${k}"${x.role===k?' selected':''}>${l}</option>`).join('')}</select><button class="ib" data-s="rm" data-k="${x.id}">${ic('x')}</button>`:`<span class="mu">${ROLES[x.role]}</span>`}</div>`).join('');
   const sn=$('#ssn');if(sn)sn.innerHTML=seen.map(k=>`<button class="chip" data-s="add" data-k="${k}">＋ ${esc(nm(k))}</button>`).join('')})()}
-function shareSave(it,a){if(!it.owner&&UID)it.owner=UID;it.acl=a;saveItem(it);render();shareDlg(it.id)}
+function shareSave(it,a){if(!it.owner&&UID)it.owner=UID;it.acl=a;aclIds(it);saveItem(it);render();shareDlg(it.id)}
 document.addEventListener('click',e=>{const m=$('#shm');if(!m||m.style.display!=='grid')return;const b=e.target.closest('[data-s]');if(e.target===m){m.style.display='none';return}if(!b)return;const it=by(m.dataset.id),a=cln(it.acl||{mode:'open',members:[]});a.members=a.members||[];const k=b.dataset.k;
  if(b.dataset.s==='copy'){const u=$('#lku');copyText(u.value).then(ok=>{toast(ok?'已複製連結':'複製失敗，請手動選取連結');if(!ok)u.select()});return}if(b.dataset.s==='x')m.style.display='none';else if(b.dataset.s==='add'){a.members.push({id:k,role:'edit'});a.mode='list';shareSave(it,a)}else if(b.dataset.s==='rm'){a.members=a.members.filter(x=>x.id!==k);shareSave(it,a)}});
 document.addEventListener('input',async e=>{if(e.target.id!=='ssr'||!usrN||!usrN.search)return;const m=$('#shm'),it=by(m.dataset.id);let hits=[];try{hits=await usrN.search(e.target.value)}catch(x){}const a=it.acl||{members:[]},box=$('#ssh');if(!box)return;box.innerHTML='';hits.filter(h=>h.id!==it.owner&&!(a.members||[]).some(x=>x.id===h.id)).slice(0,6).forEach(h=>{const b=document.createElement('button');b.className='chip';b.dataset.s='add';b.dataset.k=h.id;b.textContent='＋ '+(h.name||h.id);box.appendChild(b)});if(!box.children.length&&e.target.value)box.innerHTML='<div class="mu">找不到符合的人</div>'});
@@ -211,7 +233,7 @@ accUI();
 // grid events
 const G=$('#grid');
 G.addEventListener('click',e=>{const c=e.target.closest('.card');if(!c||e.target.closest('input'))return;const id=c.dataset.id,b=e.target.closest('button');
- if(b){if(b.dataset.a==='star'){const i=by(id);i.star=!i.star;saveItem(i);render()}else{const r=b.getBoundingClientRect();itemMenu(id,r.left,r.bottom+4)}return}
+ if(b){if(b.dataset.a==='star'){const i=by(id);setMark(i,'star',!isStar(i));render()}else{const r=b.getBoundingClientRect();itemMenu(id,r.left,r.bottom+4)}return}
  if(e.detail>=2&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey){openItem(id);return}
  if(e.ctrlKey||e.metaKey||e.shiftKey)V.sel.has(id)?V.sel.delete(id):V.sel.add(id);else V.sel=new Set(V.sel.size===1&&V.sel.has(id)?[]:[id]);updSel()});
 function updSel(){$$('.card').forEach(c=>c.classList.toggle('sel',V.sel.has(c.dataset.id)));bar()}
@@ -225,7 +247,7 @@ const side=$('#side');
 side.addEventListener('dragover',e=>{const n=e.target.closest('.nv');if(!n||!drag)return;e.preventDefault();$$('.nv.over').forEach(x=>x!==n&&x.classList.remove('over'));n.classList.add('over')});
 side.addEventListener('dragleave',e=>{const n=e.target.closest('.nv');if(n&&!n.contains(e.relatedTarget))n.classList.remove('over')});
 side.addEventListener('drop',e=>{const n=e.target.closest('.nv');if(!n||!drag)return;e.preventDefault();const k=n.dataset.nav,L=drag,f=fby(k);drag=null;V.sel.clear();
- if(k==='trash')mv(L,i=>i.trash=true,'已移到垃圾桶');else if(k==='star')mv(L,i=>i.star=true,'已加上星號');else if(k==='recent')render();else mv(L,i=>{i.folder=f?f.id:null;i.trash=false},f?'已移至「'+f.name+'」':'已移出資料夾')});
+ if(k==='trash')mark(L,'trash',true,'已移到垃圾桶');else if(k==='star')mark(L,'star',true,'已加上星號');else if(k==='recent')render();else mvf(L,f?f.id:null,f?'已移至「'+f.name+'」':'已移出資料夾')});
 side.addEventListener('click',e=>{const t=e.target.closest('[data-a]');const n=e.target.closest('.nv');
  if(t&&t.dataset.a==='ftog'){const f=fby(n.dataset.f);f.open=f.open===false;render();return}
  if(t&&t.dataset.a==='fmenu'){const r=t.getBoundingClientRect();folderMenu(n.dataset.f,r.left,r.bottom+4);return}
@@ -244,20 +266,20 @@ $$('[data-m]').forEach(b=>b.onclick=()=>{V.mode=b.dataset.m;$$('[data-m]').forEa
 $('#burger').onclick=()=>document.body.classList.toggle('nav');
 $('#new').onclick=()=>tplDlg();
 $('#sb').onclick=e=>{const b=e.target.closest('[data-b]');if(!b)return;const L=[...V.sel],k=b.dataset.b;V.sel.clear();
- if(k==='star')mv(L,i=>i.star=true,'已加上星號');else if(k==='trash')mv(L,i=>i.trash=true,'已移到垃圾桶');else if(k==='res')mv(L,i=>i.trash=false,'已還原');else if(k==='del'){L.forEach(delItem);render();toast('已永久刪除')}else render()};
+ if(k==='star')mark(L,'star',true,'已加上星號');else if(k==='trash')mark(L,'trash',true,'已移到垃圾桶');else if(k==='res')mark(L,'trash',false,'已還原');else if(k==='del'){L.forEach(delOne);render();toast('已永久刪除')}else render()};
 document.addEventListener('pointerdown',e=>{if(!e.target.closest('#menu'))$('#menu').style.display='none'});
 addEventListener('keydown',e=>{if(ED.id&&e.key!=='Escape')return;const t=document.activeElement.tagName,typing=t==='INPUT'||t==='SELECT'||t==='TEXTAREA';
  if(e.key==='Escape'&&($('#shm')&&$('#shm').style.display==='grid'||$('#tpm')&&$('#tpm').style.display==='grid')){$$('.modal').forEach(m=>m.style.display='none');return}
  if(e.key==='/'&&!typing){e.preventDefault();$('#q').focus()}
  else if(e.key==='Escape'){if(ED.id){if(DOTS.canExit())closeEd();return}$('#menu').style.display='none';if(typing)document.activeElement.blur();V.sel.clear();render()}
- else if(!typing&&(e.key==='Delete'||e.key==='Backspace')&&V.sel.size){e.preventDefault();const L=[...V.sel];V.sel.clear();if(V.nav==='trash'){L.forEach(delItem);render()}else mv(L,i=>i.trash=true,'已移到垃圾桶')}
+ else if(!typing&&(e.key==='Delete'||e.key==='Backspace')&&V.sel.size){e.preventDefault();const L=[...V.sel];V.sel.clear();if(V.nav==='trash'){L.forEach(delOne);render()}else mark(L,'trash',true,'已移到垃圾桶')}
  else if(!typing&&e.key==='Enter'&&V.sel.size===1){openItem([...V.sel][0])}
  else if(!typing&&(e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='a'){e.preventDefault();V.sel=new Set(list().map(i=>i.id));render()}},true);
 // editor bridge
 const ED={id:null};
 function recSave(){const ks=Object.keys(REC).sort((a,b)=>REC[b]-REC[a]).slice(0,60),o={};ks.forEach(k=>o[k]=REC[k]);REC=o;try{localStorage.setItem('dots-rec',JSON.stringify(REC))}catch(e){}clearTimeout(recSave.h);recSave.h=setTimeout(()=>{if(UDB&&UID)UDB.doc('data/users/'+UID+'/ro').set({m:REC}).catch(()=>{})},1200)}
 function openItem(id){const it=by(id);if(!it||ED.id)return;const role=roleOf(it);if(role==='none')return toast('你沒有開啟這個作品的權限');
- ED.id=id;V.sel=new Set([id]);REC[id]=Date.now();recSave();
+ ED.id=id;V.sel=new Set([id]);REC[id]=Date.now();if(MK.gone[id]){delete MK.gone[id];marksSave()}recSave();if(PERS()&&it.owner!==UID)watchOne(id);
  if(UID&&!(it.seen&&it.seen[UID]&&Date.now()-it.seen[UID]<12*H)){it.seen=Object.assign(it.seen||{},{[UID]:Date.now()});wq('dash/i_'+id,{seen:{[UID]:it.seen[UID]}},{full:it})}
  if(window.__STANDALONE!==undefined&&linkFor(id)){try{history.replaceState(null,'','#/b/'+id)}catch(e){}}
  DOTS.open({id:it.id,type:it.type,name:it.name,pages:it.pages,init:it.init,role,tpl:it.tpl,data:it.data,mig:it.mig})}
@@ -265,14 +287,15 @@ function closeEd(){return DOTS.close().then(()=>{ED.id=null;if(/^#\/b\//.test(lo
 // deep link: #/b/<id> opens that board as soon as the shared list has loaded
 let PEND=null,PT=null;
 function hashId(){const m=/^#\/b\/([\w-]+)/.exec(location.hash);return m?m[1]:null}
-function pendTry(){if(!PEND)return;const it=by(PEND);if(it&&!ED.id){const id=PEND;PEND=null;clearInterval(PT);openItem(id)}}
+const PFAIL={};function pendFetch(id){if(!PERS()||!ddb||PFAIL[id])return;PFAIL[id]='p';ddb.doc('dash/i_'+id).get().then(s=>{if(s.exists){delete PFAIL[id];applyDoc('i_'+id,cln(s.data()),false);render()}else PFAIL[id]='nf'}).catch(e=>{PFAIL[id]=e&&e.code==='permission-denied'?'denied':'err'})}
+function pendTry(){if(!PEND)return;if(!by(PEND))pendFetch(PEND);if(PFAIL[PEND]==='denied'){const id=PEND;PEND=null;clearInterval(PT);toast('這個作品的連結已關閉，或你沒有權限開啟');return}const it=by(PEND);if(it&&!ED.id){const id=PEND;PEND=null;clearInterval(PT);openItem(id)}}
 function pendStart(){const id=hashId();if(!id||ED.id===id)return;PEND=id;clearInterval(PT);let n=0;PT=setInterval(()=>{pendTry();if(!PEND)return;if(++n>40){clearInterval(PT);PEND=null;toast('找不到這個作品：可能已被刪除，或你還沒有登入')}},400)}
 window.addEventListener('hashchange',pendStart);
 $('#thm').onclick=()=>setTheme(R.dataset.wb==='dark'?'light':'dark');setTheme(R.dataset.wb);
 // boot: show local state immediately, then connect to the shared database
 if(!loadLocalState()){/* wait for the database; fall back to samples if it is unavailable */}
 render();
-(async()=>{try{usrN=await claude.use('user');if(usrN){const v=await usrN.me();UID=v&&v.id||null;UOWN=!!(v&&v.isOwner);CLU=v;accUI();if(PERS()){st.folders=st.folders.filter(f=>f.owner===UID);render()}}}catch(e){}
+(async()=>{try{usrN=await claude.use('user');if(usrN){const v=await usrN.me();UID=v&&v.id||null;UOWN=!!(v&&v.isOwner);CLU=v;if(UID)marksLoad();accUI();if(PERS()){st.folders=st.folders.filter(f=>f.owner===UID);render()}}}catch(e){}
  let x=null;try{x=await claude.use('db')}catch(e){}
  if(x){connect(x);if(UID){UDB=x;try{const s=await x.doc('data/users/'+UID+'/ro').get();if(s.exists){const m=cln(s.data()).m||{};Object.keys(m).forEach(k=>{REC[k]=Math.max(REC[k]||0,m[k])});recSave();render()}}catch(e){}}}
  else if(!st.items.length&&!st.folders.length){const s=seedData();st.folders=s.folders;st.items=s.items;saveLocalState();render()}
@@ -296,7 +319,7 @@ function introDlg(i){let m=$('#itm');if(!m){m=document.createElement('div');m.id
 function introClose(){const m=$('#itm');if(m)m.style.display='none';try{localStorage.setItem(introKey(),'1')}catch(e){}}
 document.addEventListener('click',e=>{if(e.target.closest('[data-help]')){introDlg(0);return}const m=$('#itm');if(!m||m.style.display!=='grid')return;if(e.target===m)return introClose();const b=e.target.closest('[data-it]');if(!b)return;const a=b.dataset.it;if(a==='x')introClose();else if(a==='next')introDlg(TI+1);else if(a==='prev')introDlg(TI-1);else introDlg(+a)});
 document.addEventListener('keydown',e=>{const m=$('#itm'),open=m&&m.style.display==='grid';if(open){if(e.key==='Escape'){introClose();e.stopPropagation()}else if(e.key==='ArrowRight')introDlg(TI+1);else if(e.key==='ArrowLeft')introDlg(TI-1);return}const t=document.activeElement.tagName;if(e.key==='?'&&!ED.id&&t!=='INPUT'&&t!=='TEXTAREA'&&t!=='SELECT')introDlg(0)},true);
-(function(){let n=0;const iv=setInterval(()=>{n++;const ready=window.__FB?!!(window.__ACCT&&window.__ACCT.user):true;if(n>150)return clearInterval(iv);if(!ready||document.getElementById('dots')&&document.getElementById('dots').classList.contains('on'))return;clearInterval(iv);let seen=false;try{seen=!!localStorage.getItem(introKey())}catch(e){}if(!seen)introDlg(0)},600)})();
+(function(){let n=0;const iv=setInterval(()=>{n++;const ready=window.__FB?!!(window.__ACCT&&window.__ACCT.user):true;if(n>150)return clearInterval(iv);if(!ready||document.getElementById('dots')&&document.getElementById('dots').classList.contains('on'))return;clearInterval(iv);let seen=false;try{seen=!!localStorage.getItem(introKey())||(navigator.webdriver&&!localStorage.getItem('dots-intro-force'))}catch(e){}if(!seen)introDlg(0)},600)})();
 
 const AIH={
  local:{t:'本機模型',tag:'免費・免金鑰',s:['直接按下方「儲存」','第一次使用會自動下載模型（約 1 GB），之後就能離線使用','內容不會離開你的電腦；需要桌面版 Chrome 或 Edge'],u:''},
@@ -315,9 +338,12 @@ function aiForm(){const c=(window.__AICFG&&window.__AICFG())||{},P=window.__AIP|
  <details class="aiadv"${pv==='custom'?' open':''}><summary>進階：模型名稱</summary><input id="aimod" class="ssr" list="aiml" style="width:100%;margin-top:6px" placeholder="模型名稱" value="${esc(c.model||cur.m)}"><datalist id="aiml">${(cur.ms||[]).map(x=>`<option value="${esc(x)}">`).join('')}</datalist><div class="fine" style="margin:4px 0 0">不確定就保持預設。本機模型可填 auto、chrome 或 webllm。</div></details>
  <div style="display:flex;gap:8px;margin-top:8px"><button class="btn sm" data-g="aisave">儲存</button>${c.provider?'<button class="btn sm gh" data-g="aiclr">移除</button>':''}<span class="fine" id="aim" style="align-self:center;margin:0"></span></div></div>`}
 window.__aiForm=aiForm;
-function gDlg(){gDlg0();const m=$('#gam');if(!window.__STANDALONE||!m||m.querySelector('.aif'))return;const f=m.querySelector('.fine');if(f)f.insertAdjacentHTML('beforebegin',aiForm())}
+function gDlg(){gDlg0();const m=$('#gam');if(!m)return;if(window.__STANDALONE&&!m.querySelector('.aif')){const f=m.querySelector('.fine');if(f)f.insertAdjacentHTML('beforebegin',aiForm())}if(!m.querySelector('.lgl')){const b=m.querySelector('.mb');if(b)b.insertAdjacentHTML('beforeend','<p class="fine lgl" style="margin:4px 0 0"><a href="privacy.html" target="_blank" rel="noopener">隱私權政策</a> · <a href="terms.html" target="_blank" rel="noopener">服務條款</a></p>')}}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-g="aisave"],[data-g="aiclr"]');if(!b)return;const msg=$('#aim');if(b.dataset.g==='aiclr'){try{localStorage.removeItem('dots-ai');localStorage.removeItem('dots-aikey');localStorage.removeItem('dots-aimodel')}catch(x){}if(b.closest('#air')){window.__AISETUP();toast('已移除 AI 設定');return}gDlg();toast('已移除 AI 設定');return}
  const pv=$('#aipv').value,old=window.__AICFG()||{},kv=$('#aik').value.trim(),key=/^•+$/.test(kv)&&old.provider===pv?old.key:(/^•+$/.test(kv)?'':kv),model=$('#aimod').value.trim(),base=($('#aiurl')||{value:''}).value.trim();
  if(pv!=='custom'&&pv!=='local'&&!key){msg.textContent='請輸入金鑰';return}if(!model){msg.textContent='請輸入模型名稱';return}if(pv==='custom'&&!/^https?:\/\//.test(base)){msg.textContent='請輸入完整的端點網址';return}
  try{localStorage.setItem('dots-ai',JSON.stringify({provider:pv,key,model,base:pv==='custom'?base:''}))}catch(x){msg.textContent='無法儲存（瀏覽器封鎖了儲存空間）';return}if(b.closest('#air')){toast('已儲存 AI 設定');window.__AIRERUN&&window.__AIRERUN();return}gDlg();toast('已儲存 AI 設定')});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-aipick]');if(!b)return;const P=window.__AIP,pv=b.dataset.aipick,cur=P[pv];$('#aipv').value=pv;$$('.aicd').forEach(x=>x.classList.toggle('on',x===b));$('#aihelp').innerHTML=aiHelp(pv);$('#aibase').style.display=pv==='custom'?'block':'none';$('#aimod').value=cur.m;$('#aik').value='';$('#aik').placeholder=cur.ph;$('#aik').style.display=pv==='local'?'none':'block';$('#aiml').innerHTML=(cur.ms||[]).map(x=>`<option value="${esc(x)}">`).join('');const ad=$('.aiadv');if(ad)ad.open=pv==='custom'});
+
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.__INST=e;render()});addEventListener('appinstalled',()=>{window.__INST=null;render();toast('已安裝')});
+document.addEventListener('click',e=>{if(e.target.closest('[data-install]')&&window.__INST){const p=window.__INST;window.__INST=null;p.prompt();render()}});
