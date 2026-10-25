@@ -6,12 +6,12 @@ def texts(pg):
 with sync_playwright() as p:
     b=launch(p);ctx=b.new_context(viewport={'width':1280,'height':800});pg=newpage(ctx)
     pg.wait_for_timeout(800);pg.locator('.card').first.dblclick();pg.wait_for_timeout(700)
-    for (x,y,tx) in [(300,200,'AAA'),(300,500,'BBB')]:
+    for (x,y,tx) in [(600,200,'AAA'),(600,500,'BBB')]:
         pg.keyboard.press('t');pg.mouse.click(x,y);pg.keyboard.type(tx);pg.keyboard.press('Escape');pg.wait_for_timeout(300)
     pg.keyboard.press('v');pg.mouse.click(900,700);pg.wait_for_timeout(1200)
     print([(o['txt'],o['x'],o['y'],o['s']) for o in texts(pg)])
     # numeric size
-    pg.mouse.click(310,212);pg.wait_for_timeout(300)
+    pg.mouse.click(610,212);pg.wait_for_timeout(300)
     n=pg.locator('#props input.nv[data-pn=s]');print('size input',n.input_value())
     n.fill('200');n.press('Enter');pg.wait_for_timeout(1200)
     print('size ->',[o['s'] for o in texts(pg) if o['txt']=='AAA'])

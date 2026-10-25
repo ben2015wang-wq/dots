@@ -6,8 +6,8 @@ def texts(pg):
 with sync_playwright() as p:
     b=launch(p);ctx=b.new_context(viewport={'width':1280,'height':800});pg=newpage(ctx)
     pg.wait_for_timeout(800);pg.locator('.card').first.dblclick();pg.wait_for_timeout(700)
-    pg.keyboard.press('t');pg.mouse.click(300,300);pg.keyboard.type('The quick brown fox jumps over the lazy dog again and again');pg.keyboard.press('Escape');pg.wait_for_timeout(1200)
-    pg.keyboard.press('v');pg.mouse.click(320,310);pg.wait_for_timeout(500)
+    pg.keyboard.press('t');pg.mouse.click(600,300);pg.keyboard.type('The quick brown fox jumps over the lazy dog again and again');pg.keyboard.press('Escape');pg.wait_for_timeout(1200)
+    pg.keyboard.press('v');pg.mouse.click(620,310);pg.wait_for_timeout(500)
     print('handles',pg.evaluate("[...document.querySelectorAll('#O [data-h]')].map(e=>e.dataset.h)"))
     o=texts(pg)[0];print('before',o['x'],o['w'],o['h'],o.get('ww'))
     h=pg.evaluate("(()=>{const r=document.querySelector('#O [data-h=e]').getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2]})()")
