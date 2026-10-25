@@ -616,10 +616,11 @@ function introDlg(i){let m=$('#itm');if(!m){m=document.createElement('div');m.id
  TI=Math.max(0,Math.min(TOUR.length-1,i));const s=TOUR[TI],last=TI===TOUR.length-1;
  m.innerHTML=`<div class="mb it" role="dialog" aria-modal="true" aria-label="功能介紹"><button class="ib itx" data-it="x" aria-label="關閉">${ic('x')}</button><div class="itp">${thumb({id:'it'+TI,seed:TI*53+11,type:'board',cover:s.k})}</div><div class="itb"><div class="itn">${TI+1} / ${TOUR.length}</div><h2>${esc(s.t)}</h2><p>${esc(s.d)}</p><ul>${s.l.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div><div class="itf"><div class="itd">${TOUR.map((_,k)=>`<i class="${k===TI?'on':''}" data-it="${k}"></i>`).join('')}</div><span class="itsp"></span>${TI?'<button class="btn gh" data-it="prev">上一步</button>':'<button class="btn gh" data-it="x">略過</button>'}<button class="btn" data-it="${last?'x':'next'}">${last?'開始使用':'下一步'}</button></div></div>`;
  m.style.display='grid'}
-function introClose(){const m=$('#itm');if(m)m.style.display='none';try{localStorage.setItem(introKey(),'1')}catch(e){}}
+function introMark(){try{localStorage.setItem(introKey(),'1');localStorage.setItem('dots-intro-seen','1')}catch(e){}}
+function introClose(){const m=$('#itm');if(m)m.style.display='none';introMark()}
 document.addEventListener('click',e=>{if(e.target.closest('[data-help]')){introDlg(0);return}const m=$('#itm');if(!m||m.style.display!=='grid')return;if(e.target===m)return introClose();const b=e.target.closest('[data-it]');if(!b)return;const a=b.dataset.it;if(a==='x')introClose();else if(a==='next')introDlg(TI+1);else if(a==='prev')introDlg(TI-1);else introDlg(+a)});
 document.addEventListener('keydown',e=>{const m=$('#itm'),open=m&&m.style.display==='grid';if(open){if(e.key==='Escape'){introClose();e.stopPropagation()}else if(e.key==='ArrowRight')introDlg(TI+1);else if(e.key==='ArrowLeft')introDlg(TI-1);return}const t=document.activeElement.tagName;if(e.key==='?'&&!ED.id&&t!=='INPUT'&&t!=='TEXTAREA'&&t!=='SELECT')introDlg(0)},true);
-(function(){let n=0;const iv=setInterval(()=>{n++;const ready=window.__FB?!!(window.__ACCT&&window.__ACCT.user):true;if(n>150)return clearInterval(iv);if(!ready||document.getElementById('dots')&&document.getElementById('dots').classList.contains('on'))return;clearInterval(iv);let seen=false;try{seen=!!localStorage.getItem(introKey())||(navigator.webdriver&&!localStorage.getItem('dots-intro-force'))}catch(e){}if(!seen)introDlg(0)},600)})();
+(function(){let n=0;const iv=setInterval(()=>{n++;const ready=window.__FB?!!(window.__ACCT&&window.__ACCT.user):true;if(n>150)return clearInterval(iv);if(!ready||document.getElementById('dots')&&document.getElementById('dots').classList.contains('on'))return;clearInterval(iv);let seen=false;try{seen=!!localStorage.getItem(introKey())||!!localStorage.getItem('dots-intro-seen')||(navigator.webdriver&&!localStorage.getItem('dots-intro-force'))}catch(e){}if(!seen){introMark();introDlg(0)}},600)})();
 
 const AIH={
  local:{t:'本機模型',tag:'免費・免金鑰',s:['直接按下方「儲存」','第一次使用會自動下載模型（約 1 GB），之後就能離線使用','內容不會離開你的電腦；需要桌面版 Chrome 或 Edge'],u:''},
@@ -770,6 +771,7 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-install]')&&win
 .pk{position:fixed;z-index:3;pointer-events:none;border:2px dashed;border-radius:6px;box-sizing:border-box;transition:left .08s linear,top .08s linear,width .08s linear,height .08s linear}
 .pk.ed{border-style:solid;box-shadow:0 0 0 3px rgba(255,255,255,.12)}
 .pk>span{position:absolute;left:-2px;bottom:100%;margin-bottom:2px;font:600 11px/1 -apple-system,"PingFang TC","Noto Sans TC",sans-serif;color:#fff;padding:3px 7px;border-radius:7px 7px 7px 2px;white-space:nowrap}
+#dots #ta a{color:#2563eb;text-decoration:underline}
 </style>
 <div id="dots">
 <div id="cv"><svg id="svg"><g id="w"><g id="L"></g><g id="O"></g></g><rect id="mq" fill="rgba(59,130,246,.1)" stroke="#3b82f6" stroke-dasharray="4" display="none"/></svg></div>
@@ -810,7 +812,7 @@ function toast(m){const t=$('toast');t.textContent=m;t.style.opacity=1;clearTime
 
 // ---------- rich text model
 const PLAIN={},NF={b:false,i:false,ul:false,st:false,c:null};
-const runsOf=o=>o.runs&&o.runs.length?o.runs:(o.txt===''?[]:[{t:o.txt,b:!!o.b,i:!!o.i,ul:!!o.ul,st:!!o.st}]);
+const runsOf=o=>o.runs&&o.runs.length?o.runs:(o.txt===''?[]:[{t:o.txt,b:!!o.b,i:!!o.i,ul:!!o.ul,st:!!o.st,h:o.h||''}]);
 const fmtOn=(o,k)=>o.runs&&o.runs.length?o.runs.every(r=>r[k]):!!o[k];
 function setFmt(o,k,v){o[k]=v;if(o.runs)o.runs.forEach(r=>{r[k]=v})}
 function setColor(o,c){o.c=c;if(o.runs)o.runs.forEach(r=>{delete r.c})}
@@ -819,7 +821,7 @@ const MC=document.createElement('canvas').getContext('2d'),MW=new Map();
 function chW(ch,f,o){const k=(f.b?'b':'n')+(f.i?'i':'n')+o.s+(o.ff||'s')+ch;let w=MW.get(k);if(w===undefined){MC.font=`${f.i?'italic ':''}${f.b?'700':'400'} ${o.s}px ${FF[o.ff]||FF.s}`;w=MC.measureText(ch).width;MW.set(k,w);if(MW.size>30000)MW.clear()}return w}
 const brk=ch=>ch===' '||ch==='-'||/[⺀-￯]/.test(ch);
 function layout(o){const runs=runsOf(o),ww=o.ww>0?o.ww:0,paras=[];let para=[];
- runs.forEach(r=>{const f={b:!!r.b,i:!!r.i,ul:!!r.ul,st:!!r.st,c:r.c||null};r.t.split('\n').forEach((p,k)=>{if(k>0){paras.push(para);para=[]}for(const ch of p)para.push({ch,f})})});paras.push(para);
+ runs.forEach(r=>{const f={b:!!r.b,i:!!r.i,ul:!!r.ul,st:!!r.st,c:r.c||null,h:r.h||null};r.t.split('\n').forEach((p,k)=>{if(k>0){paras.push(para);para=[]}for(const ch of p)para.push({ch,f})})});paras.push(para);
  const lines=[];let n=o.ln0||0;
  paras.forEach(p=>{let chars=p;let pre=0;if(o.ls&&p.length){const pf=o.ls==='bullet'?'• ':(++n)+'. ';chars=[...pf].map(ch=>({ch,f:PLAIN,p:true})).concat(p);pre=chars.length-p.length}
   const hang=ww&&o.ls&&(o.al||'left')==='left'?chars.slice(0,pre).reduce((a,c)=>a+chW(c.ch,{},o),0):0;
@@ -832,15 +834,15 @@ function layout(o){const runs=runsOf(o),ww=o.ww>0?o.ww:0,paras=[];let para=[];
   push()});
  return lines}
 function segsOf(line){const out=[];line.chars.forEach(c=>{const l=out[out.length-1];if(l&&l.f===c.f)l.t+=c.ch;else out.push({t:c.ch,f:c.f})});return out}
-function linesToRuns(lines){const out=[];lines.forEach((ln,i)=>{if(i>0&&ln.hard)out.push({t:'\n',...NF});segsOf({chars:ln.chars.filter(c=>!c.p)}).forEach(s=>{if(s.t)out.push({t:s.t,b:!!s.f.b,i:!!s.f.i,ul:!!s.f.ul,st:!!s.f.st,...(s.f.c?{c:s.f.c}:{})})})});return out}
+function linesToRuns(lines){const out=[];lines.forEach((ln,i)=>{if(i>0&&ln.hard)out.push({t:'\n',...NF});segsOf({chars:ln.chars.filter(c=>!c.p)}).forEach(s=>{if(s.t)out.push({t:s.t,b:!!s.f.b,i:!!s.f.i,ul:!!s.f.ul,st:!!s.f.st,...(s.f.c?{c:s.f.c}:{}),...(s.f.h?{h:s.f.h}:{})})})});return out}
 function textSVG(o,c,w){const al=o.al||'left',an=al==='center'?'middle':al==='right'?'end':'start',X=al==='center'?w/2:al==='right'?w:0,lines=layout(o);
- const at=f=>`${f.b?' font-weight="700"':''}${f.i?' font-style="italic"':''}${f.ul||f.st?` text-decoration="${[f.ul&&'underline',f.st&&'line-through'].filter(Boolean).join(' ')}"`:''}${f.c?` fill="${esc(f.c)}"`:''}`;
+ const at=f=>`${f.b?' font-weight="700"':''}${f.i?' font-style="italic"':''}${f.ul||f.st||f.h?` text-decoration="${[(f.ul||f.h)&&'underline',f.st&&'line-through'].filter(Boolean).join(' ')}"`:''}${f.h?` fill="#2563eb" data-h="${esc(f.h)}"`:f.c?` fill="${esc(f.c)}"`:''}`;
  return `<text font-size="${o.s}" fill="${c}" font-weight="400" font-family="${FF[o.ff]||FF.s}" text-anchor="${an}" style="white-space:pre">${lines.map((ln,i)=>{const sg=segsOf(ln);if(!sg.length)sg.push({t:' ',f:PLAIN});return sg.map((s,k)=>`<tspan${k?'':` x="${X+(al==='left'?ln.ind:0)}" dy="${i?1.25:1}em"`}${at(s.f)}>${esc(s.t)}</tspan>`).join('')}).join('')}</text>`}
-const runsHTML=o=>runsOf(o).map(r=>r.t.split('\n').map(esc).join('<br>')===''?'':`<span style="${r.b?'font-weight:700;':''}${r.i?'font-style:italic;':''}${r.ul||r.st?`text-decoration:${[r.ul&&'underline',r.st&&'line-through'].filter(Boolean).join(' ')};`:''}${r.c?`color:${esc(r.c)};`:''}">${r.t.split('\n').map(esc).join('<br>')}</span>`).join('');
+const runsHTML=o=>runsOf(o).map(r=>r.t.split('\n').map(esc).join('<br>')===''?'':`<span style="${r.b?'font-weight:700;':''}${r.i?'font-style:italic;':''}${r.ul||r.st?`text-decoration:${[r.ul&&'underline',r.st&&'line-through'].filter(Boolean).join(' ')};`:''}${r.c&&!r.h?`color:${esc(r.c)};`:''}">${r.h?`<a href="${esc(r.h)}">`:''}${r.t.split('\n').map(esc).join('<br>')}${r.h?'</a>':''}</span>`).join('');
 function rgb2hex(s){const m=s.match(/\d+(\.\d+)?/g);if(!m)return s;return'#'+m.slice(0,3).map(x=>Math.round(+x).toString(16).padStart(2,'0')).join('')}
 function domToRuns(root){const out=[],rc=getComputedStyle(root).color;
- const fmtOf=el=>{const cs=getComputedStyle(el),w=cs.fontWeight;let ul=false,st=false;for(let n=el;n&&n!==root.parentNode;n=n.parentElement){const d=getComputedStyle(n).textDecorationLine||'';if(d.includes('underline'))ul=true;if(d.includes('line-through'))st=true}return{b:w==='bold'||parseInt(w)>=600,i:cs.fontStyle==='italic'||cs.fontStyle==='oblique',ul,st,c:cs.color!==rc?rgb2hex(cs.color):null}};
- const add=(t,f)=>{if(!t)return;const l=out[out.length-1];if(l&&l.b===f.b&&l.i===f.i&&l.ul===f.ul&&l.st===f.st&&(l.c||null)===(f.c||null))l.t+=t;else{const r={t,b:f.b,i:f.i,ul:f.ul,st:f.st};if(f.c)r.c=f.c;out.push(r)}};
+ const fmtOf=el=>{const cs=getComputedStyle(el),w=cs.fontWeight;let ul=false,st=false;const ha=el.closest&&el.closest('a'),h=ha&&root.contains(ha)?(ha.getAttribute('href')||''):'';for(let n=el;n&&n!==root.parentNode;n=n.parentElement){if(n.tagName==='A')continue;const d=getComputedStyle(n).textDecorationLine||'';if(d.includes('underline'))ul=true;if(d.includes('line-through'))st=true}return{b:w==='bold'||parseInt(w)>=600,i:cs.fontStyle==='italic'||cs.fontStyle==='oblique',ul,st,c:!h&&cs.color!==rc?rgb2hex(cs.color):null,h:h||null}};
+ const add=(t,f)=>{if(!t)return;const l=out[out.length-1];if(l&&l.b===f.b&&l.i===f.i&&l.ul===f.ul&&l.st===f.st&&(l.c||null)===(f.c||null)&&(l.h||null)===(f.h||null))l.t+=t;else{const r={t,b:f.b,i:f.i,ul:f.ul,st:f.st};if(f.c)r.c=f.c;if(f.h)r.h=f.h;out.push(r)}};
  const endsNL=()=>{const l=out[out.length-1];return !l||l.t.endsWith('\n')};
  const walk=n=>{if(n.nodeType===3){add(n.nodeValue.replace(/​/g,''),fmtOf(n.parentElement));return}if(n.nodeType!==1)return;if(n.tagName==='BR'){add('\n',NF);return}
   const blk=/^(DIV|P|LI)$/.test(n.tagName);if(blk&&out.length&&!endsNL())add('\n',NF);n.childNodes.forEach(walk)};
@@ -860,7 +862,7 @@ function props(){
  if(sel.length===1&&['img','rect','ellipse'].includes(f.t))h+=sl('w','尺寸（寬）',20,1600,f.w);
  if(has('text')){h+=sl('s','字級',12,160,gv('s',28));h+=sl('ww','換行寬度',0,1200,gv('ww',0)||0,1,'',10);
   const on=k=>(f?fmtOn(f,k):gv(k,false))?' on':'',al=gv('al','left'),ls=gv('ls',''),B=(k,t,tt,sty='')=>`<button class="b sm${on(k)}" data-f="${k}" title="${tt}" style="font-weight:700;${sty}">${t}</button>`,V=(k,v,ico,tt,cur)=>`<button class="b sm${cur===v?' on':''}" data-f="${k}" data-v="${v}" title="${tt}">${ico}</button>`;
-  h+=`<div class="row" style="gap:3px">${B('b','B','粗體 (Ctrl+B)')}${B('i','I','斜體 (Ctrl+I)','font-style:italic')}${B('ul','U','底線 (Ctrl+U)','text-decoration:underline')}${B('st','S','刪除線','text-decoration:line-through')}</div><div class="row" style="gap:3px">${V('al','left',ic('al1'),'靠左',al)}${V('al','center',ic('al2'),'置中',al)}${V('al','right',ic('al3'),'靠右',al)}${V('ls','bullet',ic('lb'),'項目符號',ls)}${V('ls','number',ic('ln'),'編號清單',ls)}</div><select data-ff="1">${[['s','預設字體'],['f','襯線體'],['m','等寬體']].map(([v,n])=>`<option value="${v}" ${gv('ff','s')===v?'selected':''}>${n}</option>`).join('')}</select><div style="font-size:10px;color:var(--mut)">編輯文字時，選取部分文字再按 B／I／U／S 或顏色，只會套用到選取的字。</div>`}
+  h+=`<div class="row" style="gap:3px">${B('b','B','粗體 (Ctrl+B)')}${B('i','I','斜體 (Ctrl+I)','font-style:italic')}${B('ul','U','底線 (Ctrl+U)','text-decoration:underline')}${B('st','S','刪除線','text-decoration:line-through')}<button class="b sm${f&&fmtOn(f,'h')?' on':''}" data-f="lk" title="文字連結 (Ctrl+K)">連結</button></div><div class="row" style="gap:3px">${V('al','left',ic('al1'),'靠左',al)}${V('al','center',ic('al2'),'置中',al)}${V('al','right',ic('al3'),'靠右',al)}${V('ls','bullet',ic('lb'),'項目符號',ls)}${V('ls','number',ic('ln'),'編號清單',ls)}</div><select data-ff="1">${[['s','預設字體'],['f','襯線體'],['m','等寬體']].map(([v,n])=>`<option value="${v}" ${gv('ff','s')===v?'selected':''}>${n}</option>`).join('')}</select><div style="font-size:10px;color:var(--mut)">編輯文字時，選取部分文字再按 B／I／U／S 或顏色，只會套用到選取的字。</div>`}
  if(has('pen','line','arrow'))h+=sl('sw','線寬',1,24,gv('sw',3));
  if(has('rect','ellipse'))h+=sl('sw','邊框粗細',0,24,gv('sw',2));
  if(has('text','img'))h+=sl('bw','邊框粗細',0,16,gv('bw',0));
@@ -1047,15 +1049,31 @@ function finishEdit(){const o=ta._o;if(!o)return;syncTa(o);ta._o=null;ta.hidden=
  if(!o.txt.trim()){if(ta._b)commit([[o.id,ta._b,null]]);rm(o.id);props();return}
  paint(o);put(o);const ex=paginate(o).map(n=>[n.id,null,cl(n)]);commit([[o.id,ta._b,cl(o)]].concat(ex));props()}
 ta.addEventListener('input',()=>{const o=ta._o;if(!o)return;syncTa(o);paint(o);ta._pos();put(o)});
-ta.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Escape'){finishEdit();return}if(e.key==='Enter'&&!e.isComposing){e.preventDefault();document.execCommand('insertLineBreak')}});
+ta.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Escape'){finishEdit();return}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();linkPrompt();return}if(e.key==='Enter'&&!e.isComposing){e.preventDefault();document.execCommand('insertLineBreak')}});
 ta.addEventListener('paste',e=>{e.preventDefault();const t=(e.clipboardData||window.clipboardData).getData('text/plain');t.split(/\r?\n/).forEach((l,i)=>{if(i)document.execCommand('insertLineBreak');if(l)document.execCommand('insertText',false,l)})});
 ta.addEventListener('blur',e=>{const rt=e.relatedTarget;if(rt&&rt.closest&&rt.closest('#props'))return;setTimeout(()=>{if(ta._o&&document.activeElement!==ta&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#props')))finishEdit()},0)});
 dAdd('selectionchange',()=>{if(ta.hidden||!ta._o)return;const s=getSelection();if(s.rangeCount&&ta.contains(s.anchorNode))ta._rng=s.getRangeAt(0).cloneRange();fmtState()});
+function normUrl(u){u=(u||'').trim();if(!u)return'';if(!/^[a-z][a-z0-9+.-]*:/i.test(u))u='https://'+u;return /^(https?:|mailto:)/i.test(u)?u:null}
+function linkPrompt(){if(RO)return;
+ if(ta._o){restoreSel();const sel=getSelection(),an=sel.anchorNode&&(sel.anchorNode.nodeType===1?sel.anchorNode:sel.anchorNode.parentElement),a=an&&an.closest&&an.closest('a');
+  if(!a&&(!ta._rng||ta._rng.collapsed))return toast('請先選取要加上連結的文字');
+  if(a){const r=document.createRange();r.selectNodeContents(a);sel.removeAllRanges();sel.addRange(r);ta._rng=r.cloneRange()}
+  const saved=ta._rng&&ta._rng.cloneRange(),u=prompt('輸入連結網址（留空會移除連結）',a?(a.getAttribute('href')||''):'https://');
+  ta.focus();if(saved){ta._rng=saved;restoreSel()}if(u===null)return;
+  const n=normUrl(u);if(n===null)return toast('只支援 http、https 或 mailto 連結');
+  try{document.execCommand('styleWithCSS',false,true);if(n)document.execCommand('createLink',false,n);else document.execCommand('unlink')}catch(e){return}
+  syncTa(ta._o);paint(ta._o);ta._pos();put(ta._o);fmtState();return}
+ const os=[...S.sel].map(i=>S.objs.get(i)).filter(o=>o&&o.t==='text');if(!os.length)return toast('請先選取文字物件，或編輯文字後選取要加上連結的字');
+ const cur=(runsOf(os[0]).find(r=>r.h)||{}).h||'',u=prompt('輸入連結網址（留空會移除連結）',cur||'https://');if(u===null)return;
+ const n=normUrl(u);if(n===null)return toast('只支援 http、https 或 mailto 連結');
+ const before=os.map(cl);os.forEach(o=>{setFmt(o,'h',n);paint(o);put(o)});commit(os.map((o,i)=>[o.id,before[i],cl(o)]));props()}
+dAdd('click',e=>{if(ta._o&&!e.ctrlKey&&!e.metaKey)return;const el=document.elementFromPoint(e.clientX,e.clientY),t=el&&el.closest&&el.closest('[data-h],#ta a');if(!t)return;const h=t.getAttribute('data-h')||t.getAttribute('href');if(!h||!/^(https?:|mailto:)/i.test(h))return;if(e.ctrlKey||e.metaKey||RO||PRES){e.preventDefault();window.open(h,'_blank','noopener')}});
 function restoreSel(){if(!ta._o)return;ta.focus();if(ta._rng){const s=getSelection();s.removeAllRanges();s.addRange(ta._rng)}}
 function refocus(){if(ta._o){restoreSel();}}
 function fmtState(){if(!ta._o)return;[['b','bold'],['i','italic'],['ul','underline'],['st','strikeThrough']].forEach(([k,c])=>{const b=document.querySelector(`#dots [data-f="${k}"]`);if(b)b.classList.toggle('on',!!document.queryCommandState(c))})}
 function applySelColor(c){if(!ta._o||!ta._rng||ta._rng.collapsed)return false;restoreSel();try{document.execCommand('styleWithCSS',false,true);document.execCommand('foreColor',false,c)}catch(e){return false}syncTa(ta._o);paint(ta._o);ta._pos();put(ta._o);return true}
 dAdd('click',e=>{const b=e.target.closest('[data-f]');if(!b||RO)return;const k=b.dataset.f,v=b.dataset.v;
+ if(k==='lk'){linkPrompt();return}
  if(ta._o&&['b','i','ul','st'].includes(k)){restoreSel();document.execCommand({b:'bold',i:'italic',ul:'underline',st:'strikeThrough'}[k]);syncTa(ta._o);paint(ta._o);ta._pos();put(ta._o);fmtState();return}
  const ids=[...S.sel].filter(i=>S.objs.has(i));if(!ids.length){S.d[k]=v===undefined?!S.d[k]:(k==='ls'&&S.d[k]===v?'':v);props();return}
  const f=S.objs.get(ids[0]);let val;if(['b','i','ul','st'].includes(k))val=!fmtOn(f,k);else val=(k==='ls'&&f[k]===v)?'':v;S.d[k]=val;chg(o=>{if(['b','i','ul','st'].includes(k))setFmt(o,k,val);else o[k]=val;return{}});props()});

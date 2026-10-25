@@ -1,0 +1,26 @@
+import sys;sys.path.insert(0,'/tmp/claude-0/-home-claude/c56ee7cb-7625-56ea-a2c7-f27e432dee5c/scratchpad/tests')
+from run import *
+srv=serve(S+'/app')
+def texts(pg):
+    return pg.evaluate("""()=>{const d=window.__db.load();return Object.entries(d).filter(([k])=>/^b\\/[^/]+\\/objs\\//.test(k)).map(([k,v])=>v).filter(o=>o.t==='text')}""")
+with sync_playwright() as p:
+    b=launch(p);ctx=b.new_context(viewport={'width':1280,'height':800});pg=newpage(ctx)
+    pg.wait_for_timeout(800)
+    pg.locator('.card').first.dblclick();pg.wait_for_timeout(700)
+    pg.on('dialog',lambda d:d.accept('example.com/x'))
+    pg.keyboard.press('t');pg.mouse.click(400,300);pg.wait_for_timeout(200)
+    pg.keyboard.type('Hello world');pg.keyboard.down('Shift')
+    for i in range(5):pg.keyboard.press('ArrowLeft')
+    pg.keyboard.up('Shift')
+    pg.click('#props [data-f="lk"]');pg.wait_for_timeout(300)
+    pg.keyboard.press('Escape');pg.wait_for_timeout(1500)
+    t=texts(pg);print([ (o.get('txt'),o.get('runs')) for o in t],pg._errs)
+    ok=any(r.get('h')=='https://example.com/x' and r['t']=='world' for o in t for r in (o.get('runs') or []))
+    print('LINK RUN',ok)
+    print('svg link',pg.evaluate("document.querySelectorAll('tspan[data-h]').length"))
+    box=pg.evaluate("(()=>{const e=document.querySelector('tspan[data-h]');if(!e)return null;const r=e.getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2]})()")
+    print('box',box)
+    if box:
+        with ctx.expect_page(timeout=4000) as np:
+            pg.keyboard.down('Control');pg.mouse.click(box[0],box[1]);pg.keyboard.up('Control')
+        print('OPENED',np.value.url)

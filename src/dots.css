@@ -121,3 +121,4 @@
 .pk{position:fixed;z-index:3;pointer-events:none;border:2px dashed;border-radius:6px;box-sizing:border-box;transition:left .08s linear,top .08s linear,width .08s linear,height .08s linear}
 .pk.ed{border-style:solid;box-shadow:0 0 0 3px rgba(255,255,255,.12)}
 .pk>span{position:absolute;left:-2px;bottom:100%;margin-bottom:2px;font:600 11px/1 -apple-system,"PingFang TC","Noto Sans TC",sans-serif;color:#fff;padding:3px 7px;border-radius:7px 7px 7px 2px;white-space:nowrap}
+#dots #ta a{color:#2563eb;text-decoration:underline}

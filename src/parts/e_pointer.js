@@ -63,15 +63,31 @@ function finishEdit(){const o=ta._o;if(!o)return;syncTa(o);ta._o=null;ta.hidden=
  if(!o.txt.trim()){if(ta._b)commit([[o.id,ta._b,null]]);rm(o.id);props();return}
  paint(o);put(o);const ex=paginate(o).map(n=>[n.id,null,cl(n)]);commit([[o.id,ta._b,cl(o)]].concat(ex));props()}
 ta.addEventListener('input',()=>{const o=ta._o;if(!o)return;syncTa(o);paint(o);ta._pos();put(o)});
-ta.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Escape'){finishEdit();return}if(e.key==='Enter'&&!e.isComposing){e.preventDefault();document.execCommand('insertLineBreak')}});
+ta.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Escape'){finishEdit();return}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();linkPrompt();return}if(e.key==='Enter'&&!e.isComposing){e.preventDefault();document.execCommand('insertLineBreak')}});
 ta.addEventListener('paste',e=>{e.preventDefault();const t=(e.clipboardData||window.clipboardData).getData('text/plain');t.split(/\r?\n/).forEach((l,i)=>{if(i)document.execCommand('insertLineBreak');if(l)document.execCommand('insertText',false,l)})});
 ta.addEventListener('blur',e=>{const rt=e.relatedTarget;if(rt&&rt.closest&&rt.closest('#props'))return;setTimeout(()=>{if(ta._o&&document.activeElement!==ta&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#props')))finishEdit()},0)});
 dAdd('selectionchange',()=>{if(ta.hidden||!ta._o)return;const s=getSelection();if(s.rangeCount&&ta.contains(s.anchorNode))ta._rng=s.getRangeAt(0).cloneRange();fmtState()});
+function normUrl(u){u=(u||'').trim();if(!u)return'';if(!/^[a-z][a-z0-9+.-]*:/i.test(u))u='https://'+u;return /^(https?:|mailto:)/i.test(u)?u:null}
+function linkPrompt(){if(RO)return;
+ if(ta._o){restoreSel();const sel=getSelection(),an=sel.anchorNode&&(sel.anchorNode.nodeType===1?sel.anchorNode:sel.anchorNode.parentElement),a=an&&an.closest&&an.closest('a');
+  if(!a&&(!ta._rng||ta._rng.collapsed))return toast('請先選取要加上連結的文字');
+  if(a){const r=document.createRange();r.selectNodeContents(a);sel.removeAllRanges();sel.addRange(r);ta._rng=r.cloneRange()}
+  const saved=ta._rng&&ta._rng.cloneRange(),u=prompt('輸入連結網址（留空會移除連結）',a?(a.getAttribute('href')||''):'https://');
+  ta.focus();if(saved){ta._rng=saved;restoreSel()}if(u===null)return;
+  const n=normUrl(u);if(n===null)return toast('只支援 http、https 或 mailto 連結');
+  try{document.execCommand('styleWithCSS',false,true);if(n)document.execCommand('createLink',false,n);else document.execCommand('unlink')}catch(e){return}
+  syncTa(ta._o);paint(ta._o);ta._pos();put(ta._o);fmtState();return}
+ const os=[...S.sel].map(i=>S.objs.get(i)).filter(o=>o&&o.t==='text');if(!os.length)return toast('請先選取文字物件，或編輯文字後選取要加上連結的字');
+ const cur=(runsOf(os[0]).find(r=>r.h)||{}).h||'',u=prompt('輸入連結網址（留空會移除連結）',cur||'https://');if(u===null)return;
+ const n=normUrl(u);if(n===null)return toast('只支援 http、https 或 mailto 連結');
+ const before=os.map(cl);os.forEach(o=>{setFmt(o,'h',n);paint(o);put(o)});commit(os.map((o,i)=>[o.id,before[i],cl(o)]));props()}
+dAdd('click',e=>{if(ta._o&&!e.ctrlKey&&!e.metaKey)return;const el=document.elementFromPoint(e.clientX,e.clientY),t=el&&el.closest&&el.closest('[data-h],#ta a');if(!t)return;const h=t.getAttribute('data-h')||t.getAttribute('href');if(!h||!/^(https?:|mailto:)/i.test(h))return;if(e.ctrlKey||e.metaKey||RO||PRES){e.preventDefault();window.open(h,'_blank','noopener')}});
 function restoreSel(){if(!ta._o)return;ta.focus();if(ta._rng){const s=getSelection();s.removeAllRanges();s.addRange(ta._rng)}}
 function refocus(){if(ta._o){restoreSel();}}
 function fmtState(){if(!ta._o)return;[['b','bold'],['i','italic'],['ul','underline'],['st','strikeThrough']].forEach(([k,c])=>{const b=document.querySelector(`#dots [data-f="${k}"]`);if(b)b.classList.toggle('on',!!document.queryCommandState(c))})}
 function applySelColor(c){if(!ta._o||!ta._rng||ta._rng.collapsed)return false;restoreSel();try{document.execCommand('styleWithCSS',false,true);document.execCommand('foreColor',false,c)}catch(e){return false}syncTa(ta._o);paint(ta._o);ta._pos();put(ta._o);return true}
 dAdd('click',e=>{const b=e.target.closest('[data-f]');if(!b||RO)return;const k=b.dataset.f,v=b.dataset.v;
+ if(k==='lk'){linkPrompt();return}
  if(ta._o&&['b','i','ul','st'].includes(k)){restoreSel();document.execCommand({b:'bold',i:'italic',ul:'underline',st:'strikeThrough'}[k]);syncTa(ta._o);paint(ta._o);ta._pos();put(ta._o);fmtState();return}
  const ids=[...S.sel].filter(i=>S.objs.has(i));if(!ids.length){S.d[k]=v===undefined?!S.d[k]:(k==='ls'&&S.d[k]===v?'':v);props();return}
  const f=S.objs.get(ids[0]);let val;if(['b','i','ul','st'].includes(k))val=!fmtOn(f,k);else val=(k==='ls'&&f[k]===v)?'':v;S.d[k]=val;chg(o=>{if(['b','i','ul','st'].includes(k))setFmt(o,k,val);else o[k]=val;return{}});props()});
