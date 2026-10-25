@@ -85,7 +85,7 @@ const W=e=>({x:(e.clientX-S.v.x)/S.v.k,y:(e.clientY-S.v.y)/S.v.k});
 function zoomAt(cx,cy,nk){nk=Math.max(.1,Math.min(6,nk));const v=S.v,wx=(cx-v.x)/v.k,wy=(cy-v.y)/v.k;v.k=nk;v.x=cx-wx*nk;v.y=cy-wy*nk;applyV()}
 $('cv').addEventListener('wheel',e=>{e.preventDefault();if(e.ctrlKey||e.metaKey)zoomAt(e.clientX,e.clientY,S.v.k*Math.exp(-e.deltaY*.01));else{S.v.x-=e.deltaX;S.v.y-=e.deltaY;applyV()}},{passive:false});
 $('bz').onclick=()=>{zoomAt(innerWidth/2,innerHeight/2,1)};
-$('zi').onclick=()=>zoomAt(innerWidth/2,innerHeight/2,S.v.k*1.25);$('zo').onclick=()=>zoomAt(innerWidth/2,innerHeight/2,S.v.k/1.25);$('zs').oninput=e=>zoomAt(innerWidth/2,innerHeight/2,.1*Math.pow(60,e.target.value/100));$('bf').innerHTML=ic('fit');
+$('zi').onclick=()=>zoomAt(innerWidth/2,innerHeight/2,S.v.k*1.25);$('zo').onclick=()=>zoomAt(innerWidth/2,innerHeight/2,S.v.k/1.25);$('zs').oninput=e=>zoomAt(innerWidth/2,innerHeight/2,.1*Math.pow(60,e.target.value/100));$('bf').innerHTML=ic('fit');$('bsn').innerHTML=ic('snap');
 const bounds=a=>{let x1=1e9,y1=1e9,x2=-1e9,y2=-1e9;a.forEach(o=>{x1=Math.min(x1,o.x);y1=Math.min(y1,o.y);x2=Math.max(x2,o.x+o.w);y2=Math.max(y2,o.y+o.h)});return{x1,y1,x2,y2}};
 function fit(){const fr=S.objs.get('fr-'+S.pg),a=fr?[fr]:pgObjs();if(!a.length){S.v={x:0,y:0,k:1};return applyV()}const b=bounds(a),k=Math.min(2,Math.min(innerWidth/(b.x2-b.x1+160),innerHeight/(b.y2-b.y1+240)));S.v={k,x:innerWidth/2-(b.x1+b.x2)/2*k,y:innerHeight/2-(b.y1+b.y2)/2*k};applyV()}
 $('bf').onclick=fit;
