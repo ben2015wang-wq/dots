@@ -70,13 +70,38 @@ const V={nav:'all',q:'',type:'all',sort:'new',mode:'grid',sel:new Set()};
 function rel(t){const m=(Date.now()-t)/6e4;if(m<1)return'剛剛';if(m<60)return Math.floor(m)+' 分鐘前';if(m<1440)return Math.floor(m/60)+' 小時前';if(m<2880)return'昨天';if(m<10080)return Math.floor(m/1440)+' 天前';return new Date(t).toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit'})}
 const full=t=>'建立於 '+new Date(t).toLocaleString('zh-TW',{hour12:false});
 function toast(m){const t=$('#toast');t.textContent=m;t.style.opacity=1;clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.opacity=0,2400)}
-function thumb(i){const h=((i.seed||0)*57)%360,sd=i.seed||0,r=n=>((sd*9301+n*49297)%233280)/233280,g='g'+i.id;
- let s=`<svg viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="${g}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(${h} 30% 25%)"/><stop offset="1" stop-color="hsl(${(h+50)%360} 34% 12%)"/></linearGradient></defs><rect width="160" height="100" fill="url(#${g})"/>`;
- if(i.type==='board'){for(let x=8;x<160;x+=12)for(let y=8;y<100;y+=12)s+=`<circle cx="${x}" cy="${y}" r="1" fill="#fff" fill-opacity=".15"/>`;s+=`<rect x="${18+r(1)*22}" y="${16+r(2)*12}" width="48" height="30" rx="6" fill="#fff" fill-opacity=".16"/><circle cx="${100+r(3)*22}" cy="${56+r(4)*12}" r="16" fill="hsl(${h} 65% 68%)" fill-opacity=".55"/><path d="M26 80q30-24 62-6t44-10" stroke="#fff" stroke-opacity=".5" stroke-width="2" fill="none" stroke-linecap="round"/>`}
- else if(i.type==='doc'){s+=`<rect x="46" y="12" width="68" height="80" rx="5" fill="#fff" fill-opacity=".9"/><rect x="54" y="22" width="30" height="5" rx="2.5" fill="hsl(${h} 30% 30%)"/>`;for(let k=0;k<6;k++)s+=`<rect x="54" y="${35+k*8}" width="${52-(k%3)*10}" height="3" rx="1.5" fill="#000" fill-opacity=".18"/>`}
- else if(i.type==='slide'){s+=`<rect x="22" y="20" width="116" height="66" rx="6" fill="#fff" fill-opacity=".1"/><rect x="30" y="30" width="52" height="7" rx="3.5" fill="#fff" fill-opacity=".85"/><rect x="30" y="43" width="36" height="4" rx="2" fill="#fff" fill-opacity=".4"/><rect x="90" y="46" width="38" height="32" rx="5" fill="hsl(${h} 65% 68%)" fill-opacity=".6"/>`}
- else s+=`<circle cx="${40+r(1)*70}" cy="30" r="12" fill="hsl(${(h+30)%360} 75% 75%)" fill-opacity=".8"/><path d="M0 100V70l36-26 30 22 28-18 66 34v18z" fill="#fff" fill-opacity=".14"/><path d="M0 100V82l40-18 38 14 82-24v46z" fill="#000" fill-opacity=".25"/>`;
- return s+'</svg>'}
+// ten interface-style cover designs for items that have no captured preview yet
+const CW='#fff',RC=(x,y,w,h,r,f,o)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${f}" fill-opacity="${o}"/>`,
+ LN=(d,o,w)=>`<path d="${d}" stroke="#fff" stroke-opacity="${o}" stroke-width="${w||1.6}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+const COV=[
+ // 0 kanban board
+ (h,A,B,C)=>{let s='';const P=[A,B,C];for(let k=0;k<3;k++){s+=RC(14+k*45,12,40,76,5,CW,.1)+RC(19+k*45,18,20,4,2,CW,.7);const n=k===1?2:3;for(let j=0;j<n;j++)s+=RC(19+k*45,28+j*20,30,15,3,P[(j+k)%3],.75)+RC(22+k*45,32+j*20,16,3,1.5,CW,.55)}return s},
+ // 1 flowchart
+ (h,A,B,C)=>RC(10,40,36,20,6,CW,.22)+RC(16,47,18,5,2.5,CW,.7)+`<polygon points="80,26 106,50 80,74 54,50" fill="${A}" fill-opacity=".62"/>`+RC(114,12,36,20,6,B,.72)+RC(114,68,36,20,6,C,.72)+LN('M46 50H54',.6)+LN('M106 50H110V22H114',.6)+LN('M106 50H110V78H114',.6)+LN('M80 74V84H114',.35,1.2),
+ // 2 mind map
+ (h,A,B,C)=>{let s='';const N=[[28,22,B],[26,76,C],[132,20,C],[136,72,B],[82,12,A]];N.forEach(n=>{s+=LN(`M80 52L${n[0]} ${n[1]}`,.4,1.4)});N.forEach(n=>{s+=`<ellipse cx="${n[0]}" cy="${n[1]}" rx="14" ry="8" fill="${n[2]}" fill-opacity=".72"/>`+RC(n[0]-7,n[1]-1.5,14,3,1.5,CW,.7)});return s+`<circle cx="80" cy="54" r="15" fill="${A}" fill-opacity=".85"/><circle cx="80" cy="54" r="6" fill="#fff" fill-opacity=".85"/>`},
+ // 3 landing-page wireframe
+ (h,A,B,C)=>{let s=RC(12,9,136,10,4,CW,.14)+RC(16,12,10,4,2,CW,.7)+RC(112,12,8,4,2,CW,.4)+RC(124,12,8,4,2,CW,.4)+RC(136,12,8,4,2,CW,.4)+RC(12,24,136,32,5,CW,.1)+RC(20,31,52,7,3.5,CW,.85)+RC(20,42,38,4,2,CW,.4)+RC(20,49,24,5,2.5,A,.9)+RC(96,29,44,22,4,A,.6);const P=[A,B,C];for(let k=0;k<3;k++)s+=RC(12+k*47,61,42,28,5,CW,.1)+RC(17+k*47,66,14,14,4,P[k],.75)+RC(35+k*47,68,10,3,1.5,CW,.55)+RC(35+k*47,75,7,3,1.5,CW,.3);return s},
+ // 4 analytics dashboard
+ (h,A,B,C)=>{let s=RC(9,9,22,82,5,CW,.12);for(let k=0;k<4;k++)s+=RC(13,15+k*12,14,5,2.5,CW,k===0?.8:.35);const P=[A,B,C];for(let k=0;k<3;k++)s+=RC(37+k*38,9,34,19,4,CW,.12)+RC(41+k*38,14,14,5,2,P[k],.95)+RC(41+k*38,21,22,3,1.5,CW,.35);s+=RC(37,33,66,58,5,CW,.1);[18,30,22,40,28,36].forEach((v,k)=>{s+=RC(43+k*10,85-v,6,v,2,k%2?B:A,.8)});s+=RC(107,33,44,58,5,CW,.1)+`<path d="M112 80L122 66L132 72L146 50V86H112Z" fill="${C}" fill-opacity=".35"/>`+LN('M112 80L122 66L132 72L146 50',.85,1.8);return s},
+ // 5 calendar / timeline
+ (h,A,B,C)=>{let s='';for(let k=0;k<6;k++)s+=LN(`M${40+k*20} 12V90`,.08,1);const off=[0,16,34,50,66],len=[44,54,36,46,34],P=[A,B,C,A,B];for(let k=0;k<5;k++)s+=RC(10,17+k*15,22,5,2.5,CW,.45)+RC(40+off[k],15+k*15,len[k],9,4.5,P[k],.78);return RC(36,8,116,6,3,CW,.14)+s},
+ // 6 sticky notes
+ (h,A,B,C)=>{const col=['hsl(48 90% 70%)','hsl(340 80% 78%)','hsl(140 55% 70%)','hsl(200 80% 74%)',A,B],pos=[[12,10],[56,14],[100,10],[18,52],[62,50],[104,54]],rot=[-4,3,-2,3,-3,4];let s='';pos.forEach((p,k)=>{s+=`<g transform="rotate(${rot[k]} ${p[0]+17} ${p[1]+15})">${RC(p[0],p[1],36,32,3,col[k],.92)}${RC(p[0]+5,p[1]+8,22,3,1.5,'#000',.2)}${RC(p[0]+5,p[1]+15,26,3,1.5,'#000',.14)}${RC(p[0]+5,p[1]+22,14,3,1.5,'#000',.14)}</g>`});return s},
+ // 7 document
+ (h,A,B,C)=>{let s=RC(38,9,84,84,5,CW,.92)+RC(47,18,38,6,3,`hsl(${h} 35% 28%)`,1)+RC(47,29,24,3,1.5,'#000',.2);for(let k=0;k<3;k++)s+=RC(47,37+k*7,66-(k%2)*12,3,1.5,'#000',.18);s+=RC(47,60,66,14,3,A,.55);for(let k=0;k<2;k++)s+=RC(47,79+k*6,56-k*14,3,1.5,'#000',.18);return s},
+ // 8 slide deck
+ (h,A,B,C)=>{let s='';for(let k=0;k<3;k++)s+=RC(9,12+k*27,30,21,3,CW,k===0?.28:.12)+RC(13,17+k*27,16,3,1.5,CW,.7)+RC(13,23+k*27,10,2.5,1.2,CW,.35);s+=RC(46,12,106,76,6,CW,.1)+RC(56,24,58,8,4,CW,.88)+RC(56,38,40,4,2,CW,.42)+RC(56,46,32,4,2,CW,.28)+RC(100,50,42,30,5,A,.68)+RC(56,62,30,6,3,B,.85);return s},
+ // 9 mobile app screens
+ (h,A,B,C)=>{let s='';[[30,8,0],[88,16,1]].forEach(p=>{const x=p[0],y=p[1];s+=RC(x,y,42,78,8,CW,.14)+RC(x+14,y+3,14,2.5,1.2,CW,.45)+RC(x+5,y+10,32,22,4,p[2]?B:A,.72);for(let k=0;k<3;k++)s+=RC(x+5,y+37+k*11,8,8,3,[A,B,C][(k+p[2])%3],.8)+RC(x+16,y+39+k*11,20,3,1.5,CW,.55)+RC(x+16,y+45+k*11,13,2.5,1.2,CW,.3)});return s}
+];
+const COVPOOL={board:[0,1,2,6,9],doc:[7,3],slide:[8,4],image:[5,9]};
+function thumb(i){if(i.cover==null)return dotsCover();const h=((i.seed||0)*57)%360,sd=i.seed||0,k=(+i.cover%COV.length+COV.length)%COV.length,g='g'+i.id;
+ const A=`hsl(${h} 65% 68%)`,B=`hsl(${(h+45)%360} 70% 70%)`,C=`hsl(${(h+200)%360} 60% 72%)`;
+ return `<svg viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="${g}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(${h} 30% 25%)"/><stop offset="1" stop-color="hsl(${(h+50)%360} 34% 12%)"/></linearGradient></defs><rect width="160" height="100" fill="url(#${g})"/>${COV[k](h,A,B,C)}</svg>`}
+// default cover: 3x3 dot grid with one filled dot, follows theme
+function dotsCover(){let c='';for(let r=0;r<3;r++)for(let q=0;q<3;q++){const on=r===1&&q===2,x=64+q*16,y=34+r*16;c+=`<circle cx="${x}" cy="${y}" r="5.2" fill="${on?'var(--cvf,#1c1c1e)':'none'}" stroke="var(--cvl,#8a8a8a)" stroke-width=".7"/>`}
+ return `<svg viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice"><rect width="160" height="100" fill="var(--cvb,#fafaf9)"/>${c}</svg>`}
 // ---------- folders (nested, coloured, orderable)
 const kids=p=>st.folders.filter(f=>(f.parent||null)===(p||null)).sort((a,b)=>(a.ord||0)-(b.ord||0)||a.name.localeCompare(b.name,'zh-Hant'));
 const desc=id=>{const o=[];const w=p=>kids(p).forEach(f=>{o.push(f.id);w(f.id)});w(id);return o};

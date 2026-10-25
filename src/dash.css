@@ -105,3 +105,5 @@ main{grid-column:2;min-height:100vh;min-height:100dvh;height:100dvh}
 
 .logo{padding:2px 8px 16px}.logoimg{display:block;height:36px;width:auto;max-width:100%}.logoimg.lt{display:none}
 html[data-wb="light"] .logoimg.dk{display:none}html[data-wb="light"] .logoimg.lt{display:block}
+
+:root{--cvb:#fafaf9;--cvl:#8a8a8a;--cvf:#1c1c1e}html[data-wb="dark"]{--cvb:#17171a;--cvl:#6e6e75;--cvf:#f2f2f3}
