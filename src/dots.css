@@ -129,3 +129,4 @@
 #dots #ta a:not([data-ul]){color:inherit;text-decoration:inherit;cursor:text}
 #dots #O .sf{fill:none;stroke:var(--ink)}#dots #O .hd{fill:var(--page);stroke:var(--ink)}#dots #ta{border-color:var(--ink)}
 @media(min-width:641px){#dots #props .sw{grid-template-columns:repeat(8,1fr);justify-items:start}}
+#dots #props{background:color-mix(in srgb,var(--page) 52%,transparent);backdrop-filter:blur(22px) saturate(1.4);-webkit-backdrop-filter:blur(22px) saturate(1.4)}
