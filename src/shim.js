@@ -2,7 +2,10 @@ window.DOTS_FIREBASE={apiKey:"AIzaSyBfuO5iP4SXyYDjiYdeecUPT4T7sOaqOvw",authDomai
 // DOTS standalone runtime: a local stand-in for the Claude page runtime (db / user / room / downloads).
 // Data lives in this browser's IndexedDB; tabs of the same browser stay in sync through BroadcastChannel.
 (function(){
-window.__STANDALONE=true;window.__ACCT={mode:'local'};
+window.__STANDALONE=true;
+let LP={};try{LP=JSON.parse(localStorage.getItem('dots-profile')||'{}')||{}}catch(e){}
+const ME0={id:null,name:LP.name||'使用者',color:'#3b82f6',avatarUrl:LP.photo||'',isOwner:true,canEdit:true};
+window.__ACCT={mode:'local',user:{name:LP.name||'',photo:LP.photo||''},updateProfile:async p=>{LP={name:p.name||'',photo:p.photo||''};try{localStorage.setItem('dots-profile',JSON.stringify(LP))}catch(e){}ME0.name=LP.name||'使用者';ME0.avatarUrl=LP.photo;window.__ACCT.user={name:LP.name,photo:LP.photo}}};
 const seg=p=>p.split('/'),par=p=>{const s=seg(p);s.pop();return s.join('/')};
 const mem=new Map(),subs=new Set();let ready=null,idb=null,q=Promise.resolve();
 const bc=typeof BroadcastChannel!=='undefined'?new BroadcastChannel('dots-db'):null;
@@ -34,7 +37,7 @@ const db={
   return api}};
 // users: one local identity per browser (no accounts in the standalone build)
 let LU=null;try{LU=localStorage.getItem('dots-uid')}catch(e){}if(!LU){LU='local-'+Math.random().toString(36).slice(2,10);try{localStorage.setItem('dots-uid',LU)}catch(e){}}
-const user={me:async()=>({id:LU,name:'使用者',color:'#3b82f6',isOwner:true,canEdit:true}),id:async()=>LU,profiles:async ids=>Object.fromEntries([].concat(ids).map(i=>[i,{id:i,name:i===LU?'我':'使用者',isMe:i===LU,color:'#888'}])),search:async()=>[],isOwner:async()=>true,canEdit:async()=>true,can:async()=>true};
+ME0.id=LU;const user={me:async()=>ME0,id:async()=>LU,profiles:async ids=>Object.fromEntries([].concat(ids).map(i=>[i,{id:i,name:i===LU?(ME0.name==='使用者'?'我':ME0.name):'使用者',isMe:i===LU,color:'#888',avatarUrl:i===LU?ME0.avatarUrl:''}])),search:async()=>[],isOwner:async()=>true,canEdit:async()=>true,can:async()=>true};
 // presence between tabs of the same browser
 const ME='p'+Math.random().toString(36).slice(2,8),peers=new Map(),pl=new Set();let myp={};const rb=bc?new BroadcastChannel('dots-room'):null;
 const list=()=>[{peer:ME,isMe:true,presence:myp},...[...peers].map(([id,v])=>({peer:id,isMe:false,presence:v.p}))];
@@ -69,7 +72,8 @@ function mkFbDb(){return{
   return{path,doc:id=>fbDb.doc(path+'/'+(id||Math.random().toString(36).slice(2))),get:async()=>wq(await ref().get()),onSnapshot(next,er){return ref().onSnapshot(q=>next(wq(q)),er)}}}}}
 const PALC=['#ef4444','#f59e0b','#22c55e','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#78716c'];function colorOf(id){let h=0;for(const c of id)h=(h*31+c.charCodeAt(0))>>>0;return PALC[h%PALC.length]}
 const prof=new Map();
-function mkFbUser(){const u=FU;const me={id:u.uid,name:u.displayName||u.email||'使用者',color:colorOf(u.uid),avatarUrl:u.photoURL||'',email:u.email||'',isOwner:false,canEdit:true};
+var PRF={};
+function mkFbUser(){const u=FU;const me={id:u.uid,name:(PRF.custom&&PRF.name)||u.displayName||u.email||'使用者',color:colorOf(u.uid),avatarUrl:PRF.custom?(PRF.photo||''):(u.photoURL||''),email:u.email||'',isOwner:false,canEdit:true};
  return{me:async()=>me,id:async()=>u.uid,isOwner:async()=>false,canEdit:async()=>true,can:async()=>true,
   profiles:async ids=>{const out={};await Promise.all([].concat(ids).map(async i=>{if(i===u.uid){out[i]={id:i,name:me.name,isMe:true,color:me.color,avatarUrl:me.avatarUrl};return}if(!prof.has(i)){try{const d=await FS.doc('profiles/'+i).get();prof.set(i,d.exists?d.data():{})}catch(e){prof.set(i,{})}}const p=prof.get(i);out[i]={id:i,name:p.name||'',isMe:false,color:colorOf(i),avatarUrl:p.photo||''}}));return out},
   search:async q=>{q=(q||'').trim().toLowerCase();try{let ref=FS.collection('profiles');ref=ref.orderBy('nameLower');if(q)ref=ref.startAt(q).endAt(q+'');const s=await ref.limit(8).get();return s.docs.map(d=>({id:d.id,name:d.data().name||'',color:colorOf(d.id),isMe:d.id===u.uid})).filter(p=>p.name&&!p.isMe)}catch(e){return[]}}}}
@@ -92,9 +96,14 @@ const READY=(async()=>{if(!CFG)return;
   FB=window.firebase;if(!FB.apps.length)FB.initializeApp(CFG);FAUTH=FB.auth();FS=FB.firestore();try{FS.settings({ignoreUndefinedProperties:true,cacheSizeBytes:FB.firestore.CACHE_SIZE_UNLIMITED})}catch(e){}try{await FS.enablePersistence({synchronizeTabs:true})}catch(e){}
   FU=await new Promise(ok=>{const un=FAUTH.onAuthStateChanged(u=>{un();ok(u)})});
   if(!FU){await new Promise(r=>document.body?r():addEventListener('DOMContentLoaded',r,{once:true}));const c=await gate('');if(c==='google')FU=FAUTH.currentUser}
-  if(FU){MODE='firebase';window.__STANDALONE=false;window.__FB=true;fbDb=mkFbDb();fbUser=mkFbUser();fbRoom=mkFbRoom();
-   window.__ACCT={mode:'firebase',user:{name:FU.displayName||FU.email,email:FU.email,photo:FU.photoURL},signOut:async()=>{try{await FAUTH.signOut()}catch(e){}location.reload()}};
-   try{await FS.doc('profiles/'+FU.uid).set({name:FU.displayName||FU.email||'使用者',nameLower:(FU.displayName||FU.email||'').toLowerCase(),photo:FU.photoURL||''},{merge:true})}catch(e){}}
+  if(FU){MODE='firebase';window.__STANDALONE=false;window.__FB=true;
+   try{const d=await FS.doc('profiles/'+FU.uid).get();if(d.exists)PRF=d.data()||{}}catch(e){}
+   fbDb=mkFbDb();fbUser=mkFbUser();fbRoom=mkFbRoom();
+   const GN=FU.displayName||FU.email||'使用者',GP=FU.photoURL||'',cur=()=>PRF.custom?{name:PRF.name||GN,photo:PRF.photo||''}:{name:GN,photo:GP};
+   window.__ACCT={mode:'firebase',user:{...cur(),email:FU.email,custom:!!PRF.custom},signOut:async()=>{try{await FAUTH.signOut()}catch(e){}location.reload()},
+    updateProfile:async p=>{const n=(p.name||'').trim()||GN,ph=p.photo||'';await FS.doc('profiles/'+FU.uid).set({name:n,nameLower:n.toLowerCase(),photo:ph,custom:true},{merge:true});PRF={name:n,photo:ph,custom:true};const m=await fbUser.me();m.name=n;m.avatarUrl=ph;window.__ACCT.user={...cur(),email:FU.email,custom:true}},
+    resetProfile:async()=>{await FS.doc('profiles/'+FU.uid).set({name:GN,nameLower:GN.toLowerCase(),photo:GP,custom:false},{merge:true});PRF={name:GN,photo:GP,custom:false};const m=await fbUser.me();m.name=GN;m.avatarUrl=GP;window.__ACCT.user={...cur(),email:FU.email,custom:false}}};
+   if(!PRF.custom){try{await FS.doc('profiles/'+FU.uid).set({name:GN,nameLower:GN.toLowerCase(),photo:GP},{merge:true})}catch(e){}}}
  }catch(e){console.error(e);window.__fbError=e.message||String(e);if(document.body){const t=document.createElement('div');t.textContent='無法連線到 Firebase，已改用本機模式：'+window.__fbError;t.style.cssText='position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:999;background:#b45309;color:#fff;padding:8px 14px;border-radius:10px;font:13px sans-serif;max-width:90vw';document.addEventListener('DOMContentLoaded',()=>{});setTimeout(()=>document.body&&document.body.appendChild(t),400);setTimeout(()=>t.remove(),9000)}}})();
 const caps={db:async()=>{await READY;if(MODE==='firebase')return fbDb;await init();return db},user:async()=>{await READY;return MODE==='firebase'?fbUser:user},room:async()=>{await READY;return MODE==='firebase'?fbRoom:room},downloads:async()=>downloads,sample:async()=>null};
 window.claude={use:async n=>caps[n]?caps[n]():null};

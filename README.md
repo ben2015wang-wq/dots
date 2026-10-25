@@ -22,3 +22,6 @@ Settings → Pages → Source 選 `main` / root。再到 Firebase 的授權網�
 
 ## 繪圖工具
 矩形、圓形、箭頭、直線畫完後會停留在同一工具，可連續繪製；按 Esc 或 V 回到選取。
+
+## 帳號
+帳號區固定在作品庫左下角。點開可編輯顯示名稱與頭像（Firebase 模式存在 `profiles/<uid>`，可還原為 Google 資料；本機模式存在瀏覽器）。
