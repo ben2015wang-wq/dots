@@ -213,6 +213,10 @@ html,body{min-height:100vh;min-height:100dvh}
 main{grid-column:2;min-height:100vh;min-height:100dvh;height:100dvh}
 .foot{position:sticky;bottom:0}
 @media(max-width:800px){main{grid-column:1}#side{width:264px;z-index:30}}
+
+.live{position:absolute;left:8px;bottom:8px;max-width:calc(100% - 16px);display:flex;align-items:center;gap:6px;padding:4px 9px;border-radius:12px;background:rgba(14,14,16,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.live i{width:7px;height:7px;border-radius:50%;background:#22c55e;flex:none;animation:lv 1.6s ease-in-out infinite}
+@keyframes lv{50%{opacity:.35}}
 </style></head><body>
 <aside id="side">
  <div class="logo" aria-label="DOTS"><svg viewBox="0 0 4 4" aria-hidden="true"><circle cx="0.5" cy="0.5" r=".36" fill="currentColor"/><circle cx="1.5" cy="0.5" r=".36" fill="currentColor"/><circle cx="2.5" cy="0.5" r=".36" fill="#4f6df0"/><circle cx="0.5" cy="1.5" r=".36" fill="#3aa392"/><circle cx="1.5" cy="1.5" r=".36" fill="currentColor"/><circle cx="2.5" cy="1.5" r=".36" fill="currentColor"/><circle cx="3.5" cy="1.5" r=".36" fill="#f5a83a"/><circle cx="0.5" cy="2.5" r=".36" fill="currentColor"/><circle cx="1.5" cy="2.5" r=".36" fill="currentColor"/><circle cx="2.5" cy="2.5" r=".36" fill="currentColor"/><circle cx="0.5" cy="3.5" r=".36" fill="currentColor"/><circle cx="1.5" cy="3.5" r=".36" fill="currentColor"/><circle cx="2.5" cy="3.5" r=".36" fill="#b79af2"/><circle cx="3.5" cy="3.5" r=".36" fill="currentColor"/></svg>DOTS</div>
@@ -285,7 +289,12 @@ async function seedMine(){const key='dots-seeded-'+UID;let done=false;try{done=!
  sd.folders.forEach(f=>{f.id=pf+f.id;f.owner=UID});sd.items.forEach(i=>{i.id=pf+i.id;if(i.folder)i.folder=pf+i.folder;i.owner=UID});
  st.folders=st.folders.concat(sd.folders);st.items=st.items.concat(sd.items);sd.folders.forEach(saveFolder);sd.items.forEach(i=>saveItem(i));
  try{localStorage.setItem(key,'1')}catch(e){}if(UDB){try{await UDB.doc('data/users/'+UID+'/seeded').set({ts:Date.now()})}catch(e){}}render()}
-function connect(x){ddb=x;if(!x)return;syncState();
+// who has a board open right now (Firebase presence docs), shown on its card
+let LIVE={},livesig='',PDOCS=[];
+function liveCalc(){const now=Date.now(),m={};PDOCS.forEach(d=>{let v;try{v=cln(d.data())}catch(e){return}const p=v&&v.p;if(!p||!p.b||!p.n||now-(v.ts||0)>20000||v.uid===UID)return;(m[p.b]=m[p.b]||[]).push({n:p.n,ed:!!((p.s&&p.s.length)||p.ed)})});const sig=JSON.stringify(m);if(sig!==livesig){livesig=sig;LIVE=m;render()}}
+function liveWatch(x){if(!window.__FB)return;try{x.collection('presence').onSnapshot(s=>{PDOCS=s.docs||[];liveCalc()},()=>{});setInterval(liveCalc,5000)}catch(e){}}
+const liveChip=id=>{const a=LIVE[id];if(!a||!a.length)return'';const nm=a.slice(0,2).map(x=>esc(x.n)).join('、')+(a.length>2?' 等'+a.length+'人':''),ed=a.some(x=>x.ed);return`<span class="live" title="${esc(a.map(x=>x.n).join('、'))}"><i></i>${nm} ${ed?'正在編輯':'正在檢視'}</span>`};
+function connect(x){ddb=x;if(!x)return;syncState();liveWatch(x);
  x.collection('dash').onSnapshot(s=>{s.docChanges().forEach(c=>{const id=c.doc.id;if(id==='index'){if(c.type!=='removed')legacy=cln(c.doc.data());return}if(id==='seeded'||id==='migrated'){haveMarkers[id]=c.type!=='removed';return}applyDoc(id,c.type==='removed'?null:cln(c.doc.data()),c.type==='removed')});
   if(firstDash){const empty=!s.docs||!s.docs.length;if(s.metadata&&s.metadata.fromCache&&empty){if(!dashTimer)dashTimer=setTimeout(()=>{if(firstDash)afterFirst()},2500);return}afterFirst()}else render();saveLocalState()},()=>{ddb=null;syncState()});
 }
@@ -323,7 +332,7 @@ function list(){let a=st.items.filter(visible);a=a.filter(i=>V.nav==='trash'?i.t
  if(V.q){const q=V.q.toLowerCase();a=a.filter(i=>i.name.toLowerCase().includes(q)||(i.ix||'').toLowerCase().includes(q)||T[i.type].includes(q))}
  const f=V.nav==='recent'?(x,y)=>(REC[y.id]||0)-(REC[x.id]||0):{new:(x,y)=>y.ts-x.ts,old:(x,y)=>x.ts-y.ts,name:(x,y)=>x.name.localeCompare(y.name,'zh-Hant'),type:(x,y)=>T[x.type].localeCompare(T[y.type],'zh-Hant')||y.ts-x.ts}[V.sort];return a.sort(f)}
 const card=i=>{const q=V.q.toLowerCase(),hit=q&&!i.name.toLowerCase().includes(q)?snip(i,q):'',lock=i.acl&&i.acl.mode==='list';
- return`<article class="card${V.sel.has(i.id)?' sel':''}" draggable="true" data-id="${i.id}"><div class="th">${THUMBS[i.id]?`<img src="${THUMBS[i.id]}" alt="">`:thumb(i)}<button class="st${i.star?' on':''}" data-a="star" title="加上星號" aria-label="加上星號">${ic('star')}</button><button class="mn" data-a="menu" title="更多操作" aria-label="更多操作">${ic('dots')}</button></div><div class="ft"><div class="nm" title="${esc(i.name)}">${esc(i.name)}</div><div class="mt"><span class="tg">${T[i.type]}</span>${lock?`<span title="已限制分享對象">${ic('lock')}</span>`:''}<span title="${full(i.ts)}">${V.nav==='recent'&&REC[i.id]?'開啟於 '+rel(REC[i.id]):rel(i.ts)}</span></div>${hit?`<div class="hit">內容：${esc(hit)}</div>`:''}</div></article>`};
+ return`<article class="card${V.sel.has(i.id)?' sel':''}" draggable="true" data-id="${i.id}"><div class="th">${THUMBS[i.id]?`<img src="${THUMBS[i.id]}" alt="">`:thumb(i)}<button class="st${i.star?' on':''}" data-a="star" title="加上星號" aria-label="加上星號">${ic('star')}</button><button class="mn" data-a="menu" title="更多操作" aria-label="更多操作">${ic('dots')}</button>${liveChip(i.id)}</div><div class="ft"><div class="nm" title="${esc(i.name)}">${esc(i.name)}</div><div class="mt"><span class="tg">${T[i.type]}</span>${lock?`<span title="已限制分享對象">${ic('lock')}</span>`:''}<span title="${full(i.ts)}">${V.nav==='recent'&&REC[i.id]?'開啟於 '+rel(REC[i.id]):rel(i.ts)}</span></div>${hit?`<div class="hit">內容：${esc(hit)}</div>`:''}</div></article>`};
 function nav(){const live=st.items.filter(i=>!i.trash&&visible(i)),c=f=>live.filter(f).length,row=(id,ico,l,n)=>`<div class="nv${V.nav===id?' on':''}" data-nav="${id}" tabindex="0">${ic(ico)}<span class="l">${l}</span><span class="n">${n}</span></div>`;
  $('#nv').innerHTML=(PERS()?`<div class="wsn">${esc(((CLU&&CLU.name)||(window.__ACCT&&window.__ACCT.user&&window.__ACCT.user.name)||'我')+' 的工作頁面')}</div>`:'')+row('all','all','所有作品',live.length)+row('recent','clock','最近開啟',c(i=>REC[i.id]))+(PERS()?row('shared','share','與我共用',c(i=>i.owner!==UID)):'')+row('star','star','已加星號',c(i=>i.star))+row('trash','trash','垃圾桶',st.items.filter(i=>i.trash&&visible(i)).length);
  const rows=(p,d)=>kids(p).map(f=>{const k=kids(f.id),open=f.open!==false;return`<div class="nv${V.nav===f.id?' on':''}" data-nav="${f.id}" data-f="${f.id}" tabindex="0" style="padding-left:${10+d*14}px"><button class="tg2${k.length?'':' h'}${open?' o':''}" data-a="ftog" aria-label="展開或收合">${ic('chev')}</button><svg class="i" viewBox="0 0 24 24" style="color:${f.color||'var(--mu)'}"><path d="${P.folder}" fill="${f.color||'none'}" fill-opacity=".25"/></svg><span class="l">${esc(f.name)}</span><span class="n">${c(i=>i.folder===f.id)}</span><button class="x" data-a="fmenu" title="資料夾選項" aria-label="資料夾選項">${ic('dots')}</button></div>`+(open?rows(f.id,d+1):'')}).join('');
@@ -482,7 +491,7 @@ $('#thm').onclick=()=>setTheme(R.dataset.wb==='dark'?'light':'dark');setTheme(R.
 // boot: show local state immediately, then connect to the shared database
 if(!loadLocalState()){/* wait for the database; fall back to samples if it is unavailable */}
 render();
-(async()=>{try{usrN=await claude.use('user');if(usrN){const v=await usrN.me();UID=v&&v.id||null;UOWN=!!(v&&v.isOwner);CLU=v;accUI()}}catch(e){}
+(async()=>{try{usrN=await claude.use('user');if(usrN){const v=await usrN.me();UID=v&&v.id||null;UOWN=!!(v&&v.isOwner);CLU=v;accUI();if(PERS()){st.folders=st.folders.filter(f=>f.owner===UID);render()}}}catch(e){}
  let x=null;try{x=await claude.use('db')}catch(e){}
  if(x){connect(x);if(UID){UDB=x;try{const s=await x.doc('data/users/'+UID+'/ro').get();if(s.exists){const m=cln(s.data()).m||{};Object.keys(m).forEach(k=>{REC[k]=Math.max(REC[k]||0,m[k])});recSave();render()}}catch(e){}}}
  else if(!st.items.length&&!st.folders.length){const s=seedData();st.folders=s.folders;st.items=s.items;saveLocalState();render()}
@@ -606,6 +615,10 @@ render();
 @media(max-width:900px){#dots #udock{bottom:calc(124px + env(safe-area-inset-bottom,0px))}#dots #pp{bottom:calc(174px + env(safe-area-inset-bottom,0px))}}
 @media(max-width:640px){#dots #udock{padding:5px 8px;left:8px}#dots #udock .acct>span:not(.av){display:none}#dots #prow .pm{display:none}#dots #zoom{bottom:190px}}
 @media(pointer:coarse){#dots #prow .pe .av{width:30px;height:30px;font-size:13px}}
+
+.pk{position:fixed;z-index:3;pointer-events:none;border:2px dashed;border-radius:6px;box-sizing:border-box;transition:left .08s linear,top .08s linear,width .08s linear,height .08s linear}
+.pk.ed{border-style:solid;box-shadow:0 0 0 3px rgba(255,255,255,.12)}
+.pk>span{position:absolute;left:-2px;bottom:100%;margin-bottom:2px;font:600 11px/1 -apple-system,"PingFang TC","Noto Sans TC",sans-serif;color:#fff;padding:3px 7px;border-radius:7px 7px 7px 2px;white-space:nowrap}
 </style>
 <div id="dots">
 <div id="cv"><svg id="svg"><g id="w"><g id="L"></g><g id="O"></g></g><rect id="mq" fill="rgba(59,130,246,.1)" stroke="#3b82f6" stroke-dasharray="4" display="none"/></svg></div>
@@ -721,7 +734,7 @@ function toggleTheme(){theme(R.dataset.wb==='dark'?'light':'dark')}
 $('bt').onclick=toggleTheme;
 R.dataset.wb=R.dataset.wb||'dark';
 try{const t=localStorage.getItem('wbtheme2');if(t)R.dataset.wb=t}catch(e){}
-function applyV(){const v=S.v;$('w').setAttribute('transform',`translate(${v.x} ${v.y}) scale(${v.k})`);const c=$('cv').style,s=24*v.k;c.backgroundSize=`${s}px ${s}px`;c.backgroundPosition=`${v.x}px ${v.y}px`;$('bz').textContent=Math.round(v.k*100)+'%';$('zs').value=100*Math.log(v.k/.1)/Math.log(60);ovl();peersEl.forEach(el=>{const d=el._d;if(d)el.style.transform=`translate(${S.v.x+d.x*S.v.k}px,${S.v.y+d.y*S.v.k}px)`});drawCmts();lazyScan()}
+function applyV(){const v=S.v;$('w').setAttribute('transform',`translate(${v.x} ${v.y}) scale(${v.k})`);const c=$('cv').style,s=24*v.k;c.backgroundSize=`${s}px ${s}px`;c.backgroundPosition=`${v.x}px ${v.y}px`;$('bz').textContent=Math.round(v.k*100)+'%';$('zs').value=100*Math.log(v.k/.1)/Math.log(60);ovl();peersEl.forEach(el=>{const d=el._d;if(d)el.style.transform=`translate(${S.v.x+d.x*S.v.k}px,${S.v.y+d.y*S.v.k}px)`});drawCmts();lazyScan();psel()}
 const W=e=>({x:(e.clientX-S.v.x)/S.v.k,y:(e.clientY-S.v.y)/S.v.k});
 function zoomAt(cx,cy,nk){nk=Math.max(.1,Math.min(6,nk));const v=S.v,wx=(cx-v.x)/v.k,wy=(cy-v.y)/v.k;v.k=nk;v.x=cx-wx*nk;v.y=cy-wy*nk;applyV()}
 $('cv').addEventListener('wheel',e=>{e.preventDefault();if(e.ctrlKey||e.metaKey)zoomAt(e.clientX,e.clientY,S.v.k*Math.exp(-e.deltaY*.01));else{S.v.x-=e.deltaX;S.v.y-=e.deltaY;applyV()}},{passive:false});
@@ -750,7 +763,7 @@ function paint(o){if((o.pg||PGS[0].id)!==S.pg){unpaint(o.id);return}let g=els.ge
  const L=layerEl(o.t==='frame'?'__f':o.l),z=o.z||0;if(g.parentNode!==L||g._z!==z){g._z=z;let n=[...L.children].find(x=>x!==g&&(x._z||0)>z);L.insertBefore(g,n||null)}}
 function arrowHead(o,c){const p=o.pts,a=p[0],b=p[p.length-1],t=Math.atan2(b[1]-a[1],b[0]-a[0]),s=10+o.sw*2;return`<path d="M${b[0]-s*Math.cos(t-.45)} ${b[1]-s*Math.sin(t-.45)}L${b[0]} ${b[1]}L${b[0]-s*Math.cos(t+.45)} ${b[1]-s*Math.sin(t+.45)}" stroke="${c}" stroke-width="${o.sw}" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`}
 function unpaint(id){const g=els.get(id);if(g)g.remove();els.delete(id)}
-let raf=0;function ovl(){cancelAnimationFrame(raf);raf=requestAnimationFrame(drawOvl)}
+let raf=0;function ovl(){cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>{drawOvl();announceSel();psel()})}
 function drawOvl(){const O=$('O'),k=S.v.k;let h='';if(PRES||RO){O.innerHTML='';return}const sel=[...S.sel].map(i=>S.objs.get(i)).filter(Boolean);
  sel.forEach(o=>{h+=`<g transform="translate(${o.x} ${o.y}) rotate(${o.r||0} ${o.w/2} ${o.h/2})" pointer-events="none"><rect width="${o.w}" height="${o.h}" fill="none" stroke="#3b82f6" stroke-width="${1.5/k}" ${sel.length>1?`stroke-dasharray="${4/k}"`:''}/>`;
   if(sel.length===1)h+=[[0,0,'nw'],[o.w,0,'ne'],[0,o.h,'sw'],[o.w,o.h,'se']].map(([x,y,n])=>`<rect data-h="${n}" pointer-events="all" x="${x-5/k}" y="${y-5/k}" width="${10/k}" height="${10/k}" rx="${2/k}" fill="#fff" stroke="#3b82f6" stroke-width="${1.5/k}" style="cursor:${n==='nw'||n==='se'?'nwse':'nesw'}-resize"/>`).join('')+`<line x1="${o.w/2}" y1="0" x2="${o.w/2}" y2="${-22/k}" stroke="#3b82f6" stroke-width="${1.5/k}"/><circle data-h="rot" pointer-events="all" cx="${o.w/2}" cy="${-22/k}" r="${6/k}" fill="#fff" stroke="#3b82f6" stroke-width="${1.5/k}" style="cursor:grab"/>`;h+='</g>'});O.innerHTML=h}
@@ -879,7 +892,7 @@ function caretEnd(){const r=document.createRange();r.selectNodeContents(ta);r.co
 function edit(o,isNew){if(RO)return;finishEdit();S.sel=new Set([o.id]);ovl();ta.hidden=false;ta._o=o;ta._b=isNew?null:cl(o);ta._rf=isNew?{b:!!o.b,i:!!o.i,ul:!!o.ul,st:!!o.st}:null;ta._rng=null;
  ta.innerHTML=isNew&&!o.txt?'':runsHTML(o);try{document.execCommand('styleWithCSS',false,true)}catch(e){}
  ta._pos=()=>pos(o);ta._pos();props();ta.focus();caretEnd();setTimeout(()=>{if(ta._o===o&&document.activeElement!==ta){ta.focus();caretEnd()}},30)}
-function finishEdit(){const o=ta._o;if(!o)return;syncTa(o);ta._o=null;ta.hidden=true;ta.innerHTML='';const g=els.get(o.id);if(g)g.style.visibility='';
+function finishEdit(){const o=ta._o;if(!o)return;syncTa(o);ta._o=null;ta.hidden=true;ovl();ta.innerHTML='';const g=els.get(o.id);if(g)g.style.visibility='';
  if(!o.txt.trim()){if(ta._b)commit([[o.id,ta._b,null]]);rm(o.id);props();return}
  paint(o);put(o);const ex=paginate(o).map(n=>[n.id,null,cl(n)]);commit([[o.id,ta._b,cl(o)]].concat(ex));props()}
 ta.addEventListener('input',()=>{const o=ta._o;if(!o)return;syncTa(o);paint(o);ta._pos();put(o)});
@@ -1013,11 +1026,20 @@ function prow(list){const L=list.filter(pr=>!pr.isMe&&(pr.presence||{}).b===BID)
  L.slice(0,5).forEach(q=>{const b=document.createElement('button');b.className='pe'+(q.p!==S.pg?' off':'');b.dataset.pid=q.id;b.title=q.n+(q.p!==S.pg?'（在其他頁面）':q.x==null?'（尚未移動游標）':'，點一下跳到對方的位置');b.appendChild(avatar(q.n,q.c,{emoji:q.e,img:''}));r.appendChild(b)});
  if(L.length>5){const m=document.createElement('span');m.className='pm';m.textContent='+'+(L.length-5);r.appendChild(m)}
  if(L.length){const m=document.createElement('span');m.className='pm';m.textContent=(L.length+1)+' 人在線';r.appendChild(m)}}
-let PEERS=[];
+let PEERS=[],PRAW=[],pkEls=new Map(),pkR=0;
+function psel(){cancelAnimationFrame(pkR);pkR=requestAnimationFrame(psel0)}
+function psel0(){const want=new Map();if(!PRES&&room&&ACT.on)PRAW.forEach(pr=>{if(pr.isMe)return;const d=pr.presence||{};if(d.b!==BID||d.p!==S.pg||!Array.isArray(d.s))return;d.s.slice(0,12).forEach((id,ix)=>{const o=S.objs.get(id);if(!o)return;want.set(pr.peer+'|'+id,{o,c:d.c||'#a8a29e',n:(d.e?d.e+' ':'')+(d.n||'訪客'),ed:d.ed===id,lab:ix===0})})});
+ want.forEach((w,key)=>{let el=pkEls.get(key);if(!el){el=document.createElement('div');el.className='pk';el.innerHTML='<span></span>';$('dots').appendChild(el);pkEls.set(key,el)}
+  const k=S.v.k,o=w.o,x=S.v.x+o.x*k,y=S.v.y+o.y*k,W=Math.max(10,(o.w||0)*k),H=Math.max(10,(o.h||0)*k);el.style.cssText=`left:${x-3}px;top:${y-3}px;width:${W+6}px;height:${H+6}px;border-color:${w.c}`;
+  const sp=el.firstChild;sp.style.background=w.c;sp.style.display=w.lab?'':'none';sp.textContent=w.n+(w.ed?' 正在編輯':' 選取中');el.classList.toggle('ed',w.ed)});
+ pkEls.forEach((el,key)=>{if(!want.has(key)){el.remove();pkEls.delete(key)}})}
 function jumpTo(id){const q=PEERS.find(z=>z.id===id);if(!q)return;if(q.p&&q.p!==S.pg)gotoPg(q.p);if(q.x==null)return;S.v.x=innerWidth/2-q.x*S.v.k;S.v.y=innerHeight/2-q.y*S.v.k;applyV();if(room)drawPeers(room.peers())}
 $('prow').addEventListener('click',e=>{const b=e.target.closest('.pe');if(b)jumpTo(b.dataset.pid)});
-function cursor(p){if(!room||RO&&false||Date.now()-lp<50)return;lp=Date.now();room.presence({x:p.x,y:p.y,n:me,c:myc,e:PF.emoji,b:BID,p:S.pg}).catch(()=>{})}
-function drawPeers(list){const live=new Set();let n=0;list.forEach(pr=>{if(pr.isMe)return;const d=pr.presence||{};if(d.b!==BID)return;n++;if(d.x==null||d.p!==S.pg||PRES)return;live.add(pr.peer);let el=peersEl.get(pr.peer);if(!el){el=document.createElement('div');el.className='cur';el.innerHTML='<b></b><span></span>';document.body.appendChild(el);peersEl.set(pr.peer,el)}el.firstChild.style.background=d.c;el.lastChild.style.background=d.c;el.lastChild.textContent=(d.e?d.e+' ':'')+(d.n||'訪客');el.style.transform=`translate(${S.v.x+d.x*S.v.k}px,${S.v.y+d.y*S.v.k}px)`;el._d=d});peersEl.forEach((el,id)=>{if(!live.has(id)){el.remove();peersEl.delete(id)}});peerN=n+1;prow(list);syncUI()}
+let LC=null,PSEL={s:[],ed:null},psg='';
+function sendPres(){if(!room||!BID)return;const o={n:me,c:myc,e:PF.emoji,b:BID,p:S.pg,s:PSEL.s,ed:PSEL.ed};if(LC){o.x=LC.x;o.y=LC.y}room.presence(o).catch(()=>{})}
+function cursor(p){if(!room)return;LC={x:p.x,y:p.y};if(Date.now()-lp<50)return;lp=Date.now();sendPres()}
+function announceSel(){if(!room||!BID)return;const s=[...S.sel].slice(0,12),ed=ta._o&&!ta.hidden?ta._o.id:null,sig=s.join(',')+'|'+(ed||'')+'|'+S.pg;if(sig===psg)return;psg=sig;PSEL={s,ed};sendPres()}
+function drawPeers(list){const live=new Set();let n=0;list.forEach(pr=>{if(pr.isMe)return;const d=pr.presence||{};if(d.b!==BID)return;n++;if(d.x==null||d.p!==S.pg||PRES)return;live.add(pr.peer);let el=peersEl.get(pr.peer);if(!el){el=document.createElement('div');el.className='cur';el.innerHTML='<b></b><span></span>';$('dots').appendChild(el);peersEl.set(pr.peer,el)}el.firstChild.style.background=d.c;el.lastChild.style.background=d.c;el.lastChild.textContent=(d.e?d.e+' ':'')+(d.n||'訪客');el.style.transform=`translate(${S.v.x+d.x*S.v.k}px,${S.v.y+d.y*S.v.k}px)`;el._d=d});peersEl.forEach((el,id)=>{if(!live.has(id)){el.remove();peersEl.delete(id)}});peerN=n+1;PRAW=list;prow(list);psel();syncUI()}
 // ---------- shortcuts
 const HK=[['V / H','選取 / 平移（按住空白鍵暫時平移）'],['P / L / E','畫筆 / 螢光筆 / 橡皮擦'],['T','文字（雙擊文字可編輯，選取部分文字後可單獨套用格式）'],['R / O / A / N','矩形 / 圓形 / 箭頭 / 直線（Shift 等比）'],['I','插入圖片（亦可貼上 / 拖曳）'],['C','評論（點畫布放下留言）'],['Ctrl+Z / Ctrl+Shift+Z','復原 / 重做（含圖層調整）'],['Ctrl+D','複製選取'],['Ctrl+A','全選'],['Del / Backspace','刪除'],['[ / ]','移到最後 / 最前'],['方向鍵','微調位置（Shift 加快）'],['Ctrl+滾輪 / + −','縮放'],['雙指捏合 / 旋轉','手機平板縮放畫布；兩指都在選取物件上時縮放並旋轉該物件'],['Ctrl+0 / Shift+1','100% / 符合畫面'],['M','切換黑夜 / 白色版'],['F','開關圖層面板'],['F5 / Ctrl+Enter','開始放映'],['Ctrl+B / I / U','粗體 / 斜體 / 底線'],['Alt+A','AI 分析選取的文字／圖片'],['Ctrl+E','匯出選單'],['Esc','取消選取 / 結束放映']];
 $('hb').innerHTML='<h3>快捷鍵</h3>'+HK.map(([k,d])=>`<p><span>${d}</span><kbd>${k}</kbd></p>`).join('');
@@ -1050,7 +1072,7 @@ let ACC={id:null,name:'訪客',color:'#a8a29e'};const PF={name:'',color:'',emoji
 function avatar(n,c,p,sz){const a=document.createElement(p.img?'img':'span');a.className='av';if(sz)a.style.cssText=`width:${sz}px;height:${sz}px;font-size:${Math.round(sz*.45)}px`;if(p.img)a.src=p.img;else{a.style.background=c;a.textContent=p.emoji||(n.trim().charAt(0)||'?').toUpperCase()}return a}
 function acct(v){if(v!==undefined)ACC=v&&v.id?{id:v.id,name:v.name||'使用者',color:/^#[0-9a-f]{3,8}$/i.test(v.color||'')?v.color:'#a8a29e'}:{id:null,name:me,color:myc};const n=PF.name||ACC.name,c=PF.color||ACC.color,e=$('acct');e.innerHTML='';e.appendChild(avatar(n,c,PF));const t=document.createElement('span');t.textContent=n+(ACC.id||window.__STANDALONE?'':'（未登入）');e.appendChild(t)}
 const PCOL=['#ef4444','#f59e0b','#22c55e','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#78716c'],PEMO=['😀','😎','🦊','🐱','🐼','🦄','🌵','🚀','🎨','🔥','🌙','🍀'];
-function applyPF(){me=PF.name||ACC.name;myc=PF.color||ACC.color;acct();ppUI();savePrefs();if(room&&BID)room.presence({n:me,c:myc,e:PF.emoji,b:BID,p:S.pg}).catch(()=>{})}
+function applyPF(){me=PF.name||ACC.name;myc=PF.color||ACC.color;acct();ppUI();savePrefs();sendPres()}
 function ppUI(){const n=PF.name||ACC.name,c=PF.color||ACC.color;$('pp').innerHTML=`<div class="lh"><span>使用者帳號</span><button class="b sm" data-pp="close">${ic('x')}</button></div><div style="display:flex;gap:12px;align-items:center"><span id="ppav"></span><div style="flex:1;min-width:0"><div style="font-size:11px;color:var(--mut);margin-bottom:4px">${window.__STANDALONE?'本機使用者（資料存在此瀏覽器）':ACC.id?'已登入 Claude 帳號':'未登入（訪客）'}</div><input id="ppn" maxlength="20" placeholder="顯示名稱"></div></div><div class="row" style="gap:6px"><button class="btn" style="flex:1" data-pp="up">上傳圖像</button>${PF.img||PF.emoji?'<button class="btn" data-pp="clr">移除圖像</button>':''}</div><label>代表色（游標與頭像）</label><div class="sw" style="grid-template-columns:repeat(8,1fr)">${PCOL.map(x=>`<button data-pc="${x}" class="${x===c?'on':''}" style="background:${x}"></button>`).join('')}</div><label>表情符號頭像</label><div class="row" style="gap:2px">${PEMO.map(x=>`<button class="b sm" data-pe="${x}" style="font-size:15px">${x}</button>`).join('')}</div>${ACC.id||window.__STANDALONE?'':'<p>登入 Claude 後，這些設定才會在不同裝置保留。</p>'}`;$('ppav').appendChild(avatar(n,c,PF,48));$('ppn').value=n}
 dAdd('click',e=>{if(e.target.closest('#acct')){const p=$('pp'),o=p.style.display==='flex';p.style.display=o?'none':'flex';if(!o)ppUI();return}
  const b=e.target.closest('[data-pp],[data-pc],[data-pe]');if(!b){if(!e.target.closest('#pp'))$('pp').style.display='none';return}
@@ -1098,7 +1120,7 @@ dAdd('click',async e=>{const b=e.target.closest('[data-ai]');if(!b)return;const 
 
 // ---------- pages
 function pgUI(){$('pgs').innerHTML=PGS.map((p,i)=>`<button class="b pgb${p.id===S.pg?' on':''}" data-pg="${p.id}" title="第 ${i+1} 頁">${i+1}</button>`).join('')+(RO?'':`<button class="b pgb" data-pg="+" title="新增頁面">${ic('plus')}</button>`+(PGS.length>1?`<button class="b pgb" data-pg="-" title="刪除目前頁面">${ic('del')}</button>`:''))}
-function gotoPg(id){finishEdit();closeCmt();S.pg=id;if(room&&BID)room.presence({n:me,c:myc,e:PF.emoji,b:BID,p:S.pg}).catch(()=>{});S.sel.clear();render();pgUI();props();fit();drawCmts();if(room)drawPeers(room.peers())}
+function gotoPg(id){finishEdit();closeCmt();S.pg=id;S.sel.clear();psg='';sendPres();render();pgUI();props();fit();drawCmts();if(room)drawPeers(room.peers())}
 function mkFrame(pg){const t=ITEM.type,sz=t==='doc'?[794,1123]:t==='slide'?[1280,720]:null;if(!sz||S.objs.has('fr-'+pg))return;put({id:'fr-'+pg,t:'frame',x:0,y:0,w:sz[0],h:sz[1],r:0,pg,l:'l1',z:-1e12,op:1})}
 function newPage(){const p={id:'p'+rid().slice(0,5),name:'頁面 '+(PGS.length+1)};PGS.push(p);DASH.patch(BID,{pages:PGS});mkFrame(p.id);pgUI();return p}
 function addPage(){const p=newPage();gotoPg(p.id)}
@@ -1168,7 +1190,7 @@ async function close(){if(!ACT.on)return;endPres();finishEdit();closeCmt();clear
  if(!RO){if(u)DASH.thumb(BID,u);DASH.patch(BID,{ix:indexText()})}
  await Promise.race([flushNow(),new Promise(r=>setTimeout(r,5000))]);
  if(wasDirty&&db)await Promise.race([saveVersion('',true),new Promise(r=>setTimeout(r,6000))]);
- unsubs.forEach(f=>{try{f()}catch(e){}});unsubs=[];ACT.on=false;const D=$('dots');D.classList.remove('on','ro');['aip','pp','lp','vp','exm','cpop'].forEach(i=>$(i).style.display='none');peersEl.forEach(e=>e.remove());peersEl.clear();psig='';PEERS=[];$('prow').textContent='';if(room)room.presence({b:null,x:null}).catch(()=>{})}
+ unsubs.forEach(f=>{try{f()}catch(e){}});unsubs=[];ACT.on=false;const D=$('dots');D.classList.remove('on','ro');['aip','pp','lp','vp','exm','cpop'].forEach(i=>$(i).style.display='none');peersEl.forEach(e=>e.remove());peersEl.clear();psig='';psg='';LC=null;PSEL={s:[],ed:null};PEERS=[];PRAW=[];pkEls.forEach(e=>e.remove());pkEls.clear();$('prow').textContent='';if(room)room.presence({b:null,x:null}).catch(()=>{})}
 const canExit=()=>ACT.on&&!PRES&&S.tool==='select'&&!S.sel.size&&ta.hidden&&$('help').style.display!=='grid'&&['cpop','vp','lp','exm','aip','pp'].every(i=>$(i).style.display!=='flex');
 // ---------- boot
 R.dataset.wb=R.dataset.wb||'dark';

@@ -59,7 +59,7 @@ function caretEnd(){const r=document.createRange();r.selectNodeContents(ta);r.co
 function edit(o,isNew){if(RO)return;finishEdit();S.sel=new Set([o.id]);ovl();ta.hidden=false;ta._o=o;ta._b=isNew?null:cl(o);ta._rf=isNew?{b:!!o.b,i:!!o.i,ul:!!o.ul,st:!!o.st}:null;ta._rng=null;
  ta.innerHTML=isNew&&!o.txt?'':runsHTML(o);try{document.execCommand('styleWithCSS',false,true)}catch(e){}
  ta._pos=()=>pos(o);ta._pos();props();ta.focus();caretEnd();setTimeout(()=>{if(ta._o===o&&document.activeElement!==ta){ta.focus();caretEnd()}},30)}
-function finishEdit(){const o=ta._o;if(!o)return;syncTa(o);ta._o=null;ta.hidden=true;ta.innerHTML='';const g=els.get(o.id);if(g)g.style.visibility='';
+function finishEdit(){const o=ta._o;if(!o)return;syncTa(o);ta._o=null;ta.hidden=true;ovl();ta.innerHTML='';const g=els.get(o.id);if(g)g.style.visibility='';
  if(!o.txt.trim()){if(ta._b)commit([[o.id,ta._b,null]]);rm(o.id);props();return}
  paint(o);put(o);const ex=paginate(o).map(n=>[n.id,null,cl(n)]);commit([[o.id,ta._b,cl(o)]].concat(ex));props()}
 ta.addEventListener('input',()=>{const o=ta._o;if(!o)return;syncTa(o);paint(o);ta._pos();put(o)});

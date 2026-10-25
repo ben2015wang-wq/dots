@@ -117,3 +117,7 @@
 @media(max-width:900px){#dots #udock{bottom:calc(124px + env(safe-area-inset-bottom,0px))}#dots #pp{bottom:calc(174px + env(safe-area-inset-bottom,0px))}}
 @media(max-width:640px){#dots #udock{padding:5px 8px;left:8px}#dots #udock .acct>span:not(.av){display:none}#dots #prow .pm{display:none}#dots #zoom{bottom:190px}}
 @media(pointer:coarse){#dots #prow .pe .av{width:30px;height:30px;font-size:13px}}
+
+.pk{position:fixed;z-index:3;pointer-events:none;border:2px dashed;border-radius:6px;box-sizing:border-box;transition:left .08s linear,top .08s linear,width .08s linear,height .08s linear}
+.pk.ed{border-style:solid;box-shadow:0 0 0 3px rgba(255,255,255,.12)}
+.pk>span{position:absolute;left:-2px;bottom:100%;margin-bottom:2px;font:600 11px/1 -apple-system,"PingFang TC","Noto Sans TC",sans-serif;color:#fff;padding:3px 7px;border-radius:7px 7px 7px 2px;white-space:nowrap}
