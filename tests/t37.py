@@ -17,10 +17,14 @@ with sync_playwright() as p:
     t=texts(pg);print([ (o.get('txt'),o.get('runs')) for o in t],pg._errs)
     ok=any(r.get('h')=='https://example.com/x' and r['t']=='world' for o in t for r in (o.get('runs') or []))
     print('LINK RUN',ok)
-    print('svg link',pg.evaluate("document.querySelectorAll('tspan[data-h]').length"))
-    box=pg.evaluate("(()=>{const e=document.querySelector('tspan[data-h]');if(!e)return null;const r=e.getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2]})()")
+    print('svg link',pg.evaluate("document.querySelectorAll('tspan[data-lk]').length"))
+    box=pg.evaluate("(()=>{const e=document.querySelector('tspan[data-lk]');if(!e)return null;const r=e.getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2]})()")
     print('box',box)
     if box:
         with ctx.expect_page(timeout=4000) as np:
-            pg.keyboard.down('Control');pg.mouse.click(box[0],box[1]);pg.keyboard.up('Control')
+            pg.mouse.click(box[0],box[1])
         print('OPENED',np.value.url)
+    pg.wait_for_timeout(300)
+    pg.mouse.dblclick(box[0]-30,box[1]);pg.wait_for_timeout(400)
+    pg.evaluate("(()=>{const a=document.querySelector('#ta a');const r=document.createRange();r.selectNodeContents(a);r.collapse(false);const s=getSelection();s.removeAllRanges();s.addRange(r)})()");pg.wait_for_timeout(300)
+    print('chip', pg.evaluate("[...document.querySelectorAll('#dots button')].some(b=>b.textContent.startsWith('開啟連結')&&b.style.display!=='none')"))
