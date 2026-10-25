@@ -1,0 +1,26 @@
+import sys;sys.path.insert(0,'/tmp/claude-0/-home-claude/c56ee7cb-7625-56ea-a2c7-f27e432dee5c/scratchpad/tests')
+from run import *
+srv=serve(S+'/app')
+def texts(pg):
+    return pg.evaluate("""()=>{const d=window.__db.load();return Object.entries(d).filter(([k])=>/^b\\/[^/]+\\/objs\\//.test(k)).map(([k,v])=>v).filter(o=>o.t==='text')}""")
+with sync_playwright() as p:
+    b=launch(p);ctx=b.new_context(viewport={'width':1280,'height':800});pg=newpage(ctx)
+    pg.wait_for_timeout(800);pg.locator('.card').first.dblclick();pg.wait_for_timeout(700)
+    pg.keyboard.press('t');pg.mouse.click(300,300);pg.keyboard.type('The quick brown fox jumps over the lazy dog again and again');pg.keyboard.press('Escape');pg.wait_for_timeout(1200)
+    pg.keyboard.press('v');pg.mouse.click(320,310);pg.wait_for_timeout(500)
+    print('handles',pg.evaluate("[...document.querySelectorAll('#O [data-h]')].map(e=>e.dataset.h)"))
+    o=texts(pg)[0];print('before',o['x'],o['w'],o['h'],o.get('ww'))
+    h=pg.evaluate("(()=>{const r=document.querySelector('#O [data-h=e]').getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2]})()")
+    pg.mouse.move(*h);pg.mouse.down();pg.mouse.move(h[0]-250,h[1],steps=8);pg.mouse.up();pg.wait_for_timeout(1200)
+    o=texts(pg)[0];print('after e-drag',o['x'],o['w'],o['h'],o.get('ww'),o['s'])
+    h=pg.evaluate("(()=>{const r=document.querySelector('#O [data-h=w]').getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2]})()")
+    pg.mouse.move(*h);pg.mouse.down();pg.mouse.move(h[0]-100,h[1],steps=8);pg.mouse.up();pg.wait_for_timeout(1200)
+    o=texts(pg)[0];print('after w-drag',o['x'],o['w'],o['h'],o.get('ww'),o['s']);print(pg._errs)
+    pg.keyboard.press('Escape');pg.mouse.click(1100,700)
+    pg.set_input_files('#fi','/tmp/claude-0/-home-claude/c56ee7cb-7625-56ea-a2c7-f27e432dee5c/scratchpad/tests/big.png');pg.wait_for_timeout(3000)
+    im=lambda:pg.evaluate("""()=>{const d=window.__db.load();return Object.entries(d).filter(([k])=>/^b\\/[^/]+\\/objs\\//.test(k)).map(([k,v])=>v).filter(o=>o.t==='img').map(o=>[Math.round(o.x),Math.round(o.y),Math.round(o.w),Math.round(o.h)])}""")
+    print('img before',im(),pg.evaluate("[...document.querySelectorAll('#O [data-h]')].map(e=>e.dataset.h)"))
+    for hh,dx,dy in [('e',-80,0),('s',0,-60)]:
+        h=pg.evaluate("n=>{const r=document.querySelector('#O [data-h='+n+']').getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2]}",hh)
+        pg.mouse.move(*h);pg.mouse.down();pg.mouse.move(h[0]+dx,h[1]+dy,steps=8);pg.mouse.up();pg.wait_for_timeout(1000)
+        print('img after',hh,im())

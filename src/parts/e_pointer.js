@@ -42,7 +42,7 @@ $('cv').addEventListener('pointerdown',e=>{if(PRES)return;if(e.target.closest&&e
  const p=W(e);let t=S.tool;if(t==='text'&&!RO){const hid=hitId(e),hx=hid&&S.objs.get(hid);if(hx&&hx.t==='text'){setTool('select');t='select'}}
  if((RO&&t!=='cmt')||e.button===1||space||t==='hand'){G={m:'pan',sx:e.clientX,sy:e.clientY,vx:S.v.x,vy:S.v.y};$('cv').style.cursor='grabbing';return}
  if(t==='select'){const hd=e.target.dataset&&e.target.dataset.h;const id=hitId(e);
-  if(hd){const o=S.objs.get([...S.sel][0]);G={m:hd==='rot'?'rot':'rs',h:hd,o,b:cl(o)};if(hd==='rot')$('cv').style.cursor=ROTCUR;busy.add(o.id);return}
+  if(hd){const o=S.objs.get([...S.sel][0]);G={m:hd==='rot'?'rot':['e','w','n','s'].includes(hd)?'sd':'rs',h:hd,o,b:cl(o)};if(hd==='rot')$('cv').style.cursor=ROTCUR;busy.add(o.id);return}
   if(id){if(e.shiftKey){S.sel.has(id)?S.sel.delete(id):S.sel.add(id)}else if(!S.sel.has(id))S.sel=new Set([id]);const os=[...S.sel].map(i=>cl(S.objs.get(i)));G={m:'mv',p,os};os.forEach(o=>busy.add(o.id));props();ovl();return}
   S.sel.clear();G={m:'mq',p};props();ovl();return}
  if(t==='cmt'){newComment(p);return}
@@ -59,6 +59,12 @@ $('cv').addEventListener('pointermove',e=>{if(e.pointerType==='touch'&&TP.has(e.
  else if(g.m==='shape'){const o=g.o,a=g.p0;let x=p.x,y=p.y;if(e.shiftKey){const d=Math.max(Math.abs(x-a.x),Math.abs(y-a.y));x=a.x+Math.sign(x-a.x)*d;y=a.y+Math.sign(y-a.y)*d}o.x=Math.min(a.x,x);o.y=Math.min(a.y,y);o.w=Math.abs(x-a.x);o.h=Math.abs(y-a.y);if(o.pts)o.pts=[[a.x-o.x,a.y-o.y],[x-o.x,y-o.y]];put(o)}
  else if(g.m==='er')erase(e);
  else if(g.m==='rot'){const o=g.o,cx=o.x+o.w/2,cy=o.y+o.h/2;let a=Math.atan2(p.y-cy,p.x-cx)*180/Math.PI+90;let sn=false;if(e.shiftKey){a=Math.round(a/15)*15;sn=true}else if(SNAP!==e.altKey){const q=Math.round(a/15)*15;if(Math.abs(a-q)<=4){a=q;sn=true}}o.r=+a.toFixed(1);put(o);rotBadge(e,Math.round(((o.r%360)+360)%360),sn)}
+ else if(g.m==='sd'){const o=g.o,b=g.b,r=(b.r||0)*Math.PI/180,cx=b.x+b.w/2,cy=b.y+b.h/2,dx=p.x-cx,dy=p.y-cy,lx=dx*Math.cos(-r)-dy*Math.sin(-r),ly=dx*Math.sin(-r)+dy*Math.cos(-r),hz=g.h==='e'||g.h==='w';
+  let nw=b.w,nh=b.h,mx=0,my=0;
+  if(g.h==='e'){nw=Math.max(20,lx+b.w/2);mx=(nw-b.w)/2}else if(g.h==='w'){nw=Math.max(20,b.w/2-lx);mx=-(nw-b.w)/2}
+  else if(g.h==='s'){nh=Math.max(20,ly+b.h/2);my=(nh-b.h)/2}else{nh=Math.max(20,b.h/2-ly);my=-(nh-b.h)/2}
+  const ncx=cx+mx*Math.cos(r)-my*Math.sin(r),ncy=cy+mx*Math.sin(r)+my*Math.cos(r);
+  if(o.t==='text')o.ww=Math.round(nw);o.w=nw;o.h=nh;o.x=ncx-nw/2;o.y=ncy-nh/2;put(o)}
  else if(g.m==='rs'){const o=g.o,b=g.b,r=(b.r||0)*Math.PI/180,cx=b.x+b.w/2,cy=b.y+b.h/2,sx=g.h[1]==='e'?1:-1,sy=g.h[0]==='s'?1:-1;let dx=p.x-cx,dy=p.y-cy;const lx=dx*Math.cos(-r)-dy*Math.sin(-r),ly=dx*Math.sin(-r)+dy*Math.cos(-r),fx=-sx*b.w/2,fy=-sy*b.h/2;const wrap=o.t==='text'&&b.ww>0;let nw=Math.abs(lx-fx),nh=Math.abs(ly-fy),uni=!wrap&&(o.t==='img'||o.t==='text'||e.shiftKey);
   if(uni){const s=Math.max(.05,((lx-fx)*sx*b.w+(ly-fy)*sy*b.h)/(b.w*b.w+b.h*b.h));nw=b.w*s;nh=b.h*s}
   nw=Math.max(6,nw);nh=wrap?b.h:Math.max(6,nh);const mx=uni?fx+sx*nw/2:(lx+fx)/2,my=wrap?0:uni?fy+sy*nh/2:(ly+fy)/2,ncx=cx+mx*Math.cos(r)-my*Math.sin(r),ncy=cy+mx*Math.sin(r)+my*Math.cos(r);
@@ -66,7 +72,7 @@ $('cv').addEventListener('pointermove',e=>{if(e.pointerType==='touch'&&TP.has(e.
 function erase(e){const id=hitId(e);if(id&&!G.del.includes(id)){G.del.push(id);const g=els.get(id);if(g)g.style.opacity=.2}}
 const end=e=>{if(!G)return;const g=G;G=null;busy.clear();$('mq').setAttribute('display','none');guidesOff();if(rotb)rotb.style.display='none';$('cv').style.cursor=S.tool==='hand'?'grab':S.tool==='select'?'default':'crosshair';
  if(g.m==='mv')commit(g.os.map(b=>[b.id,b,cl(S.objs.get(b.id))]));
- if(g.m==='rs'||g.m==='rot'){const o=g.o;let ex=[];if(o.t==='text'&&o.ww>0)ex=paginate(o).map(n=>[n.id,null,cl(n)]);commit([[g.b.id,g.b,cl(g.o)]].concat(ex))}
+ if(g.m==='rs'||g.m==='rot'||g.m==='sd'){const o=g.o;let ex=[];if(o.t==='text'&&o.ww>0)ex=paginate(o).map(n=>[n.id,null,cl(n)]);commit([[g.b.id,g.b,cl(g.o)]].concat(ex))}
  if(g.m==='draw'||g.m==='shape'){const o=g.o;if(g.m==='shape'&&!o.pts&&o.w<4&&o.h<4){o.w=o.h=90;}if(o.pts&&o.pts.length&&g.m==='shape'&&o.w<3&&o.h<3){rm(o.id);return}put(o);commit([[o.id,null,cl(o)]]);if(g.m==='shape'){S.sel=new Set([o.id]);props();ovl()}}
  if(g.m==='er'&&g.del.length){const ch=g.del.map(i=>[i,cl(S.objs.get(i)),null]);g.del.forEach(rm);commit(ch)}
  if(g.m==='mq'&&g.q){const[x1,y1,x2,y2]=[Math.min(g.q[0],g.q[2]),Math.min(g.q[1],g.q[3]),Math.max(g.q[0],g.q[2]),Math.max(g.q[1],g.q[3])];S.objs.forEach(o=>{if(ok(o)&&(o.pg||PGS[0].id)===S.pg&&o.x<x2&&o.x+o.w>x1&&o.y<y2&&o.y+o.h>y1)S.sel.add(o.id)});props();ovl()}};
