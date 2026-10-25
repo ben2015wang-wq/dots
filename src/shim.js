@@ -139,8 +139,9 @@ const sample=async(input,o={})=>{const c=aiCfg2(),pv=c.provider;if(!pv||(pv!=='c
  else{const base=(pv==='openai'?AIP.openai.base:c.base).replace(/\/+$/,'');url=base+'/chat/completions';if(c.key)headers.authorization='Bearer '+c.key;
   const mm=msgs.map((m,i)=>i===msgs.length-1&&imgs.length?{role:m.role,content:[{type:'text',text:m.content},...imgs.map(g=>({type:'image_url',image_url:{url:`data:${g.type};base64,${g.data}`}}))]}:m);body={model,stream:true,messages:mm};
   pick=j=>((((j.choices||[])[0]||{}).delta||{}).content)||'';}
- let r;try{r=await fetch(url,{method:'POST',signal:o.signal,headers,body:JSON.stringify(body)})}catch(e){if(e&&e.name==='AbortError')throw e;throw {code:'network',message:'無法連線到 '+AIP[pv].n+'，請檢查網路、網址，或該服務是否允許瀏覽器直接呼叫'}}
- if(!r.ok){let m='';try{const j=await r.json();m=(j.error&&(j.error.message||j.error))||j.message||''}catch(e){}throw {code:r.status===429?'rate_limited':(r.status===401||r.status===403)?'badkey':'api',message:(r.status===401||r.status===403)?'金鑰無效或沒有權限，請重新設定':String(m||('HTTP '+r.status))}}
+ let r;for(let t=0;;t++){try{r=await fetch(url,{method:'POST',signal:o.signal,headers,body:JSON.stringify(body)})}catch(e){if(e&&e.name==='AbortError')throw e;throw {code:'network',message:'無法連線到 '+AIP[pv].n+'，請檢查網路、網址，或該服務是否允許瀏覽器直接呼叫'}}
+  if((r.status===503||r.status===529)&&t<3){o.onProgress&&o.onProgress({text:'服務目前忙碌，自動重試中（'+(t+1)+'/3）',pct:0});await new Promise(res=>setTimeout(res,2000*(t+1)));continue}break}
+ if(!r.ok){let m='';try{const j=await r.json();m=(j.error&&(j.error.message||j.error))||j.message||''}catch(e){}throw {code:(r.status===503||r.status===529)?'busy':r.status===429?'rate_limited':(r.status===401||r.status===403)?'badkey':'api',message:(r.status===401||r.status===403)?'金鑰無效或沒有權限，請重新設定':(r.status===503||r.status===529)?'服務暫時過載，已自動重試仍失敗。請過幾分鐘再按一次，或在 ⚙ 換成其他服務／本機模型。':String(m||('HTTP '+r.status))}}
  const rd=r.body.getReader(),dec=new TextDecoder();let buf='',text='';
  for(;;){const {done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});let i;while((i=buf.indexOf('\n'))>=0){const ln=buf.slice(0,i).trim();buf=buf.slice(i+1);if(!ln.startsWith('data:')||ln.includes('[DONE]'))continue;try{const t=pick(JSON.parse(ln.slice(5)));if(t){text+=t;o.onText&&o.onText({text,delta:t})}}catch(e){}}}
  return {text,truncated:false}};
