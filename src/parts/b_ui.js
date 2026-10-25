@@ -1,15 +1,15 @@
 // ---------- rich text model
 const PLAIN={},NF={b:false,i:false,ul:false,st:false,c:null};
-const runsOf=o=>o.runs&&o.runs.length?o.runs:(o.txt===''?[]:[{t:o.txt,b:!!o.b,i:!!o.i,ul:!!o.ul,st:!!o.st,h:o.h||''}]);
-const fmtOn=(o,k)=>o.runs&&o.runs.length?o.runs.every(r=>r[k]):!!o[k];
-function setFmt(o,k,v){o[k]=v;if(o.runs)o.runs.forEach(r=>{r[k]=v})}
+const runsOf=o=>o.runs&&o.runs.length?o.runs:(o.txt===''?[]:[{t:o.txt,b:!!o.b,i:!!o.i,ul:!!o.ul,st:!!o.st,h:typeof o.lk==='string'?o.lk:''}]);
+const fmtOn=(o,k)=>o.runs&&o.runs.length?o.runs.every(r=>r[k]):!!o[k==='h'?'lk':k];
+function setFmt(o,k,v){if(k==='h')o.lk=v;else o[k]=v;if(o.runs)o.runs.forEach(r=>{r[k]=v})}
 function setColor(o,c){o.c=c;if(o.runs)o.runs.forEach(r=>{delete r.c})}
 const plainOf=runs=>runs.map(r=>r.t).join('');
 const MC=document.createElement('canvas').getContext('2d'),MW=new Map();
 function chW(ch,f,o){const k=(f.b?'b':'n')+(f.i?'i':'n')+o.s+(o.ff||'s')+ch;let w=MW.get(k);if(w===undefined){MC.font=`${f.i?'italic ':''}${f.b?'700':'400'} ${o.s}px ${FF[o.ff]||FF.s}`;w=MC.measureText(ch).width;MW.set(k,w);if(MW.size>30000)MW.clear()}return w}
 const brk=ch=>ch===' '||ch==='-'||/[⺀-￯]/.test(ch);
 function layout(o){const runs=runsOf(o),ww=o.ww>0?o.ww:0,paras=[];let para=[];
- runs.forEach(r=>{const f={b:!!r.b,i:!!r.i,ul:!!r.ul,st:!!r.st,c:r.c||null,h:r.h||null};r.t.split('\n').forEach((p,k)=>{if(k>0){paras.push(para);para=[]}for(const ch of p)para.push({ch,f})})});paras.push(para);
+ runs.forEach(r=>{const f={b:!!r.b,i:!!r.i,ul:!!r.ul,st:!!r.st,c:r.c||null,h:typeof r.h==='string'&&r.h||null};r.t.split('\n').forEach((p,k)=>{if(k>0){paras.push(para);para=[]}for(const ch of p)para.push({ch,f})})});paras.push(para);
  const lines=[];let n=o.ln0||0;
  paras.forEach(p=>{let chars=p;let pre=0;if(o.ls&&p.length){const pf=o.ls==='bullet'?'• ':(++n)+'. ';chars=[...pf].map(ch=>({ch,f:PLAIN,p:true})).concat(p);pre=chars.length-p.length}
   const hang=ww&&o.ls&&(o.al||'left')==='left'?chars.slice(0,pre).reduce((a,c)=>a+chW(c.ch,{},o),0):0;

@@ -816,16 +816,16 @@ function toast(m){const t=$('toast');t.textContent=m;t.style.opacity=1;clearTime
 
 // ---------- rich text model
 const PLAIN={},NF={b:false,i:false,ul:false,st:false,c:null};
-const runsOf=o=>o.runs&&o.runs.length?o.runs:(o.txt===''?[]:[{t:o.txt,b:!!o.b,i:!!o.i,ul:!!o.ul,st:!!o.st,h:o.h||''}]);
-const fmtOn=(o,k)=>o.runs&&o.runs.length?o.runs.every(r=>r[k]):!!o[k];
-function setFmt(o,k,v){o[k]=v;if(o.runs)o.runs.forEach(r=>{r[k]=v})}
+const runsOf=o=>o.runs&&o.runs.length?o.runs:(o.txt===''?[]:[{t:o.txt,b:!!o.b,i:!!o.i,ul:!!o.ul,st:!!o.st,h:typeof o.lk==='string'?o.lk:''}]);
+const fmtOn=(o,k)=>o.runs&&o.runs.length?o.runs.every(r=>r[k]):!!o[k==='h'?'lk':k];
+function setFmt(o,k,v){if(k==='h')o.lk=v;else o[k]=v;if(o.runs)o.runs.forEach(r=>{r[k]=v})}
 function setColor(o,c){o.c=c;if(o.runs)o.runs.forEach(r=>{delete r.c})}
 const plainOf=runs=>runs.map(r=>r.t).join('');
 const MC=document.createElement('canvas').getContext('2d'),MW=new Map();
 function chW(ch,f,o){const k=(f.b?'b':'n')+(f.i?'i':'n')+o.s+(o.ff||'s')+ch;let w=MW.get(k);if(w===undefined){MC.font=`${f.i?'italic ':''}${f.b?'700':'400'} ${o.s}px ${FF[o.ff]||FF.s}`;w=MC.measureText(ch).width;MW.set(k,w);if(MW.size>30000)MW.clear()}return w}
 const brk=ch=>ch===' '||ch==='-'||/[⺀-￯]/.test(ch);
 function layout(o){const runs=runsOf(o),ww=o.ww>0?o.ww:0,paras=[];let para=[];
- runs.forEach(r=>{const f={b:!!r.b,i:!!r.i,ul:!!r.ul,st:!!r.st,c:r.c||null,h:r.h||null};r.t.split('\n').forEach((p,k)=>{if(k>0){paras.push(para);para=[]}for(const ch of p)para.push({ch,f})})});paras.push(para);
+ runs.forEach(r=>{const f={b:!!r.b,i:!!r.i,ul:!!r.ul,st:!!r.st,c:r.c||null,h:typeof r.h==='string'&&r.h||null};r.t.split('\n').forEach((p,k)=>{if(k>0){paras.push(para);para=[]}for(const ch of p)para.push({ch,f})})});paras.push(para);
  const lines=[];let n=o.ln0||0;
  paras.forEach(p=>{let chars=p;let pre=0;if(o.ls&&p.length){const pf=o.ls==='bullet'?'• ':(++n)+'. ';chars=[...pf].map(ch=>({ch,f:PLAIN,p:true})).concat(p);pre=chars.length-p.length}
   const hang=ww&&o.ls&&(o.al||'left')==='left'?chars.slice(0,pre).reduce((a,c)=>a+chW(c.ch,{},o),0):0;
@@ -910,7 +910,7 @@ const ROTCUR_="url('data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2
 const IMG=new Map(),TINY='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 function pathOf(o){const p=o.pts;if(p.length<2)return`M${p[0][0]} ${p[0][1]}l.01 0`;let d=`M${p[0][0]} ${p[0][1]}`;for(let i=1;i<p.length-1;i++){const a=p[i],b=p[i+1];d+=`Q${a[0]} ${a[1]} ${(a[0]+b[0])/2} ${(a[1]+b[1])/2}`}const l=p[p.length-1];return d+`L${l[0]} ${l[1]}`}
 const imgSrc=o=>o.src||(o.iid&&IMG.get(o.iid))||null;
-function paint(o){if((o.pg||PGS[0].id)!==S.pg){unpaint(o.id);return}let g=els.get(o.id);if(!g){g=document.createElementNS(NS,'g');g.dataset.id=o.id;els.set(o.id,g);layerEl(o.t==='frame'?'__f':o.l).appendChild(g)}
+function paint(o){if(typeof o.h==='string'){o.lk=o.h;o.h=Math.max(20,Math.round((o.s||28)*1.25))}if((o.pg||PGS[0].id)!==S.pg){unpaint(o.id);return}let g=els.get(o.id);if(!g){g=document.createElementNS(NS,'g');g.dataset.id=o.id;els.set(o.id,g);layerEl(o.t==='frame'?'__f':o.l).appendChild(g)}
  const c=col(o.c),st0=`stroke="${c}" stroke-width="${o.sw??2}" stroke-linecap="round" stroke-linejoin="round"`,st=st0+' fill="none"';
  const fo=o.fo??(o.fill?.18:0),fcl=col(o.fc||o.c);
  if(o.t==='text'){g.innerHTML=textSVG(o,c,0);const bb=g.firstChild.getBBox();o.w=o.ww>0?o.ww:Math.max(8,bb.width);o.h=Math.max(8,bb.height+o.s*.2);const pd=10;
@@ -1103,7 +1103,7 @@ let pd0=null;dAdd('pointerdown',e=>{pd0=[e.clientX,e.clientY,!!(ta._o&&!ta.hidde
 function openLink(h){if(h&&/^(https?:|mailto:)/i.test(h))window.open(h,'_blank','noopener')}
 // link popup (like Canva): shows the address with open / edit / remove
 let lkp=null;
-function relink(o,h,nh){const rs=runsOf(o);o.runs=rs.map(r=>r.h===h?{...r,h:nh||undefined}:r).map(r=>{if(!r.h)delete r.h;return r});if(!nh&&o.h===h)o.h=''}
+function relink(o,h,nh){const rs=runsOf(o);o.runs=rs.map(r=>r.h===h?{...r,h:nh||undefined}:r).map(r=>{if(!r.h)delete r.h;return r});if(!nh&&o.lk===h)o.lk=''}
 function lkShow(r,h,o){if(!lkp){lkp=document.createElement('div');lkp.id='lkp';lkp.style.cssText='position:fixed;z-index:9;display:none;gap:4px;align-items:center;padding:5px 6px;background:var(--pn);border:1px solid var(--bd);border-radius:10px;box-shadow:var(--sh);backdrop-filter:blur(10px);font-size:12px;color:var(--ink);max-width:min(92vw,420px)';
   lkp.innerHTML='<span data-lp="u" style="max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#2563eb;cursor:pointer"></span><button class="b sm" data-lp="o">開啟</button><button class="b sm" data-lp="e">編輯</button><button class="b sm" data-lp="x">移除</button>';
   lkp.addEventListener('mousedown',e=>e.preventDefault());
