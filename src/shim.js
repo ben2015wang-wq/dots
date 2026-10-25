@@ -105,16 +105,29 @@ const READY=(async()=>{if(!CFG)return;
     resetProfile:async()=>{await FS.doc('profiles/'+FU.uid).set({name:GN,nameLower:GN.toLowerCase(),photo:GP,custom:false},{merge:true});PRF={name:GN,photo:GP,custom:false};const m=await fbUser.me();m.name=GN;m.avatarUrl=GP;window.__ACCT.user={...cur(),email:FU.email,custom:false}}};
    if(!PRF.custom){try{await FS.doc('profiles/'+FU.uid).set({name:GN,nameLower:GN.toLowerCase(),photo:GP},{merge:true})}catch(e){}}}
  }catch(e){console.error(e);window.__fbError=e.message||String(e);if(document.body){const t=document.createElement('div');t.textContent='無法連線到 Firebase，已改用本機模式：'+window.__fbError;t.style.cssText='position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:999;background:#b45309;color:#fff;padding:8px 14px;border-radius:10px;font:13px sans-serif;max-width:90vw';document.addEventListener('DOMContentLoaded',()=>{});setTimeout(()=>document.body&&document.body.appendChild(t),400);setTimeout(()=>t.remove(),9000)}}})();
-const aiKey=()=>{try{return localStorage.getItem('dots-aikey')||''}catch(e){return''}};
+const AIP={anthropic:{n:'Anthropic（Claude）',m:'claude-sonnet-5-5',ms:['claude-sonnet-5-5','claude-opus-5-5','claude-haiku-5-5','claude-fable-5-1'],ph:'sk-ant-…'},openai:{n:'OpenAI（ChatGPT）',m:'gpt-4o',ms:['gpt-4o','gpt-4o-mini'],ph:'sk-…',base:'https://api.openai.com/v1'},gemini:{n:'Google Gemini',m:'gemini-2.0-flash',ms:['gemini-2.0-flash','gemini-1.5-pro'],ph:'AIza…'},custom:{n:'自訂（OpenAI 相容端點，例如 OpenRouter、Ollama）',m:'',ms:[],ph:'API 金鑰（本機模型可留空）'}};
+const aiCfg=()=>{let c={};try{c=JSON.parse(localStorage.getItem('dots-ai')||'{}')}catch(e){}if(!c.provider){let k='',m='';try{k=localStorage.getItem('dots-aikey')||'';m=localStorage.getItem('dots-aimodel')||''}catch(e){}if(k)c={provider:'anthropic',key:k,model:m}}return c};
+window.__AICFG=aiCfg;window.__AIP=AIP;
 const b2b64=b=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(b)});
-const sample=async(input,o={})=>{const key=aiKey();if(!key)throw {code:'nokey',message:'尚未設定 AI 金鑰'};
- const content=[];if(o.images&&o.images.length)for(const im of o.images)content.push({type:'image',source:{type:'base64',media_type:im.type||'image/png',data:await b2b64(im)}});
- const msgs=typeof input==='string'?[{role:'user',content:[...content,{type:'text',text:input}]}]:input.map(m=>({role:m.role,content:m.content}));
- let r;try{r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',signal:o.signal,headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:(()=>{try{return localStorage.getItem('dots-aimodel')||'claude-sonnet-5-5'}catch(e){return'claude-sonnet-5-5'}})(),max_tokens:2048,stream:true,messages:msgs})})}catch(e){if(e&&e.name==='AbortError')throw e;throw {code:'network',message:'無法連線到 Anthropic，請檢查網路'}}
- if(!r.ok){let m='';try{m=(await r.json()).error.message}catch(e){}throw {code:r.status===429?'rate_limited':r.status===401?'badkey':'api',message:r.status===401?'API 金鑰無效，請到帳號設定重新輸入':m||('HTTP '+r.status)}}
- const rd=r.body.getReader(),dec=new TextDecoder();let buf='',text='',trunc=false;
- for(;;){const {done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});let i;while((i=buf.indexOf('\n'))>=0){const ln=buf.slice(0,i).trim();buf=buf.slice(i+1);if(!ln.startsWith('data:'))continue;try{const j=JSON.parse(ln.slice(5));if(j.type==='content_block_delta'&&j.delta&&j.delta.text){text+=j.delta.text;o.onText&&o.onText({text,delta:j.delta.text})}else if(j.type==='message_delta'&&j.delta&&j.delta.stop_reason==='max_tokens')trunc=true}catch(e){}}}
- return {text,truncated:trunc}};
+const sample=async(input,o={})=>{const c=aiCfg(),pv=c.provider;if(!pv||(pv!=='custom'&&!c.key)||(pv==='custom'&&!c.base))throw {code:'nokey',message:'尚未設定 AI'};
+ const model=c.model||AIP[pv].m;if(!model)throw {code:'nokey',message:'尚未設定模型'};
+ const imgs=[];if(o.images&&o.images.length)for(const im of o.images)imgs.push({type:im.type||'image/png',data:await b2b64(im)});
+ const msgs=typeof input==='string'?[{role:'user',content:input}]:input.map(m=>({role:m.role,content:m.content}));
+ let url,headers={'content-type':'application/json'},body,pick;
+ if(pv==='anthropic'){url='https://api.anthropic.com/v1/messages';Object.assign(headers,{'x-api-key':c.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'});
+  const mm=msgs.map((m,i)=>i===msgs.length-1&&imgs.length?{role:m.role,content:[...imgs.map(g=>({type:'image',source:{type:'base64',media_type:g.type,data:g.data}})),{type:'text',text:m.content}]}:m);body={model,max_tokens:2048,stream:true,messages:mm};
+  pick=j=>j.type==='content_block_delta'&&j.delta&&j.delta.text||'';}
+ else if(pv==='gemini'){url=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse&key=${encodeURIComponent(c.key)}`;
+  body={contents:msgs.map((m,i)=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content},...(i===msgs.length-1?imgs.map(g=>({inline_data:{mime_type:g.type,data:g.data}})):[])]}))};
+  pick=j=>((((j.candidates||[])[0]||{}).content||{}).parts||[]).map(p=>p.text||'').join('');}
+ else{const base=(pv==='openai'?AIP.openai.base:c.base).replace(/\/+$/,'');url=base+'/chat/completions';if(c.key)headers.authorization='Bearer '+c.key;
+  const mm=msgs.map((m,i)=>i===msgs.length-1&&imgs.length?{role:m.role,content:[{type:'text',text:m.content},...imgs.map(g=>({type:'image_url',image_url:{url:`data:${g.type};base64,${g.data}`}}))]}:m);body={model,stream:true,messages:mm};
+  pick=j=>((((j.choices||[])[0]||{}).delta||{}).content)||'';}
+ let r;try{r=await fetch(url,{method:'POST',signal:o.signal,headers,body:JSON.stringify(body)})}catch(e){if(e&&e.name==='AbortError')throw e;throw {code:'network',message:'無法連線到 '+AIP[pv].n+'，請檢查網路、網址，或該服務是否允許瀏覽器直接呼叫'}}
+ if(!r.ok){let m='';try{const j=await r.json();m=(j.error&&(j.error.message||j.error))||j.message||''}catch(e){}throw {code:r.status===429?'rate_limited':(r.status===401||r.status===403)?'badkey':'api',message:(r.status===401||r.status===403)?'金鑰無效或沒有權限，請重新設定':String(m||('HTTP '+r.status))}}
+ const rd=r.body.getReader(),dec=new TextDecoder();let buf='',text='';
+ for(;;){const {done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});let i;while((i=buf.indexOf('\n'))>=0){const ln=buf.slice(0,i).trim();buf=buf.slice(i+1);if(!ln.startsWith('data:')||ln.includes('[DONE]'))continue;try{const t=pick(JSON.parse(ln.slice(5)));if(t){text+=t;o.onText&&o.onText({text,delta:t})}}catch(e){}}}
+ return {text,truncated:false}};
 sample.limits=async()=>({images:true});sample.json=async(i,o)=>JSON.parse((await sample(i,o)).text);
 const caps={db:async()=>{await READY;if(MODE==='firebase')return fbDb;await init();return db},user:async()=>{await READY;return MODE==='firebase'?fbUser:user},room:async()=>{await READY;return MODE==='firebase'?fbRoom:room},downloads:async()=>downloads,sample:async()=>sample};
 window.claude={use:async n=>caps[n]?caps[n]():null};
