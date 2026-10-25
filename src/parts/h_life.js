@@ -1,6 +1,6 @@
 // ---------- pages
 function pgUI(){$('pgs').innerHTML=PGS.map((p,i)=>`<button class="b pgb${p.id===S.pg?' on':''}" data-pg="${p.id}" title="第 ${i+1} 頁">${i+1}</button>`).join('')+(RO?'':`<button class="b pgb" data-pg="+" title="新增頁面">${ic('plus')}</button>`+(PGS.length>1?`<button class="b pgb" data-pg="-" title="刪除目前頁面">${ic('del')}</button>`:''))}
-function gotoPg(id){finishEdit();closeCmt();S.pg=id;S.sel.clear();render();pgUI();props();fit();drawCmts();if(room)drawPeers(room.peers())}
+function gotoPg(id){finishEdit();closeCmt();S.pg=id;if(room&&BID)room.presence({n:me,c:myc,e:PF.emoji,b:BID,p:S.pg}).catch(()=>{});S.sel.clear();render();pgUI();props();fit();drawCmts();if(room)drawPeers(room.peers())}
 function mkFrame(pg){const t=ITEM.type,sz=t==='doc'?[794,1123]:t==='slide'?[1280,720]:null;if(!sz||S.objs.has('fr-'+pg))return;put({id:'fr-'+pg,t:'frame',x:0,y:0,w:sz[0],h:sz[1],r:0,pg,l:'l1',z:-1e12,op:1})}
 function newPage(){const p={id:'p'+rid().slice(0,5),name:'頁面 '+(PGS.length+1)};PGS.push(p);DASH.patch(BID,{pages:PGS});mkFrame(p.id);pgUI();return p}
 function addPage(){const p=newPage();gotoPg(p.id)}
@@ -52,7 +52,7 @@ function subscribe(){unsubs.forEach(f=>{try{f()}catch(e){}});unsubs=[];if(!db)re
   ovl();props();
   if(firstSnap){const empty=!s.docs||!s.docs.length;if(s.metadata&&s.metadata.fromCache&&empty){if(!fcTimer)fcTimer=setTimeout(()=>{if(firstSnap){firstSnap=false;seedBoard()}},2500);return}clearTimeout(fcTimer);firstSnap=false;seedBoard()}},e=>{db=null;syncUI();toast('同步中斷，改為本機模式');if(firstSnap){firstSnap=false;loadLocal();seedBoard()}}))}
 let verTimer=0;
-function open(it){ITEM=it;BID=it.id;BP='b/'+it.id+'/';ROLE=it.role||'edit';RO=ROLE!=='edit';PGS=it.pages&&it.pages.length?it.pages.map(p=>({...p})):[{id:'p1',name:'頁面 1'}];ACT.on=true;PRES=false;
+function open(it){ITEM=it;BID=it.id;BP='b/'+it.id+'/';if(room)room.presence({n:me,c:myc,e:PF.emoji,b:BID,p:(it.pages&&it.pages[0]&&it.pages[0].id)||'p1'}).catch(()=>{});ROLE=it.role||'edit';RO=ROLE!=='edit';PGS=it.pages&&it.pages.length?it.pages.map(p=>({...p})):[{id:'p1',name:'頁面 1'}];ACT.on=true;PRES=false;
  const D=$('dots');D.classList.add('on');D.classList.toggle('ro',RO);D.classList.remove('pres');
  S.objs.clear();els.forEach(g=>g.remove());els.clear();S.sel.clear();hist.length=0;redo.length=0;pend.clear();infl.clear();fails.clear();CM.clear();VERS=[];dirty=false;lastVerHash='';cmOpen=null;lastErr=null;ta._o=null;ta.hidden=true;
  S.layers=[{id:'l1',name:'圖層 1',vis:true,lock:false}];S.al='l1';S.pg=PGS[0].id;S.d.s={doc:17,slide:36}[it.type]||28;S.d.ww=it.type==='doc'?674:it.type==='slide'?1000:0;
@@ -70,7 +70,7 @@ async function close(){if(!ACT.on)return;endPres();finishEdit();closeCmt();clear
  if(!RO){if(u)DASH.thumb(BID,u);DASH.patch(BID,{ix:indexText()})}
  await Promise.race([flushNow(),new Promise(r=>setTimeout(r,5000))]);
  if(wasDirty&&db)await Promise.race([saveVersion('',true),new Promise(r=>setTimeout(r,6000))]);
- unsubs.forEach(f=>{try{f()}catch(e){}});unsubs=[];ACT.on=false;const D=$('dots');D.classList.remove('on','ro');['aip','pp','lp','vp','exm','cpop'].forEach(i=>$(i).style.display='none');peersEl.forEach(e=>e.remove());peersEl.clear();if(room)room.presence({b:null,x:null}).catch(()=>{})}
+ unsubs.forEach(f=>{try{f()}catch(e){}});unsubs=[];ACT.on=false;const D=$('dots');D.classList.remove('on','ro');['aip','pp','lp','vp','exm','cpop'].forEach(i=>$(i).style.display='none');peersEl.forEach(e=>e.remove());peersEl.clear();psig='';PEERS=[];$('prow').textContent='';if(room)room.presence({b:null,x:null}).catch(()=>{})}
 const canExit=()=>ACT.on&&!PRES&&S.tool==='select'&&!S.sel.size&&ta.hidden&&$('help').style.display!=='grid'&&['cpop','vp','lp','exm','aip','pp'].every(i=>$(i).style.display!=='flex');
 // ---------- boot
 R.dataset.wb=R.dataset.wb||'dark';
@@ -83,7 +83,7 @@ $('syncbar').onclick=e=>{if(e.target.closest('button'))$('syncbar').hidden=true}
  if(!uid){me='訪客 '+Math.floor(Math.random()*900+100);myc=['#ef4444','#f59e0b','#22c55e','#3b82f6','#8b5cf6','#ec4899'][Math.floor(Math.random()*6)];acct(null)}
  try{db=await claude.use('db')}catch(e){}
  if(db&&uid){try{const ps=await db.doc('data/users/'+uid+'/prefs').get();if(ps.exists){const p=JSON.parse(JSON.stringify(ps.data()));if(typeof p.ai==='boolean')aiToggle(p.ai,1);if(Array.isArray(p.recent))S.recent=p.recent.slice(0,4);if(p.profile&&typeof p.profile==='object'){['name','color','emoji','img'].forEach(k=>{if(typeof p.profile[k]==='string')PF[k]=p.profile[k]});me=PF.name||ACC.name;myc=PF.color||ACC.color;acct()}props()}}catch(e){}}prefsOK=true;
- try{room=await claude.use('room');if(room){room.onPeers(c=>drawPeers(c.peers));drawPeers(room.peers())}}catch(e){}
+ try{room=await claude.use('room');if(room){room.onPeers(c=>drawPeers(c.peers));if(BID)room.presence({n:me,c:myc,e:PF.emoji,b:BID,p:S.pg}).catch(()=>{});drawPeers(room.peers())}}catch(e){}
  $('bsh').style.display='';try{const sm=await claude.use('sample');if(!sm){AI.on=false;$('bai').style.display='none'}}catch(e){}
  if(ACT.on&&db&&!unsubs.length)subscribe();syncUI()})();
 addEventListener('dots-storage-error',()=>toast('瀏覽器儲存空間已滿或無法寫入，請匯出備份並清出空間'));

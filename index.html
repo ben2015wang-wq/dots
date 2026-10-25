@@ -197,6 +197,10 @@ select{background:var(--card);border:1px solid var(--bd);border-radius:10px;padd
 .foot{position:sticky;bottom:0;margin-top:auto;padding:12px 8px calc(14px + env(safe-area-inset-bottom,0px));background:var(--side);z-index:2}
 .pf{display:flex;align-items:center;gap:12px;margin:12px 0 4px}.pfa .av,.pfa img{width:56px;height:56px;border-radius:50%;object-fit:cover;display:grid;place-items:center;background:var(--hv);color:var(--mu);font-size:22px;font-weight:600}
 .pfb{display:flex;gap:8px;flex-wrap:wrap}.btn.sm{padding:6px 12px;font-size:12.5px}.btn.gh{background:var(--hv);color:var(--tx)}.gme{font-size:12px;color:var(--mu);min-height:16px;margin:4px 0}
+
+.gfab{display:none;position:fixed;left:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));width:46px;height:46px;padding:0;border-radius:50%;border:1px solid var(--bd2);background:var(--card);box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:20;place-items:center;overflow:hidden}
+.gfab .av{width:100%;height:100%;border-radius:50%;object-fit:cover;display:grid;place-items:center;font-weight:600;background:var(--hv);color:var(--mu)}
+@media(max-width:800px){.gfab{display:grid}body.nav .gfab{display:none}}
 </style></head><body>
 <aside id="side">
  <div class="logo" aria-label="DOTS"><svg viewBox="0 0 4 4" aria-hidden="true"><circle cx="0.5" cy="0.5" r=".36" fill="currentColor"/><circle cx="1.5" cy="0.5" r=".36" fill="currentColor"/><circle cx="2.5" cy="0.5" r=".36" fill="#4f6df0"/><circle cx="0.5" cy="1.5" r=".36" fill="#3aa392"/><circle cx="1.5" cy="1.5" r=".36" fill="currentColor"/><circle cx="2.5" cy="1.5" r=".36" fill="currentColor"/><circle cx="3.5" cy="1.5" r=".36" fill="#f5a83a"/><circle cx="0.5" cy="2.5" r=".36" fill="currentColor"/><circle cx="1.5" cy="2.5" r=".36" fill="currentColor"/><circle cx="2.5" cy="2.5" r=".36" fill="currentColor"/><circle cx="0.5" cy="3.5" r=".36" fill="currentColor"/><circle cx="1.5" cy="3.5" r=".36" fill="currentColor"/><circle cx="2.5" cy="3.5" r=".36" fill="#b79af2"/><circle cx="3.5" cy="3.5" r=".36" fill="currentColor"/></svg>DOTS</div>
@@ -220,7 +224,7 @@ select{background:var(--card);border:1px solid var(--bd);border-radius:10px;padd
   <div class="grid" id="grid"></div>
  </div>
 </main>
-<div id="menu"></div><div id="sb"></div><div id="toast"></div>
+<button class="gfab" id="gfab" aria-label="帳號"></button><div id="menu"></div><div id="sb"></div><div id="toast"></div>
 <script>const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const P={sun:'M12 8a4 4 0 100 8 4 4 0 000-8zM12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5',moon:'M20 14A8 8 0 0110 4a8 8 0 1010 10z',back:'M15 6l-6 6 6 6',minus:'M5 12h14',undo:'M9 14L4 9l5-5M4 9h10a6 6 0 010 12h-3',all:'M4 5h7v7H4zM13 5h7v7h-7zM4 14h7v6H4zM13 14h7v6h-7z',clock:'M12 7v5l3 2M12 3a9 9 0 100 18 9 9 0 000-18z',star:'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z',trash:'M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13',folder:'M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z',plus:'M12 5v14M5 12h14',search:'M11 4a7 7 0 100 14 7 7 0 000-14zM20 20l-4-4',dots:'M5 12h.01M12 12h.01M19 12h.01',grid:'M4 5h7v7H4zM13 5h7v7h-7zM4 14h7v6H4zM13 14h7v6h-7z',list:'M4 6h16M4 12h16M4 18h16',x:'M6 6l12 12M18 6L6 18',chev:'M9 6l6 6-6 6',share:'M4 12v7h16v-7M12 3v12M8 7l4-4 4 4',lock:'M6 11h12v9H6zM8 11V8a4 4 0 018 0v3'};
 const ic=n=>`<svg class="i" viewBox="0 0 24 24"><path d="${P[n]}"/></svg>`;
@@ -379,7 +383,8 @@ document.addEventListener('click',e=>{const m=$('#tpm');if(!m||m.style.display!=
 // ---------- account panel (identity comes from the viewer's Claude sign-in)
 let CLU=null;
 const GA={listeners:[],user:()=>null};
-function accUI(){const b=$('#gacc');if(!b)return;const u=CLU;if(window.__FB&&window.__ACCT&&window.__ACCT.user){const a=window.__ACCT.user;b.innerHTML=(a.photo?`<img class="av" src="${esc(a.photo)}" alt="" referrerpolicy="no-referrer">`:`<span class="av">${esc((a.name||'?').charAt(0).toUpperCase())}</span>`)+`<span class="t"><b>${esc(a.name||'已登入')}</b><span>Google 帳號 · 雲端同步</span></span>`;return}if(window.__STANDALONE){const a=(window.__ACCT||{}).user||{};b.innerHTML=(a.photo?`<img class="av" src="${esc(a.photo)}" alt="">`:a.name?`<span class="av">${esc(a.name.charAt(0).toUpperCase())}</span>`:`<span class="av">${ic('lock')}</span>`)+`<span class="t"><b>${esc(a.name||'本機使用者')}</b><span>資料存在這個瀏覽器</span></span>`;return}b.innerHTML=(u&&u.avatarUrl?`<img class="av" src="${u.avatarUrl}" alt="">`:`<span class="av">${u&&u.name?esc(u.name.charAt(0).toUpperCase()):ic('lock')}</span>`)+`<span class="t"><b>${UID?esc((u&&u.name)||'已登入'):'尚未登入'}</b><span>${UID?'Claude 帳號':'登入後才能同步與分享'}</span></span>`}
+function accUI(){accUI0();const f=$('#gfab'),g=$('#gacc');if(f&&g){const av=g.querySelector('.av');f.innerHTML=av?av.outerHTML:'';f.title=(g.querySelector('b')||{}).textContent||'帳號'}}
+function accUI0(){const b=$('#gacc');if(!b)return;const u=CLU;if(window.__FB&&window.__ACCT&&window.__ACCT.user){const a=window.__ACCT.user;b.innerHTML=(a.photo?`<img class="av" src="${esc(a.photo)}" alt="" referrerpolicy="no-referrer">`:`<span class="av">${esc((a.name||'?').charAt(0).toUpperCase())}</span>`)+`<span class="t"><b>${esc(a.name||'已登入')}</b><span>Google 帳號 · 雲端同步</span></span>`;return}if(window.__STANDALONE){const a=(window.__ACCT||{}).user||{};b.innerHTML=(a.photo?`<img class="av" src="${esc(a.photo)}" alt="">`:a.name?`<span class="av">${esc(a.name.charAt(0).toUpperCase())}</span>`:`<span class="av">${ic('lock')}</span>`)+`<span class="t"><b>${esc(a.name||'本機使用者')}</b><span>資料存在這個瀏覽器</span></span>`;return}b.innerHTML=(u&&u.avatarUrl?`<img class="av" src="${u.avatarUrl}" alt="">`:`<span class="av">${u&&u.name?esc(u.name.charAt(0).toUpperCase()):ic('lock')}</span>`)+`<span class="t"><b>${UID?esc((u&&u.name)||'已登入'):'尚未登入'}</b><span>${UID?'Claude 帳號':'登入後才能同步與分享'}</span></span>`}
 let PFP='';
 function profForm(a){if(!(window.__ACCT&&window.__ACCT.updateProfile))return'';PFP=a.photo||'';
  return`<div class="pf"><span class="pfa" id="pfav">${pfAv(a.name,PFP)}</span><div class="pfb"><button class="btn sm" data-g="pfphoto">更換頭像</button><button class="btn sm gh" data-g="pfrm">移除頭像</button><input type="file" id="pff" accept="image/*" hidden></div></div>
@@ -392,7 +397,7 @@ function gDlg(){let m=$('#gam');if(!m){m=document.createElement('div');m.id='gam
  if(window.__FB){const a=(window.__ACCT||{}).user||{};m.innerHTML=`<div class="mb gm"><div class="mh"><b>帳號</b><button class="ib" data-g="x">${ic('x')}</button></div><div class="acc" style="cursor:default">${a.photo?`<img class="av" src="${esc(a.photo)}" alt="" referrerpolicy="no-referrer">`:`<span class="av">${esc((a.name||'?').charAt(0))}</span>`}<span class="t"><b>${esc(a.name||'')}</b><span>${esc(a.email||'')}</span></span></div>${profForm(a)}<p class="fine">作品會同步到你的 Firebase 專案，其他登入的人開啟同一個網址即可即時協作。分享名單的限制由這個頁面執行，Firestore 規則只要求登入。</p><button class="btn" data-g="fbout" style="justify-content:center">登出</button></div>`;m.style.display='grid';return}
  if(window.__STANDALONE){m.innerHTML=`<div class="mb gm"><div class="mh"><b>關於資料與帳號</b><button class="ib" data-g="x">${ic('x')}</button></div>${profForm((window.__ACCT||{}).user||{})}<p class="fine" style="margin:10px 0 0">這是獨立網頁版，不需要登入。所有作品存在這個瀏覽器（IndexedDB），不會上傳到任何伺服器，也不會同步到其他裝置。同一個瀏覽器的多個分頁會即時同步。</p><p class=\"fine\" style=\"margin:10px 0 4px\"><b>連接 Firebase（多人協作與跨裝置同步）</b></p><textarea id=\"fbcfg\" class=\"ssr\" rows=\"6\" placeholder='貼上 Firebase 網頁應用程式設定，例如：&#10;{ \"apiKey\": \"...\", \"authDomain\": \"xxx.firebaseapp.com\", \"projectId\": \"xxx\", \"appId\": \"...\" }' style=\"font:12px ui-monospace,monospace\">${esc(localStorage.getItem('dots-fbconfig')||'')}</textarea><div class=\"gme\" id=\"fbme\"></div><div class=\"row2\" style=\"justify-content:space-between\"><button class=\"btn\" data-g=\"fbclr\" style=\"background:var(--hv);color:var(--tx)\">清除設定</button><button class=\"btn\" data-g=\"fbsave\">儲存並重新載入</button></div><p class="fine">要在裝置之間搬移或備份，請在編輯器右上角的匯出選單選「下載備份檔」，再到另一個瀏覽器「從備份檔匯入」。清除瀏覽器網站資料會刪掉作品，重要內容請先備份。</p></div>`;m.style.display='grid';return}
  m.innerHTML=`<div class="mb gm"><div class="mh"><b>帳號</b><button class="ib" data-g="x">${ic('x')}</button></div>`+(UID?`<div class="acc" style="cursor:default">${u&&u.avatarUrl?`<img class="av" src="${u.avatarUrl}" alt="">`:`<span class="av">${esc(((u&&u.name)||'?').charAt(0))}</span>`}<span class="t"><b>${esc((u&&u.name)||'已登入')}</b><span>Claude 帳號</span></span></div>`:`<p class="fine" style="margin:0">你目前沒有登入。請先登入 claude.ai，再重新開啟這個頁面；登入後作品會同步到雲端，也能使用分享名單。</p>`)+`<p class="fine">這個頁面無法直接使用 Google 登入：頁面的安全限制不允許連到 Google，也收不到 Google 登入後的轉址。身分來自你的 Claude 帳號；如果你的 Claude 帳號本來就是用 Google 登入，這裡就是同一個人。</p></div>`;m.style.display='grid'}
-document.addEventListener('click',e=>{if(e.target.closest('#gacc'))return gDlg();const m=$('#gam');if(!m||m.style.display!=='grid')return;if(e.target===m||e.target.closest('[data-g="x"]')){m.style.display='none';return}const k=(e.target.closest('[data-g]')||{dataset:{}}).dataset.g;
+document.addEventListener('click',e=>{if(e.target.closest('#gacc,#gfab'))return gDlg();const m=$('#gam');if(!m||m.style.display!=='grid')return;if(e.target===m||e.target.closest('[data-g="x"]')){m.style.display='none';return}const k=(e.target.closest('[data-g]')||{dataset:{}}).dataset.g;
  if(k==='pfphoto'){$('#pff').click()}
  else if(k==='pfrm'){PFP='';const v=$('#pfav');if(v)v.innerHTML=pfAv($('#pfn').value,'')}
  else if(k==='pfsave'||k==='pfreset'){const msg=$('#pfm'),nm=($('#pfn')||{value:''}).value.trim();if(k==='pfsave'&&!nm){msg.textContent='請輸入顯示名稱。';return}
@@ -576,14 +581,27 @@ render();
 #dots.pres #cv{background:#000;cursor:none}
 #dots.pres #cv svg{cursor:none}
 @media(max-width:640px){#dots #brand{left:8px;right:8px;top:calc(8px + env(safe-area-inset-top,0px));padding:5px 10px;gap:6px}#dots #ititle{flex:1;width:auto;min-width:0}#dots #brand i{display:none}#dots #top{left:8px;right:8px;top:calc(58px + env(safe-area-inset-top,0px));justify-content:center;overflow-x:auto}#dots #lp,#dots #vp,#dots #exm{top:calc(108px + env(safe-area-inset-top,0px));right:8px;width:min(310px,calc(100vw - 16px))}#dots #zoom{top:auto;bottom:130px;transform:none;flex-direction:row;right:8px}#dots #zoom input{writing-mode:horizontal-tb;direction:ltr;width:90px;height:22px;margin:0 6px}}
+
+#dots #udock{left:14px;bottom:calc(72px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:8px;padding:6px 10px;max-width:calc(100vw - 28px);overflow:hidden}
+#dots #udock .acct{border-left:0;padding-left:0;flex:none}
+#dots #prow{display:flex;align-items:center;min-width:0}
+#dots #prow:not(:empty){border-left:1px solid var(--bd);padding-left:8px}
+#dots #prow .pe{all:unset;cursor:pointer;position:relative;margin-left:-6px;border-radius:50%;box-shadow:0 0 0 2px var(--page);flex:none}
+#dots #prow .pe:first-child{margin-left:0}#dots #prow .pe .av{width:24px;height:24px;font-size:11px}
+#dots #prow .pe.off{opacity:.45}#dots #prow .pe:hover{z-index:2;transform:translateY(-2px)}
+#dots #prow .pm{margin-left:8px;font-size:12px;color:var(--mut);white-space:nowrap}
+#dots #pp{top:auto;bottom:calc(122px + env(safe-area-inset-bottom,0px))}
+@media(max-width:900px){#dots #udock{bottom:calc(124px + env(safe-area-inset-bottom,0px))}#dots #pp{bottom:calc(174px + env(safe-area-inset-bottom,0px))}}
+@media(max-width:640px){#dots #udock{padding:5px 8px;left:8px}#dots #udock .acct>span:not(.av){display:none}#dots #prow .pm{display:none}#dots #zoom{bottom:190px}}
+@media(pointer:coarse){#dots #prow .pe .av{width:30px;height:30px;font-size:13px}}
 </style>
 <div id="dots">
 <div id="cv"><svg id="svg"><g id="w"><g id="L"></g><g id="O"></g></g><rect id="mq" fill="rgba(59,130,246,.1)" stroke="#3b82f6" stroke-dasharray="4" display="none"/></svg></div>
-<div class="pn" id="brand"><button class="b sm" id="back" title="返回作品庫" aria-label="返回作品庫"></button><input id="ititle" maxlength="60" aria-label="檔案名稱"><i id="stat"><span class="dot off"></span>本機模式</i><span class="acct" id="acct"></span></div>
+<div class="pn" id="brand"><button class="b sm" id="back" title="返回作品庫" aria-label="返回作品庫"></button><input id="ititle" maxlength="60" aria-label="檔案名稱"><i id="stat"><span class="dot off"></span>本機模式</i></div>
 <div class="pn" id="top"></div>
 <div class="pn" id="zoom"><button class="b" id="zi" title="放大 (+)">＋</button><input type="range" id="zs" min="0" max="100" step="0.5" value="50" title="縮放"><button class="b" id="zo" title="縮小 (-)">－</button><button class="b" id="bz" style="font-size:11px" title="重設 100% (Ctrl+0)">100%</button><button class="b" id="bf" title="符合畫面 (Shift+1)"></button></div>
 <div class="pn" id="props"></div>
-<div class="pn" id="pgs"></div><div class="pn" id="tools"></div>
+<div class="pn" id="udock"><span class="acct" id="acct" title="我的使用者資料"></span><div id="prow" aria-label="目前在線的使用者"></div></div><div class="pn" id="pgs"></div><div class="pn" id="tools"></div>
 <div id="ta" contenteditable="true" spellcheck="false" hidden></div>
 <div class="pn" id="pp"></div><input type="file" id="pfi" accept="image/*" hidden><div class="pn" id="lp"></div><div class="pn" id="aip"></div>
 <input type="file" id="fi" accept="image/*" hidden multiple>
@@ -977,9 +995,17 @@ dAdd('click',e=>{const pin=e.target.closest('[data-cm]');if(pin){const wasOpen=c
  else if(a==='delm'){c.th.splice(+b.dataset.i,1);if(!c.th.length){cmDel(c);closeCmt()}else{cmSave(c);cmPop(c.id)}}});
 dAdd('keydown',e=>{if(e.target.id==='cmt'){e.stopPropagation();if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();document.querySelector('#cpop [data-cc="send"]').click()}if(e.key==='Escape')closeCmt()}},true);
 // ---------- presence
-const peersEl=new Map();let lp=0;
+const peersEl=new Map();let lp=0,psig='';
+function prow(list){const L=list.filter(pr=>!pr.isMe&&(pr.presence||{}).b===BID).map(pr=>{const d=pr.presence||{};return{id:pr.peer,n:d.n||'訪客',c:d.c||'#a8a29e',e:d.e||'',x:d.x,y:d.y,p:d.p}});
+ const sig=L.map(q=>q.id+q.n+q.c+q.e+(q.p===S.pg?1:0)+(q.x==null?0:1)).join('|')+'|'+S.pg;PEERS=L;if(sig===psig)return;psig=sig;const r=$('prow');r.textContent='';
+ L.slice(0,5).forEach(q=>{const b=document.createElement('button');b.className='pe'+(q.p!==S.pg?' off':'');b.dataset.pid=q.id;b.title=q.n+(q.p!==S.pg?'（在其他頁面）':q.x==null?'（尚未移動游標）':'，點一下跳到對方的位置');b.appendChild(avatar(q.n,q.c,{emoji:q.e,img:''}));r.appendChild(b)});
+ if(L.length>5){const m=document.createElement('span');m.className='pm';m.textContent='+'+(L.length-5);r.appendChild(m)}
+ if(L.length){const m=document.createElement('span');m.className='pm';m.textContent=(L.length+1)+' 人在線';r.appendChild(m)}}
+let PEERS=[];
+function jumpTo(id){const q=PEERS.find(z=>z.id===id);if(!q)return;if(q.p&&q.p!==S.pg)gotoPg(q.p);if(q.x==null)return;S.v.x=innerWidth/2-q.x*S.v.k;S.v.y=innerHeight/2-q.y*S.v.k;applyV();if(room)drawPeers(room.peers())}
+$('prow').addEventListener('click',e=>{const b=e.target.closest('.pe');if(b)jumpTo(b.dataset.pid)});
 function cursor(p){if(!room||RO&&false||Date.now()-lp<50)return;lp=Date.now();room.presence({x:p.x,y:p.y,n:me,c:myc,e:PF.emoji,b:BID,p:S.pg}).catch(()=>{})}
-function drawPeers(list){const live=new Set();let n=0;list.forEach(pr=>{if(pr.isMe)return;const d=pr.presence||{};if(d.b!==BID)return;n++;if(d.x==null||d.p!==S.pg||PRES)return;live.add(pr.peer);let el=peersEl.get(pr.peer);if(!el){el=document.createElement('div');el.className='cur';el.innerHTML='<b></b><span></span>';document.body.appendChild(el);peersEl.set(pr.peer,el)}el.firstChild.style.background=d.c;el.lastChild.style.background=d.c;el.lastChild.textContent=(d.e?d.e+' ':'')+(d.n||'訪客');el.style.transform=`translate(${S.v.x+d.x*S.v.k}px,${S.v.y+d.y*S.v.k}px)`;el._d=d});peersEl.forEach((el,id)=>{if(!live.has(id)){el.remove();peersEl.delete(id)}});peerN=n+1;syncUI()}
+function drawPeers(list){const live=new Set();let n=0;list.forEach(pr=>{if(pr.isMe)return;const d=pr.presence||{};if(d.b!==BID)return;n++;if(d.x==null||d.p!==S.pg||PRES)return;live.add(pr.peer);let el=peersEl.get(pr.peer);if(!el){el=document.createElement('div');el.className='cur';el.innerHTML='<b></b><span></span>';document.body.appendChild(el);peersEl.set(pr.peer,el)}el.firstChild.style.background=d.c;el.lastChild.style.background=d.c;el.lastChild.textContent=(d.e?d.e+' ':'')+(d.n||'訪客');el.style.transform=`translate(${S.v.x+d.x*S.v.k}px,${S.v.y+d.y*S.v.k}px)`;el._d=d});peersEl.forEach((el,id)=>{if(!live.has(id)){el.remove();peersEl.delete(id)}});peerN=n+1;prow(list);syncUI()}
 // ---------- shortcuts
 const HK=[['V / H','選取 / 平移（按住空白鍵暫時平移）'],['P / L / E','畫筆 / 螢光筆 / 橡皮擦'],['T','文字（雙擊文字可編輯，選取部分文字後可單獨套用格式）'],['R / O / A / N','矩形 / 圓形 / 箭頭 / 直線（Shift 等比）'],['I','插入圖片（亦可貼上 / 拖曳）'],['C','評論（點畫布放下留言）'],['Ctrl+Z / Ctrl+Shift+Z','復原 / 重做（含圖層調整）'],['Ctrl+D','複製選取'],['Ctrl+A','全選'],['Del / Backspace','刪除'],['[ / ]','移到最後 / 最前'],['方向鍵','微調位置（Shift 加快）'],['Ctrl+滾輪 / + −','縮放'],['雙指捏合 / 旋轉','手機平板縮放畫布；兩指都在選取物件上時縮放並旋轉該物件'],['Ctrl+0 / Shift+1','100% / 符合畫面'],['M','切換黑夜 / 白色版'],['F','開關圖層面板'],['F5 / Ctrl+Enter','開始放映'],['Ctrl+B / I / U','粗體 / 斜體 / 底線'],['Alt+A','AI 分析選取的文字／圖片'],['Ctrl+E','匯出選單'],['Esc','取消選取 / 結束放映']];
 $('hb').innerHTML='<h3>快捷鍵</h3>'+HK.map(([k,d])=>`<p><span>${d}</span><kbd>${k}</kbd></p>`).join('');
@@ -1012,7 +1038,7 @@ let ACC={id:null,name:'訪客',color:'#a8a29e'};const PF={name:'',color:'',emoji
 function avatar(n,c,p,sz){const a=document.createElement(p.img?'img':'span');a.className='av';if(sz)a.style.cssText=`width:${sz}px;height:${sz}px;font-size:${Math.round(sz*.45)}px`;if(p.img)a.src=p.img;else{a.style.background=c;a.textContent=p.emoji||(n.trim().charAt(0)||'?').toUpperCase()}return a}
 function acct(v){if(v!==undefined)ACC=v&&v.id?{id:v.id,name:v.name||'使用者',color:/^#[0-9a-f]{3,8}$/i.test(v.color||'')?v.color:'#a8a29e'}:{id:null,name:me,color:myc};const n=PF.name||ACC.name,c=PF.color||ACC.color,e=$('acct');e.innerHTML='';e.appendChild(avatar(n,c,PF));const t=document.createElement('span');t.textContent=n+(ACC.id||window.__STANDALONE?'':'（未登入）');e.appendChild(t)}
 const PCOL=['#ef4444','#f59e0b','#22c55e','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#78716c'],PEMO=['😀','😎','🦊','🐱','🐼','🦄','🌵','🚀','🎨','🔥','🌙','🍀'];
-function applyPF(){me=PF.name||ACC.name;myc=PF.color||ACC.color;acct();ppUI();savePrefs()}
+function applyPF(){me=PF.name||ACC.name;myc=PF.color||ACC.color;acct();ppUI();savePrefs();if(room&&BID)room.presence({n:me,c:myc,e:PF.emoji,b:BID,p:S.pg}).catch(()=>{})}
 function ppUI(){const n=PF.name||ACC.name,c=PF.color||ACC.color;$('pp').innerHTML=`<div class="lh"><span>使用者帳號</span><button class="b sm" data-pp="close">${ic('x')}</button></div><div style="display:flex;gap:12px;align-items:center"><span id="ppav"></span><div style="flex:1;min-width:0"><div style="font-size:11px;color:var(--mut);margin-bottom:4px">${window.__STANDALONE?'本機使用者（資料存在此瀏覽器）':ACC.id?'已登入 Claude 帳號':'未登入（訪客）'}</div><input id="ppn" maxlength="20" placeholder="顯示名稱"></div></div><div class="row" style="gap:6px"><button class="btn" style="flex:1" data-pp="up">上傳圖像</button>${PF.img||PF.emoji?'<button class="btn" data-pp="clr">移除圖像</button>':''}</div><label>代表色（游標與頭像）</label><div class="sw" style="grid-template-columns:repeat(8,1fr)">${PCOL.map(x=>`<button data-pc="${x}" class="${x===c?'on':''}" style="background:${x}"></button>`).join('')}</div><label>表情符號頭像</label><div class="row" style="gap:2px">${PEMO.map(x=>`<button class="b sm" data-pe="${x}" style="font-size:15px">${x}</button>`).join('')}</div>${ACC.id||window.__STANDALONE?'':'<p>登入 Claude 後，這些設定才會在不同裝置保留。</p>'}`;$('ppav').appendChild(avatar(n,c,PF,48));$('ppn').value=n}
 dAdd('click',e=>{if(e.target.closest('#acct')){const p=$('pp'),o=p.style.display==='flex';p.style.display=o?'none':'flex';if(!o)ppUI();return}
  const b=e.target.closest('[data-pp],[data-pc],[data-pe]');if(!b){if(!e.target.closest('#pp'))$('pp').style.display='none';return}
@@ -1060,7 +1086,7 @@ dAdd('click',async e=>{const b=e.target.closest('[data-ai]');if(!b)return;const 
 
 // ---------- pages
 function pgUI(){$('pgs').innerHTML=PGS.map((p,i)=>`<button class="b pgb${p.id===S.pg?' on':''}" data-pg="${p.id}" title="第 ${i+1} 頁">${i+1}</button>`).join('')+(RO?'':`<button class="b pgb" data-pg="+" title="新增頁面">${ic('plus')}</button>`+(PGS.length>1?`<button class="b pgb" data-pg="-" title="刪除目前頁面">${ic('del')}</button>`:''))}
-function gotoPg(id){finishEdit();closeCmt();S.pg=id;S.sel.clear();render();pgUI();props();fit();drawCmts();if(room)drawPeers(room.peers())}
+function gotoPg(id){finishEdit();closeCmt();S.pg=id;if(room&&BID)room.presence({n:me,c:myc,e:PF.emoji,b:BID,p:S.pg}).catch(()=>{});S.sel.clear();render();pgUI();props();fit();drawCmts();if(room)drawPeers(room.peers())}
 function mkFrame(pg){const t=ITEM.type,sz=t==='doc'?[794,1123]:t==='slide'?[1280,720]:null;if(!sz||S.objs.has('fr-'+pg))return;put({id:'fr-'+pg,t:'frame',x:0,y:0,w:sz[0],h:sz[1],r:0,pg,l:'l1',z:-1e12,op:1})}
 function newPage(){const p={id:'p'+rid().slice(0,5),name:'頁面 '+(PGS.length+1)};PGS.push(p);DASH.patch(BID,{pages:PGS});mkFrame(p.id);pgUI();return p}
 function addPage(){const p=newPage();gotoPg(p.id)}
@@ -1112,7 +1138,7 @@ function subscribe(){unsubs.forEach(f=>{try{f()}catch(e){}});unsubs=[];if(!db)re
   ovl();props();
   if(firstSnap){const empty=!s.docs||!s.docs.length;if(s.metadata&&s.metadata.fromCache&&empty){if(!fcTimer)fcTimer=setTimeout(()=>{if(firstSnap){firstSnap=false;seedBoard()}},2500);return}clearTimeout(fcTimer);firstSnap=false;seedBoard()}},e=>{db=null;syncUI();toast('同步中斷，改為本機模式');if(firstSnap){firstSnap=false;loadLocal();seedBoard()}}))}
 let verTimer=0;
-function open(it){ITEM=it;BID=it.id;BP='b/'+it.id+'/';ROLE=it.role||'edit';RO=ROLE!=='edit';PGS=it.pages&&it.pages.length?it.pages.map(p=>({...p})):[{id:'p1',name:'頁面 1'}];ACT.on=true;PRES=false;
+function open(it){ITEM=it;BID=it.id;BP='b/'+it.id+'/';if(room)room.presence({n:me,c:myc,e:PF.emoji,b:BID,p:(it.pages&&it.pages[0]&&it.pages[0].id)||'p1'}).catch(()=>{});ROLE=it.role||'edit';RO=ROLE!=='edit';PGS=it.pages&&it.pages.length?it.pages.map(p=>({...p})):[{id:'p1',name:'頁面 1'}];ACT.on=true;PRES=false;
  const D=$('dots');D.classList.add('on');D.classList.toggle('ro',RO);D.classList.remove('pres');
  S.objs.clear();els.forEach(g=>g.remove());els.clear();S.sel.clear();hist.length=0;redo.length=0;pend.clear();infl.clear();fails.clear();CM.clear();VERS=[];dirty=false;lastVerHash='';cmOpen=null;lastErr=null;ta._o=null;ta.hidden=true;
  S.layers=[{id:'l1',name:'圖層 1',vis:true,lock:false}];S.al='l1';S.pg=PGS[0].id;S.d.s={doc:17,slide:36}[it.type]||28;S.d.ww=it.type==='doc'?674:it.type==='slide'?1000:0;
@@ -1130,7 +1156,7 @@ async function close(){if(!ACT.on)return;endPres();finishEdit();closeCmt();clear
  if(!RO){if(u)DASH.thumb(BID,u);DASH.patch(BID,{ix:indexText()})}
  await Promise.race([flushNow(),new Promise(r=>setTimeout(r,5000))]);
  if(wasDirty&&db)await Promise.race([saveVersion('',true),new Promise(r=>setTimeout(r,6000))]);
- unsubs.forEach(f=>{try{f()}catch(e){}});unsubs=[];ACT.on=false;const D=$('dots');D.classList.remove('on','ro');['aip','pp','lp','vp','exm','cpop'].forEach(i=>$(i).style.display='none');peersEl.forEach(e=>e.remove());peersEl.clear();if(room)room.presence({b:null,x:null}).catch(()=>{})}
+ unsubs.forEach(f=>{try{f()}catch(e){}});unsubs=[];ACT.on=false;const D=$('dots');D.classList.remove('on','ro');['aip','pp','lp','vp','exm','cpop'].forEach(i=>$(i).style.display='none');peersEl.forEach(e=>e.remove());peersEl.clear();psig='';PEERS=[];$('prow').textContent='';if(room)room.presence({b:null,x:null}).catch(()=>{})}
 const canExit=()=>ACT.on&&!PRES&&S.tool==='select'&&!S.sel.size&&ta.hidden&&$('help').style.display!=='grid'&&['cpop','vp','lp','exm','aip','pp'].every(i=>$(i).style.display!=='flex');
 // ---------- boot
 R.dataset.wb=R.dataset.wb||'dark';
@@ -1143,7 +1169,7 @@ $('syncbar').onclick=e=>{if(e.target.closest('button'))$('syncbar').hidden=true}
  if(!uid){me='訪客 '+Math.floor(Math.random()*900+100);myc=['#ef4444','#f59e0b','#22c55e','#3b82f6','#8b5cf6','#ec4899'][Math.floor(Math.random()*6)];acct(null)}
  try{db=await claude.use('db')}catch(e){}
  if(db&&uid){try{const ps=await db.doc('data/users/'+uid+'/prefs').get();if(ps.exists){const p=JSON.parse(JSON.stringify(ps.data()));if(typeof p.ai==='boolean')aiToggle(p.ai,1);if(Array.isArray(p.recent))S.recent=p.recent.slice(0,4);if(p.profile&&typeof p.profile==='object'){['name','color','emoji','img'].forEach(k=>{if(typeof p.profile[k]==='string')PF[k]=p.profile[k]});me=PF.name||ACC.name;myc=PF.color||ACC.color;acct()}props()}}catch(e){}}prefsOK=true;
- try{room=await claude.use('room');if(room){room.onPeers(c=>drawPeers(c.peers));drawPeers(room.peers())}}catch(e){}
+ try{room=await claude.use('room');if(room){room.onPeers(c=>drawPeers(c.peers));if(BID)room.presence({n:me,c:myc,e:PF.emoji,b:BID,p:S.pg}).catch(()=>{});drawPeers(room.peers())}}catch(e){}
  $('bsh').style.display='';try{const sm=await claude.use('sample');if(!sm){AI.on=false;$('bai').style.display='none'}}catch(e){}
  if(ACT.on&&db&&!unsubs.length)subscribe();syncUI()})();
 addEventListener('dots-storage-error',()=>toast('瀏覽器儲存空間已滿或無法寫入，請匯出備份並清出空間'));
