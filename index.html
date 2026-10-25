@@ -181,6 +181,7 @@ select{background:var(--card);border:1px solid var(--bd);border-radius:10px;padd
 .gm label{font-size:11.5px;color:var(--mu);display:block;margin:8px 0 4px}.gm input{width:100%;background:var(--card);border:1px solid var(--bd);border-radius:9px;padding:8px 10px;outline:none;user-select:text}.gm .cp{display:flex;gap:6px}.gm .cp input{flex:1}
 .gm ol{margin:6px 0 0;padding-left:18px;font-size:11.5px;color:var(--mu);line-height:1.6}
 .gme{color:var(--dang);font-size:12px;min-height:16px}
+.lk{margin:2px 0 10px}.lkr{display:flex;gap:8px}.lkr input{flex:1;min-width:0;padding:8px 10px;border-radius:9px;border:1px solid var(--bd,#8884);background:var(--hv);color:inherit;font-size:12.5px}
 </style></head><body>
 <aside id="side">
  <div class="logo" aria-label="DOTS"><svg viewBox="0 0 4 4" aria-hidden="true"><circle cx="0.5" cy="0.5" r=".36" fill="currentColor"/><circle cx="1.5" cy="0.5" r=".36" fill="currentColor"/><circle cx="2.5" cy="0.5" r=".36" fill="#4f6df0"/><circle cx="0.5" cy="1.5" r=".36" fill="#3aa392"/><circle cx="1.5" cy="1.5" r=".36" fill="currentColor"/><circle cx="2.5" cy="1.5" r=".36" fill="currentColor"/><circle cx="3.5" cy="1.5" r=".36" fill="#f5a83a"/><circle cx="0.5" cy="2.5" r=".36" fill="currentColor"/><circle cx="1.5" cy="2.5" r=".36" fill="currentColor"/><circle cx="2.5" cy="2.5" r=".36" fill="currentColor"/><circle cx="0.5" cy="3.5" r=".36" fill="currentColor"/><circle cx="1.5" cy="3.5" r=".36" fill="currentColor"/><circle cx="2.5" cy="3.5" r=".36" fill="#b79af2"/><circle cx="3.5" cy="3.5" r=".36" fill="currentColor"/></svg>DOTS</div>
@@ -307,7 +308,7 @@ function menu(m,x,y){const e=$('#menu');e.innerHTML='';m.forEach(k=>{const d=doc
 function folderPick(L,x,y){const m=[['頂層（不放在資料夾）',()=>mv(L,i=>i.folder=null,'已移出資料夾')]];const w=(p,d)=>kids(p).forEach(f=>{m.push([' '.repeat(d)+f.name,()=>mv(L,i=>{i.folder=f.id;i.trash=false},'已移至「'+f.name+'」')]);w(f.id,d+1)});w(null,0);menu(m,x,y)}
 function itemMenu(id,x,y){const L=ids(id),it=by(id),m=[];
  if(it.trash)m.push(['還原',()=>mv(L,i=>i.trash=false,'已還原')],['永久刪除',()=>{L.forEach(delItem);V.sel.clear();render();toast('已永久刪除')},1]);
- else{const s=!it.star;if(L.length===1)m.push(['開啟',()=>openItem(id)],['重新命名',()=>rename(id)]);if(L.length===1&&!window.__STANDALONE)m.push(['分享與權限…',()=>shareDlg(id)]);m.push([s?'加上星號':'移除星號',()=>mv(L,i=>i.star=s,'已更新星號')],['建立副本',()=>dup(L)],'-',['移到資料夾…',()=>folderPick(L,x,y)]);if(it.folder)m.push(['移出資料夾',()=>mv(L,i=>i.folder=null,'已移出資料夾')]);m.push('-',['移到垃圾桶',()=>mv(L,i=>i.trash=true,'已移到垃圾桶'),1])}
+ else{const s=!it.star;if(L.length===1)m.push(['開啟',()=>openItem(id)],['重新命名',()=>rename(id)]);if(L.length===1)m.push(['分享與權限…',()=>shareDlg(id)]);m.push([s?'加上星號':'移除星號',()=>mv(L,i=>i.star=s,'已更新星號')],['建立副本',()=>dup(L)],'-',['移到資料夾…',()=>folderPick(L,x,y)]);if(it.folder)m.push(['移出資料夾',()=>mv(L,i=>i.folder=null,'已移出資料夾')]);m.push('-',['移到垃圾桶',()=>mv(L,i=>i.trash=true,'已移到垃圾桶'),1])}
  menu(m,x,y)}
 async function dup(L){for(const x of L){const o=by(x);if(!o)continue;const n={...cln(o),id:uid(),name:o.name+' 副本',ts:Date.now(),owner:UID||o.owner||null};delete n.data;delete n.tpl;st.items.push(n);saveItem(n,{ix:o.ix||''});if(ddb){toast('正在複製內容…');await cloneBoard(o.id,n.id)}if(THUMBS[o.id])DASH.thumb(n.id,THUMBS[o.id])}render();toast('已建立副本')}
 function folderMenu(id,x,y){const f=fby(id),sib=kids(f.parent||null),i=sib.findIndex(s=>s.id===id),m=[['重新命名',()=>renameFolder(id)],['新增子資料夾',()=>newFolder(id)],['顏色…',()=>menu(FCOL.map(c=>[({'#ef4444':'紅','#f59e0b':'橙','#22c55e':'綠','#3b82f6':'藍','#8b5cf6':'紫','#ec4899':'粉','#14b8a6':'青','#a8a29e':'灰'})[c],()=>{f.color=c;saveFolder(f);render()}]),x,y)],'-'];
@@ -316,25 +317,33 @@ function folderMenu(id,x,y){const f=fby(id),sib=kids(f.parent||null),i=sib.findI
 function swapOrd(a,b){const ids=kids(a.parent||null);ids.forEach((f,i)=>{if(f.ord!==i+1){f.ord=i+1;saveFolder(f)}});const t=a.ord;a.ord=b.ord;b.ord=t;saveFolder(a);saveFolder(b);render()}
 function reparent(f,p){const sib=kids(p);f.parent=p;f.ord=(sib.length?Math.max(...sib.map(x=>x.ord||0)):0)+1;if(p)fby(p).open=true;saveFolder(f);render();toast('已移動資料夾')}
 function delFolder(id){const f=fby(id);st.items.forEach(i=>{if(i.folder===id){i.folder=f.parent||null;saveItem(i)}});st.folders.forEach(g=>{if(g.parent===id){g.parent=f.parent||null;saveFolder(g)}});st.folders=st.folders.filter(g=>g.id!==id);wq('dash/f_'+id,null,{del:true});saveLocalState();if(V.nav===id)V.nav=f.parent||'all';render();toast('已刪除資料夾「'+f.name+'」，其中的作品與子資料夾已上移一層')}
-// ---------- share dialog (member list + roles)
+// ---------- share link (anyone with the link can open it)
+function linkBlock(it,a){const u=linkFor(it.id),lock=a.mode==='list';
+ if(!window.__STANDALONE&&!window.__FB)return '';
+ if(!u)return `<p class="fine">這個頁面是以本機檔案開啟（file://），無法產生可分享的連結。請把網頁部署到網站後再使用。</p>`;
+ return `<div class="lk"><div class="lkr"><input id="lku" readonly value="${esc(u)}"><button class="btn" data-s="copy">複製連結</button></div>
+ <p class="fine">${window.__FB?(lock?'目前限制名單：只有名單內的人能用這個連結開啟。要讓知道連結的人都能編輯，請選下方第一項。':'知道這個連結的人，登入 Google 後都可以編輯。'):'目前是本機模式，作品只存在這個瀏覽器裡，這個連結只在這台裝置的這個瀏覽器有效。要讓別人用連結開啟，需要先設定 Firebase（見左下角帳號）。'}</p></div>`}
 const ROLES={edit:'可編輯',comment:'可留言',view:'僅檢視'};
+const linkFor=id=>location.origin==='null'||location.protocol==='file:'?'':location.origin+location.pathname+location.search+'#/b/'+id;
+async function copyText(t){try{await navigator.clipboard.writeText(t);return true}catch(e){const i=document.createElement('textarea');i.value=t;i.style.cssText='position:fixed;opacity:0';document.body.appendChild(i);i.select();let ok=false;try{ok=document.execCommand('copy')}catch(x){}i.remove();return ok}}
 function shareDlg(id){const it=by(id);if(!it)return;let m=$('#shm');if(!m){m=document.createElement('div');m.id='shm';m.className='modal';document.body.appendChild(m)}
  const isOwner=!it.owner||it.owner===UID||UOWN,a=it.acl||{mode:'open',members:[]},seen=Object.keys(it.seen||{}).filter(k=>k!==it.owner&&!(a.members||[]).some(x=>x.id===k));
  m.innerHTML=`<div class="mb"><div class="mh"><b>分享「${esc(it.name)}」</b><button class="ib" data-s="x">${ic('x')}</button></div>
- <label class="rd"><input type="radio" name="sm" value="open" ${a.mode!=='list'?'checked':''} ${isOwner?'':'disabled'}> 所有能開啟這個頁面的人都可以編輯</label>
+ ${linkBlock(it,a)}
+ ${window.__STANDALONE?'':`<label class="rd"><input type="radio" name="sm" value="open" ${a.mode!=='list'?'checked':''} ${isOwner?'':'disabled'}> 知道連結的人都可以編輯${window.__FB?'（需登入 Google）':''}</label>
  <label class="rd"><input type="radio" name="sm" value="list" ${a.mode==='list'?'checked':''} ${isOwner?'':'disabled'}> 只有下方名單中的人可以開啟（建立者永遠可編輯）</label>
- <div class="ml" id="sml">載入名單…</div>
- ${isOwner?`<input id="ssr" class="ssr" placeholder="搜尋要加入名單的人…" autocomplete="off"><div class="ml" id="ssh"></div>`:''}
- ${isOwner&&seen.length?`<div class="mu" style="padding:6px 0 2px">曾經開啟過的人，點一下加入名單：</div><div class="ml" id="ssn"></div>`:''}
- <p class="fine">這是在作品庫與編輯器頁面中執行的權限：不會顯示、也不會讓名單外的人開啟。但資料本身存放在共享資料庫，懂技術的人仍可能繞過，所以請不要用它保護機密內容。${UID?'':'你目前尚未登入，無法辨識身分，限制名單的作品只有建立者之外的人看不到。'}</p>
- <div class="row2">${isOwner?'':'<span class="mu">只有建立者可以更改權限</span>'}<button class="btn" data-s="x">完成</button></div></div>`;m.style.display='grid';m.dataset.id=id;
+ <div class="ml" id="sml">載入名單…</div>`}
+ ${!window.__STANDALONE&&isOwner?`<input id="ssr" class="ssr" placeholder="搜尋要加入名單的人…" autocomplete="off"><div class="ml" id="ssh"></div>`:''}
+ ${!window.__STANDALONE&&isOwner&&seen.length?`<div class="mu" style="padding:6px 0 2px">曾經開啟過的人，點一下加入名單：</div><div class="ml" id="ssn"></div>`:''}
+ ${window.__STANDALONE?'':`<p class="fine">這是在作品庫與編輯器頁面中執行的權限：不會顯示、也不會讓名單外的人開啟。但資料本身存放在共享資料庫，懂技術的人仍可能繞過，所以請不要用它保護機密內容。${UID?'':'你目前尚未登入，無法辨識身分，限制名單的作品只有建立者之外的人看不到。'}</p>`}
+ <div class="row2">${isOwner||window.__STANDALONE?'':'<span class="mu">只有建立者可以更改權限</span>'}<button class="btn" data-s="x">完成</button></div></div>`;m.style.display='grid';m.dataset.id=id;
  const people=async(idsl)=>{let ps={};try{if(usrN&&idsl.length)ps=await usrN.profiles(idsl)}catch(e){}return idsl.map(k=>({id:k,name:(ps[k]&&ps[k].name)||'使用者 '+k.slice(0,4)+(ps[k]&&ps[k].isMe?'（你）':'')}))};
  (async()=>{const mem=a.members||[],all=await people([...(it.owner?[it.owner]:[]),...mem.map(x=>x.id),...seen]);const nm=k=>(all.find(x=>x.id===k)||{}).name||k;
   const ml=$('#sml');if(ml)ml.innerHTML=(it.owner?`<div class="mr"><span>${esc(nm(it.owner))}</span><span class="mu">建立者</span></div>`:'<div class="mr"><span class="mu">尚無建立者（舊作品）</span></div>')+mem.map(x=>`<div class="mr"><span>${esc(nm(x.id))}</span>${isOwner?`<select data-s="role" data-k="${x.id}">${Object.entries(ROLES).map(([k,l])=>`<option value="${k}"${x.role===k?' selected':''}>${l}</option>`).join('')}</select><button class="ib" data-s="rm" data-k="${x.id}">${ic('x')}</button>`:`<span class="mu">${ROLES[x.role]}</span>`}</div>`).join('');
   const sn=$('#ssn');if(sn)sn.innerHTML=seen.map(k=>`<button class="chip" data-s="add" data-k="${k}">＋ ${esc(nm(k))}</button>`).join('')})()}
 function shareSave(it,a){if(!it.owner&&UID)it.owner=UID;it.acl=a;saveItem(it);render();shareDlg(it.id)}
 document.addEventListener('click',e=>{const m=$('#shm');if(!m||m.style.display!=='grid')return;const b=e.target.closest('[data-s]');if(e.target===m){m.style.display='none';return}if(!b)return;const it=by(m.dataset.id),a=cln(it.acl||{mode:'open',members:[]});a.members=a.members||[];const k=b.dataset.k;
- if(b.dataset.s==='x')m.style.display='none';else if(b.dataset.s==='add'){a.members.push({id:k,role:'edit'});a.mode='list';shareSave(it,a)}else if(b.dataset.s==='rm'){a.members=a.members.filter(x=>x.id!==k);shareSave(it,a)}});
+ if(b.dataset.s==='copy'){const u=$('#lku');copyText(u.value).then(ok=>{toast(ok?'已複製連結':'複製失敗，請手動選取連結');if(!ok)u.select()});return}if(b.dataset.s==='x')m.style.display='none';else if(b.dataset.s==='add'){a.members.push({id:k,role:'edit'});a.mode='list';shareSave(it,a)}else if(b.dataset.s==='rm'){a.members=a.members.filter(x=>x.id!==k);shareSave(it,a)}});
 document.addEventListener('input',async e=>{if(e.target.id!=='ssr'||!usrN||!usrN.search)return;const m=$('#shm'),it=by(m.dataset.id);let hits=[];try{hits=await usrN.search(e.target.value)}catch(x){}const a=it.acl||{members:[]},box=$('#ssh');if(!box)return;box.innerHTML='';hits.filter(h=>h.id!==it.owner&&!(a.members||[]).some(x=>x.id===h.id)).slice(0,6).forEach(h=>{const b=document.createElement('button');b.className='chip';b.dataset.s='add';b.dataset.k=h.id;b.textContent='＋ '+(h.name||h.id);box.appendChild(b)});if(!box.children.length&&e.target.value)box.innerHTML='<div class="mu">找不到符合的人</div>'});
 document.addEventListener('change',e=>{const m=$('#shm');if(!m||m.style.display!=='grid')return;const t=e.target,it=by(m.dataset.id);if(!it)return;const a=cln(it.acl||{mode:'open',members:[]});a.members=a.members||[];
  if(t.name==='sm'){a.mode=t.value;shareSave(it,a)}else if(t.dataset.s==='role'){const x=a.members.find(x=>x.id===t.dataset.k);if(x){x.role=t.value;shareSave(it,a)}}});
@@ -407,8 +416,15 @@ function recSave(){const ks=Object.keys(REC).sort((a,b)=>REC[b]-REC[a]).slice(0,
 function openItem(id){const it=by(id);if(!it||ED.id)return;const role=roleOf(it);if(role==='none')return toast('你沒有開啟這個作品的權限');
  ED.id=id;V.sel=new Set([id]);REC[id]=Date.now();recSave();
  if(UID&&!(it.seen&&it.seen[UID]&&Date.now()-it.seen[UID]<12*H)){it.seen=Object.assign(it.seen||{},{[UID]:Date.now()});wq('dash/i_'+id,{seen:{[UID]:it.seen[UID]}},{full:it})}
+ if(window.__STANDALONE!==undefined&&linkFor(id)){try{history.replaceState(null,'','#/b/'+id)}catch(e){}}
  DOTS.open({id:it.id,type:it.type,name:it.name,pages:it.pages,init:it.init,role,tpl:it.tpl,data:it.data,mig:it.mig})}
-function closeEd(){return DOTS.close().then(()=>{ED.id=null;render()})}
+function closeEd(){return DOTS.close().then(()=>{ED.id=null;if(/^#\/b\//.test(location.hash))try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}render()})}
+// deep link: #/b/<id> opens that board as soon as the shared list has loaded
+let PEND=null,PT=null;
+function hashId(){const m=/^#\/b\/([\w-]+)/.exec(location.hash);return m?m[1]:null}
+function pendTry(){if(!PEND)return;const it=by(PEND);if(it&&!ED.id){const id=PEND;PEND=null;clearInterval(PT);openItem(id)}}
+function pendStart(){const id=hashId();if(!id||ED.id===id)return;PEND=id;clearInterval(PT);let n=0;PT=setInterval(()=>{pendTry();if(!PEND)return;if(++n>40){clearInterval(PT);PEND=null;toast('找不到這個作品：可能已被刪除，或你還沒有登入')}},400)}
+window.addEventListener('hashchange',pendStart);
 $('#thm').onclick=()=>setTheme(R.dataset.wb==='dark'?'light':'dark');setTheme(R.dataset.wb);
 // boot: show local state immediately, then connect to the shared database
 if(!loadLocalState()){/* wait for the database; fall back to samples if it is unavailable */}
@@ -417,7 +433,7 @@ render();
  let x=null;try{x=await claude.use('db')}catch(e){}
  if(x){connect(x);if(UID){UDB=x;try{const s=await x.doc('data/users/'+UID+'/ro').get();if(s.exists){const m=cln(s.data()).m||{};Object.keys(m).forEach(k=>{REC[k]=Math.max(REC[k]||0,m[k])});recSave();render()}}catch(e){}}}
  else if(!st.items.length&&!st.folders.length){const s=seedData();st.folders=s.folders;st.items=s.items;saveLocalState();render()}
- syncState()})();
+ syncState();pendStart()})();
 </script><style>
 #dots{--page:#ffffff;--bg:#fafaf9;--dot:#d6d3d1;--ink:#1c1917;--pn:rgba(255,255,255,.86);--bd:rgba(0,0,0,.08);--mut:#78716c;--ac:#3b82f6;--hv:rgba(0,0,0,.06);--sh:0 8px 30px rgba(0,0,0,.10);color-scheme:light}
 :root[data-wb="dark"] #dots{--page:#1c1c20;--bg:#0c0a09;--dot:#35312e;--ink:#f5f5f4;--pn:rgba(28,25,23,.86);--bd:rgba(255,255,255,.09);--mut:#a8a29e;--hv:rgba(255,255,255,.09);--sh:0 8px 30px rgba(0,0,0,.5);color-scheme:dark}
@@ -1092,7 +1108,7 @@ $('syncbar').onclick=e=>{if(e.target.closest('button'))$('syncbar').hidden=true}
  try{db=await claude.use('db')}catch(e){}
  if(db&&uid){try{const ps=await db.doc('data/users/'+uid+'/prefs').get();if(ps.exists){const p=JSON.parse(JSON.stringify(ps.data()));if(typeof p.ai==='boolean')aiToggle(p.ai,1);if(Array.isArray(p.recent))S.recent=p.recent.slice(0,4);if(p.profile&&typeof p.profile==='object'){['name','color','emoji','img'].forEach(k=>{if(typeof p.profile[k]==='string')PF[k]=p.profile[k]});me=PF.name||ACC.name;myc=PF.color||ACC.color;acct()}props()}}catch(e){}}prefsOK=true;
  try{room=await claude.use('room');if(room){room.onPeers(c=>drawPeers(c.peers));drawPeers(room.peers())}}catch(e){}
- $('bsh').style.display=window.__STANDALONE?'none':'';try{const sm=await claude.use('sample');if(!sm){AI.on=false;$('bai').style.display='none'}}catch(e){}
+ $('bsh').style.display='';try{const sm=await claude.use('sample');if(!sm){AI.on=false;$('bai').style.display='none'}}catch(e){}
  if(ACT.on&&db&&!unsubs.length)subscribe();syncUI()})();
 addEventListener('dots-storage-error',()=>toast('瀏覽器儲存空間已滿或無法寫入，請匯出備份並清出空間'));
 return{open,close,canExit,theme:()=>theme(),templates};

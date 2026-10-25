@@ -84,7 +84,7 @@ $('syncbar').onclick=e=>{if(e.target.closest('button'))$('syncbar').hidden=true}
  try{db=await claude.use('db')}catch(e){}
  if(db&&uid){try{const ps=await db.doc('data/users/'+uid+'/prefs').get();if(ps.exists){const p=JSON.parse(JSON.stringify(ps.data()));if(typeof p.ai==='boolean')aiToggle(p.ai,1);if(Array.isArray(p.recent))S.recent=p.recent.slice(0,4);if(p.profile&&typeof p.profile==='object'){['name','color','emoji','img'].forEach(k=>{if(typeof p.profile[k]==='string')PF[k]=p.profile[k]});me=PF.name||ACC.name;myc=PF.color||ACC.color;acct()}props()}}catch(e){}}prefsOK=true;
  try{room=await claude.use('room');if(room){room.onPeers(c=>drawPeers(c.peers));drawPeers(room.peers())}}catch(e){}
- $('bsh').style.display=window.__STANDALONE?'none':'';try{const sm=await claude.use('sample');if(!sm){AI.on=false;$('bai').style.display='none'}}catch(e){}
+ $('bsh').style.display='';try{const sm=await claude.use('sample');if(!sm){AI.on=false;$('bai').style.display='none'}}catch(e){}
  if(ACT.on&&db&&!unsubs.length)subscribe();syncUI()})();
 addEventListener('dots-storage-error',()=>toast('瀏覽器儲存空間已滿或無法寫入，請匯出備份並清出空間'));
 return{open,close,canExit,theme:()=>theme(),templates};
