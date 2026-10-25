@@ -71,7 +71,7 @@ async function close(){if(!ACT.on)return;endPres();finishEdit();closeCmt();clear
  await Promise.race([flushNow(),new Promise(r=>setTimeout(r,5000))]);
  if(wasDirty&&db)await Promise.race([saveVersion('',true),new Promise(r=>setTimeout(r,6000))]);
  unsubs.forEach(f=>{try{f()}catch(e){}});unsubs=[];ACT.on=false;const D=$('dots');D.classList.remove('on','ro');['aip','pp','lp','vp','exm','cpop'].forEach(i=>$(i).style.display='none');peersEl.forEach(e=>e.remove());peersEl.clear();if(room)room.presence({b:null,x:null}).catch(()=>{})}
-const canExit=()=>ACT.on&&!PRES&&!S.sel.size&&ta.hidden&&$('help').style.display!=='grid'&&['cpop','vp','lp','exm','aip','pp'].every(i=>$(i).style.display!=='flex');
+const canExit=()=>ACT.on&&!PRES&&S.tool==='select'&&!S.sel.size&&ta.hidden&&$('help').style.display!=='grid'&&['cpop','vp','lp','exm','aip','pp'].every(i=>$(i).style.display!=='flex');
 // ---------- boot
 R.dataset.wb=R.dataset.wb||'dark';
 theme();setTool('select');applyV();ub();syncLayers();layerUI();pgUI();

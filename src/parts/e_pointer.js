@@ -28,7 +28,7 @@ $('cv').addEventListener('pointerdown',e=>{if(PRES)return;if(e.target.closest&&e
  if(t==='pen'||t==='hl'){const o={id:rid(),t:'pen',x:p.x,y:p.y,w:0,h:0,r:0,pts:[[0,0]],c:S.d.c,sw:t==='hl'?S.d.sw*4+6:S.d.sw,hl:t==='hl',op:S.d.op,z:Date.now()};G={m:'draw',o,ap:[[p.x,p.y]]};busy.add(o.id);put(o);return}
  if(t==='eraser'){G={m:'er',del:[]};erase(e);return}
  if(t==='text'){const id=hitId(e),ex=id&&S.objs.get(id);if(ex&&ex.t==='text')edit(ex);else{const o={id:rid(),t:'text',x:p.x,y:p.y,w:10,h:30,r:0,txt:'',s:S.d.s,c:S.d.c,op:S.d.op,b:!!S.d.b,i:!!S.d.i,ul:!!S.d.ul,st:!!S.d.st,al:S.d.al||'left',ls:S.d.ls||'',ff:S.d.ff||'s',ww:defWW(p),fo:S.d.fo,fc:S.d.fc,bw:S.d.bw,rd:S.d.rd,z:Date.now()};put(o);edit(o,1)}G=null;return}
- const o={id:rid(),t,x:p.x,y:p.y,w:0,h:0,r:0,c:S.d.c,sw:S.d.sw,fo:S.d.fo,fc:S.d.fc,rd:S.d.rd,op:S.d.op,z:Date.now()};if(t==='line'||t==='arrow')o.pts=[[0,0],[0,0]];G={m:'shape',o,p0:p};busy.add(o.id);put(o)});
+ const o={id:rid(),t,x:p.x,y:p.y,w:0,h:0,r:0,c:S.d.c,sw:S.d.sw,fo:S.d.fo,fc:S.d.fc,rd:S.d.rd,op:S.d.op,z:Date.now()};if(t==='line'||t==='arrow')o.pts=[[0,0],[0,0]];if(S.sel.size){S.sel.clear();props()}G={m:'shape',o,p0:p};busy.add(o.id);put(o)});
 $('cv').addEventListener('pointermove',e=>{if(e.pointerType==='touch'&&TP.has(e.pointerId)){TP.set(e.pointerId,{x:e.clientX,y:e.clientY});if(G2){moveG2();return}}const p=W(e);cursor(p);if(!G)return;const g=G;
  if(g.m==='pan'){S.v.x=g.vx+e.clientX-g.sx;S.v.y=g.vy+e.clientY-g.sy;applyV()}
  else if(g.m==='mv'){let dx=p.x-g.p.x,dy=p.y-g.p.y;g.os.forEach(b=>{const o=S.objs.get(b.id);o.x=b.x+dx;o.y=b.y+dy;put(o)})}
@@ -45,7 +45,7 @@ function erase(e){const id=hitId(e);if(id&&!G.del.includes(id)){G.del.push(id);c
 const end=e=>{if(!G)return;const g=G;G=null;busy.clear();$('mq').setAttribute('display','none');$('cv').style.cursor=S.tool==='hand'?'grab':S.tool==='select'?'default':'crosshair';
  if(g.m==='mv')commit(g.os.map(b=>[b.id,b,cl(S.objs.get(b.id))]));
  if(g.m==='rs'||g.m==='rot'){const o=g.o;let ex=[];if(o.t==='text'&&o.ww>0)ex=paginate(o).map(n=>[n.id,null,cl(n)]);commit([[g.b.id,g.b,cl(g.o)]].concat(ex))}
- if(g.m==='draw'||g.m==='shape'){const o=g.o;if(g.m==='shape'&&!o.pts&&o.w<4&&o.h<4){o.w=o.h=90;}if(o.pts&&o.pts.length&&g.m==='shape'&&o.w<3&&o.h<3){rm(o.id);return}put(o);commit([[o.id,null,cl(o)]]);if(g.m==='shape'){setTool('select');S.sel=new Set([o.id]);props();ovl()}}
+ if(g.m==='draw'||g.m==='shape'){const o=g.o;if(g.m==='shape'&&!o.pts&&o.w<4&&o.h<4){o.w=o.h=90;}if(o.pts&&o.pts.length&&g.m==='shape'&&o.w<3&&o.h<3){rm(o.id);return}put(o);commit([[o.id,null,cl(o)]]);if(g.m==='shape'){S.sel=new Set([o.id]);props();ovl()}}
  if(g.m==='er'&&g.del.length){const ch=g.del.map(i=>[i,cl(S.objs.get(i)),null]);g.del.forEach(rm);commit(ch)}
  if(g.m==='mq'&&g.q){const[x1,y1,x2,y2]=[Math.min(g.q[0],g.q[2]),Math.min(g.q[1],g.q[3]),Math.max(g.q[0],g.q[2]),Math.max(g.q[1],g.q[3])];S.objs.forEach(o=>{if(ok(o)&&(o.pg||PGS[0].id)===S.pg&&o.x<x2&&o.x+o.w>x1&&o.y<y2&&o.y+o.h>y1)S.sel.add(o.id)});props();ovl()}};
 const up=e=>{if(e.pointerType==='touch'){TP.delete(e.pointerId);if(G2&&TP.size<2){endG2();noDraw=true}if(!TP.size)noDraw=false}if(G2)return;end(e)};

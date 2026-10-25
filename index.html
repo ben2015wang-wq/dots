@@ -183,6 +183,7 @@ select{background:var(--card);border:1px solid var(--bd);border-radius:10px;padd
 .gm ol{margin:6px 0 0;padding-left:18px;font-size:11.5px;color:var(--mu);line-height:1.6}
 .gme{color:var(--dang);font-size:12px;min-height:16px}
 .lk{margin:2px 0 10px}.lkr{display:flex;gap:8px}.lkr input{flex:1;min-width:0;padding:8px 10px;border-radius:9px;border:1px solid var(--bd,#8884);background:var(--hv);color:inherit;font-size:12.5px}
+.wsn{padding:6px 10px 10px;font-size:12.5px;font-weight:600;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 </style></head><body>
 <aside id="side">
  <div class="logo" aria-label="DOTS"><svg viewBox="0 0 4 4" aria-hidden="true"><circle cx="0.5" cy="0.5" r=".36" fill="currentColor"/><circle cx="1.5" cy="0.5" r=".36" fill="currentColor"/><circle cx="2.5" cy="0.5" r=".36" fill="#4f6df0"/><circle cx="0.5" cy="1.5" r=".36" fill="#3aa392"/><circle cx="1.5" cy="1.5" r=".36" fill="currentColor"/><circle cx="2.5" cy="1.5" r=".36" fill="currentColor"/><circle cx="3.5" cy="1.5" r=".36" fill="#f5a83a"/><circle cx="0.5" cy="2.5" r=".36" fill="currentColor"/><circle cx="1.5" cy="2.5" r=".36" fill="currentColor"/><circle cx="2.5" cy="2.5" r=".36" fill="currentColor"/><circle cx="0.5" cy="3.5" r=".36" fill="currentColor"/><circle cx="1.5" cy="3.5" r=".36" fill="currentColor"/><circle cx="2.5" cy="3.5" r=".36" fill="#b79af2"/><circle cx="3.5" cy="3.5" r=".36" fill="currentColor"/></svg>DOTS</div>
@@ -232,7 +233,7 @@ async function wsend(p,q){WF.add(p);try{const r=ddb.doc(p);if(q.del)await r.dele
 function syncState(){const e=$('#syncst');if(!e)return;const n=WQ.size+WF.size;e.textContent=window.__STANDALONE?'儲存在此瀏覽器':!ddb?(UID?'本機模式（無法連線）':'本機模式（未登入）'):n?`同步中…（${n}）`:'已同步到雲端';e.style.opacity=ddb&&!n?.6:1}
 const itemFields=o=>{const f={};CORE.forEach(k=>{if(o[k]!==undefined)f[k]=o[k]});return f};
 function saveItem(o,extra){wq('dash/i_'+o.id,Object.assign(itemFields(o),extra||{}),{full:o});saveLocalState()}
-function saveFolder(f){wq('dash/f_'+f.id,{name:f.name,parent:f.parent||null,color:f.color,ord:f.ord},{full:f});saveLocalState()}
+function saveFolder(f){wq('dash/f_'+f.id,{name:f.name,parent:f.parent||null,color:f.color,ord:f.ord,owner:f.owner||null},{full:f});saveLocalState()}
 function delItem(id){st.items=st.items.filter(i=>i.id!==id);wq('dash/i_'+id,null,{del:true});wq('thumbs/'+id,null,{del:true});delete THUMBS[id];saveLocalState();purgeBoard(id)}
 async function purgeBoard(id){if(!ddb)return;for(const c of['objs','imgs','vers','vparts','cmt']){try{const s=await ddb.collection('b/'+id+'/'+c).get();for(const d of s.docs){try{await ddb.doc('b/'+id+'/'+c+'/'+d.id).delete()}catch(e){}}}catch(e){}}try{await ddb.doc('b/'+id+'/meta/layers').delete()}catch(e){}}
 async function cloneBoard(src,dst){if(!ddb)return;for(const c of['objs','imgs','cmt']){try{const s=await ddb.collection('b/'+src+'/'+c).get();for(const d of s.docs){try{await ddb.doc('b/'+dst+'/'+c+'/'+d.id).set(cln(d.data()))}catch(e){}}}catch(e){}}try{const l=await ddb.doc('b/'+src+'/meta/layers').get();if(l.exists)await ddb.doc('b/'+dst+'/meta/layers').set(cln(l.data()))}catch(e){}}
@@ -240,13 +241,21 @@ async function cloneBoard(src,dst){if(!ddb)return;for(const c of['objs','imgs','
 const SEEN=new Set();
 function applyDoc(id,d,removed){if(!removed)SEEN.add(id);
  if(id.startsWith('i_')){const k=id.slice(2);if(removed){st.items=st.items.filter(i=>i.id!==k);return}if(WQ.has(id)||WF.has(id)){const o=by(k);if(o)return}d.id=k;const o=by(k);if(o)Object.assign(o,d);else st.items.push(d)}
- else if(id.startsWith('f_')){const k=id.slice(2);if(removed){st.folders=st.folders.filter(f=>f.id!==k);return}if(WQ.has(id)||WF.has(id))return;d.id=k;const o=fby(k);if(o)Object.assign(o,d);else st.folders.push(d)}}
+ else if(id.startsWith('f_')){const k=id.slice(2);if(removed){st.folders=st.folders.filter(f=>f.id!==k);return}if(WQ.has(id)||WF.has(id))return;if(PERS()&&d.owner!==UID)return;d.id=k;const o=fby(k);if(o)Object.assign(o,d);else st.folders.push(d)}}
 let firstDash=true,dashTimer=0,legacy=null,haveMarkers={};
 function afterFirst(){firstDash=false;clearTimeout(dashTimer);
  st.items=st.items.filter(i=>SEEN.has('i_'+i.id)||WQ.has('dash/i_'+i.id)||WF.has('dash/i_'+i.id)||!!legacy);st.folders=st.folders.filter(f=>SEEN.has('f_'+f.id)||WQ.has('dash/f_'+f.id)||WF.has('dash/f_'+f.id)||!!legacy);
  if(legacy&&!haveMarkers.migrated&&legacy.st&&Array.isArray(legacy.st.items)){const L=legacy.st;L.folders.forEach((f,i)=>{if(!fby(f.id)){const n={id:f.id,name:f.name,parent:null,color:FCOL[7],ord:i+1};st.folders.push(n);saveFolder(n)}});L.items.forEach(it=>{if(!by(it.id)){const n={...it,owner:null};st.items.push(n);saveItem(n,it.data?{data:it.data}:{})}});wq('dash/migrated',{ts:Date.now()},{full:{ts:Date.now()}});toast('已把舊版作品庫轉成新的逐筆同步格式')}
+ else if(PERS()){seedMine()}
  else if(!st.items.length&&!st.folders.length&&!haveMarkers.seeded&&!haveMarkers.migrated){const s=seedData();st.folders=s.folders;st.items=s.items;st.folders.forEach(saveFolder);st.items.forEach(i=>saveItem(i));wq('dash/seeded',{ts:Date.now()},{full:{ts:Date.now()}})}
  render()}
+async function seedMine(){const key='dots-seeded-'+UID;let done=false;try{done=!!localStorage.getItem(key)}catch(e){}
+ if(!done&&UDB){try{const sn=await UDB.doc('data/users/'+UID+'/seeded').get();done=!!sn.exists}catch(e){}}
+ if(done||st.items.some(i=>i.owner===UID)||st.folders.some(f=>f.owner===UID)){render();return}
+ const pf='u'+UID.replace(/[^A-Za-z0-9]/g,'').slice(0,8)+'_',sd=seedData();
+ sd.folders.forEach(f=>{f.id=pf+f.id;f.owner=UID});sd.items.forEach(i=>{i.id=pf+i.id;if(i.folder)i.folder=pf+i.folder;i.owner=UID});
+ st.folders=st.folders.concat(sd.folders);st.items=st.items.concat(sd.items);sd.folders.forEach(saveFolder);sd.items.forEach(i=>saveItem(i));
+ try{localStorage.setItem(key,'1')}catch(e){}if(UDB){try{await UDB.doc('data/users/'+UID+'/seeded').set({ts:Date.now()})}catch(e){}}render()}
 function connect(x){ddb=x;if(!x)return;syncState();
  x.collection('dash').onSnapshot(s=>{s.docChanges().forEach(c=>{const id=c.doc.id;if(id==='index'){if(c.type!=='removed')legacy=cln(c.doc.data());return}if(id==='seeded'||id==='migrated'){haveMarkers[id]=c.type!=='removed';return}applyDoc(id,c.type==='removed'?null:cln(c.doc.data()),c.type==='removed')});
   if(firstDash){const empty=!s.docs||!s.docs.length;if(s.metadata&&s.metadata.fromCache&&empty){if(!dashTimer)dashTimer=setTimeout(()=>{if(firstDash)afterFirst()},2500);return}afterFirst()}else render();saveLocalState()},()=>{ddb=null;syncState()});
@@ -258,7 +267,8 @@ function tpump(){while(tfly<4&&TQ.length){const id=TQ.shift();tfly++;ddb.doc('th
 const IO=typeof IntersectionObserver!=='undefined'?new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){IO.unobserve(e.target);wantThumb(e.target.dataset.id)}}),{rootMargin:'300px'}):null;
 // ---------- access control (enforced by this page only — see share dialog text)
 function roleOf(it){const a=it.acl;if(!a||a.mode!=='list')return'edit';if(it.owner&&it.owner===UID)return'edit';if(!it.owner&&UID)return'edit';if(UOWN)return'edit';const m=(a.members||[]).find(m=>UID&&m.id===UID);return m?m.role:'none'}
-const visible=i=>roleOf(i)!=='none';
+const PERS=()=>!!window.__FB&&!!UID;
+const visible=i=>{if(roleOf(i)==='none')return false;if(!PERS())return true;return i.owner===UID||!!(i.acl&&(i.acl.members||[]).some(m=>m.id===UID))||!!REC[i.id]};
 const DASH={patch(id,p){const it=by(id);if(!it)return;Object.assign(it,p);const f={};Object.keys(p).forEach(k=>{f[k]=p[k]===undefined?null:p[k]});wq('dash/i_'+id,f,{full:it});saveLocalState()},thumb(id,u){THUMBS[id]=u;tseen.add(id);if(ddb)wq('thumbs/'+id,{d:u},{full:{d:u}})},exit(){return closeEd()},art(id){const it=by(id);return it?thumb(it).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '):''},share(id){shareDlg(id)},gdlg(){gDlg()}};
 function setTheme(t){R.dataset.wb=t;try{localStorage.setItem('wbtheme2',t)}catch(e){}$('#thm').innerHTML=ic(t==='dark'?'sun':'moon')}
 const V={nav:'all',q:'',type:'all',sort:'new',mode:'grid',sel:new Set()};
@@ -279,23 +289,23 @@ const path=id=>{const o=[];let f=fby(id),g=0;while(f&&g++<20){o.unshift(f.name);
 // ---------- listing + content search
 const snip=(it,q)=>{const t=it.ix||'',k=t.toLowerCase().indexOf(q);if(k<0)return'';const a=Math.max(0,k-14);return(a?'…':'')+t.slice(a,k+q.length+30)};
 function list(){let a=st.items.filter(visible);a=a.filter(i=>V.nav==='trash'?i.trash:!i.trash);
- if(V.nav==='star')a=a.filter(i=>i.star);else if(V.nav==='recent')a=a.filter(i=>REC[i.id]);else if(!['all','trash'].includes(V.nav))a=a.filter(i=>i.folder===V.nav);
+ if(V.nav==='star')a=a.filter(i=>i.star);else if(V.nav==='recent')a=a.filter(i=>REC[i.id]);else if(V.nav==='shared')a=a.filter(i=>i.owner!==UID);else if(!['all','trash'].includes(V.nav))a=a.filter(i=>i.folder===V.nav);
  if(V.type!=='all')a=a.filter(i=>i.type===V.type);
  if(V.q){const q=V.q.toLowerCase();a=a.filter(i=>i.name.toLowerCase().includes(q)||(i.ix||'').toLowerCase().includes(q)||T[i.type].includes(q))}
  const f=V.nav==='recent'?(x,y)=>(REC[y.id]||0)-(REC[x.id]||0):{new:(x,y)=>y.ts-x.ts,old:(x,y)=>x.ts-y.ts,name:(x,y)=>x.name.localeCompare(y.name,'zh-Hant'),type:(x,y)=>T[x.type].localeCompare(T[y.type],'zh-Hant')||y.ts-x.ts}[V.sort];return a.sort(f)}
 const card=i=>{const q=V.q.toLowerCase(),hit=q&&!i.name.toLowerCase().includes(q)?snip(i,q):'',lock=i.acl&&i.acl.mode==='list';
  return`<article class="card${V.sel.has(i.id)?' sel':''}" draggable="true" data-id="${i.id}"><div class="th">${THUMBS[i.id]?`<img src="${THUMBS[i.id]}" alt="">`:thumb(i)}<button class="st${i.star?' on':''}" data-a="star" title="加上星號" aria-label="加上星號">${ic('star')}</button><button class="mn" data-a="menu" title="更多操作" aria-label="更多操作">${ic('dots')}</button></div><div class="ft"><div class="nm" title="${esc(i.name)}">${esc(i.name)}</div><div class="mt"><span class="tg">${T[i.type]}</span>${lock?`<span title="已限制分享對象">${ic('lock')}</span>`:''}<span title="${full(i.ts)}">${V.nav==='recent'&&REC[i.id]?'開啟於 '+rel(REC[i.id]):rel(i.ts)}</span></div>${hit?`<div class="hit">內容：${esc(hit)}</div>`:''}</div></article>`};
 function nav(){const live=st.items.filter(i=>!i.trash&&visible(i)),c=f=>live.filter(f).length,row=(id,ico,l,n)=>`<div class="nv${V.nav===id?' on':''}" data-nav="${id}" tabindex="0">${ic(ico)}<span class="l">${l}</span><span class="n">${n}</span></div>`;
- $('#nv').innerHTML=row('all','all','所有作品',live.length)+row('recent','clock','最近開啟',c(i=>REC[i.id]))+row('star','star','已加星號',c(i=>i.star))+row('trash','trash','垃圾桶',st.items.filter(i=>i.trash&&visible(i)).length);
+ $('#nv').innerHTML=(PERS()?`<div class="wsn">${esc(((CLU&&CLU.name)||(window.__ACCT&&window.__ACCT.user&&window.__ACCT.user.name)||'我')+' 的工作頁面')}</div>`:'')+row('all','all','所有作品',live.length)+row('recent','clock','最近開啟',c(i=>REC[i.id]))+(PERS()?row('shared','share','與我共用',c(i=>i.owner!==UID)):'')+row('star','star','已加星號',c(i=>i.star))+row('trash','trash','垃圾桶',st.items.filter(i=>i.trash&&visible(i)).length);
  const rows=(p,d)=>kids(p).map(f=>{const k=kids(f.id),open=f.open!==false;return`<div class="nv${V.nav===f.id?' on':''}" data-nav="${f.id}" data-f="${f.id}" tabindex="0" style="padding-left:${10+d*14}px"><button class="tg2${k.length?'':' h'}${open?' o':''}" data-a="ftog" aria-label="展開或收合">${ic('chev')}</button><svg class="i" viewBox="0 0 24 24" style="color:${f.color||'var(--mu)'}"><path d="${P.folder}" fill="${f.color||'none'}" fill-opacity=".25"/></svg><span class="l">${esc(f.name)}</span><span class="n">${c(i=>i.folder===f.id)}</span><button class="x" data-a="fmenu" title="資料夾選項" aria-label="資料夾選項">${ic('dots')}</button></div>`+(open?rows(f.id,d+1):'')}).join('');
  $('#fl').innerHTML=rows(null,0)||'<div class="mu">還沒有資料夾，按上方 ＋ 新增</div>'}
 function render(){nav();const a=list();[...V.sel].forEach(id=>{if(!a.some(i=>i.id===id))V.sel.delete(id)});
- const cf=fby(V.nav);$('#ttl').textContent={all:'所有作品',recent:'最近開啟',star:'已加星號',trash:'垃圾桶'}[V.nav]||(cf?path(cf.id):'');$('#cnt').textContent=a.length+' 個項目'+(V.q?'（比對名稱與內容）':'');
+ const cf=fby(V.nav);$('#ttl').textContent={all:'所有作品',recent:'最近開啟',shared:'與我共用',star:'已加星號',trash:'垃圾桶'}[V.nav]||(cf?path(cf.id):'');$('#cnt').textContent=a.length+' 個項目'+(V.q?'（比對名稱與內容）':'');
  $('#chips').innerHTML=[['all','全部'],...Object.entries(T)].map(([k,l])=>`<button class="chip${V.type===k?' on':''}" data-t="${k}">${l}</button>`).join('');
  $('#grid').className='grid'+(V.mode==='list'?' list':'');
  const sub=cf?kids(cf.id).map(f=>`<button class="sf" data-go="${f.id}"><svg class="i" viewBox="0 0 24 24" style="color:${f.color||'var(--mu)'}"><path d="${P.folder}" fill="${f.color||'none'}" fill-opacity=".3"/></svg>${esc(f.name)}</button>`).join(''):'';
  $('#subs').innerHTML=sub;$('#subs').style.display=sub?'flex':'none';
- $('#grid').innerHTML=a.length?a.map(card).join(''):`<div class="empty"><b>${V.q||V.type!=='all'?'找不到符合的作品':V.nav==='trash'?'垃圾桶是空的':V.nav==='recent'?'還沒有開啟過的作品':'這裡還沒有作品'}</b>${V.q||V.type!=='all'?'試試其他關鍵字或清除篩選':'按右上角「新增作品」開始，或把作品拖進來'}</div>`;
+ $('#grid').innerHTML=a.length?a.map(card).join(''):`<div class="empty"><b>${V.q||V.type!=='all'?'找不到符合的作品':V.nav==='trash'?'垃圾桶是空的':V.nav==='recent'?'還沒有開啟過的作品':V.nav==='shared'?'還沒有別人分享給你的作品':'這裡還沒有作品'}</b>${V.q||V.type!=='all'?'試試其他關鍵字或清除篩選':'按右上角「新增作品」開始，或把作品拖進來'}</div>`;
  if(IO)$$('.card').forEach(c=>{if(!THUMBS[c.dataset.id])IO.observe(c)});bar();syncState()}
 function bar(){const n=V.sel.size,tr=V.nav==='trash',b=$('#sb');b.style.display=n?'flex':'none';b.innerHTML=`<span>已選取 ${n} 項</span>${tr?'<button data-b="res">還原</button><button class="d" data-b="del">永久刪除</button>':'<button data-b="star">加上星號</button><button class="d" data-b="trash">移到垃圾桶</button>'}<button data-b="clr">取消</button>`}
 function mv(L,fn,msg){L.forEach(id=>{const o=by(id);if(o){fn(o);saveItem(o)}});render();if(msg)toast(msg)}
@@ -303,7 +313,7 @@ const ids=id=>V.sel.has(id)?[...V.sel]:[id];
 function edit(el,val,cb){const i=document.createElement('input');i.value=val;i.className='ed';i.maxLength=60;el.replaceChildren(i);i.focus();i.select();let d=0;const done=ok=>{if(d)return;d=1;cb(ok?i.value.trim():'')};i.onblur=()=>done(1);i.onclick=e=>e.stopPropagation();i.onkeydown=e=>{e.stopPropagation();if(e.key==='Enter')done(1);if(e.key==='Escape')done(0)}}
 function rename(id){const c=$(`.card[data-id="${id}"]`);if(!c)return;c.draggable=false;c.scrollIntoView({block:'nearest'});edit(c.querySelector('.nm'),by(id).name,v=>{if(v){by(id).name=v;saveItem(by(id))}render()})}
 function renameFolder(id){const r=$(`[data-f="${id}"] .l`);if(!r)return;const f=fby(id);edit(r,f.name,v=>{if(v){f.name=v;saveFolder(f)}render()})}
-function newFolder(parent){const sib=kids(parent||null),f={id:uid(),name:'新資料夾',parent:parent||null,color:FCOL[7],ord:(sib.length?Math.max(...sib.map(x=>x.ord||0)):0)+1};st.folders.push(f);if(parent){const p=fby(parent);p.open=true}saveFolder(f);nav();renameFolder(f.id)}
+function newFolder(parent){const sib=kids(parent||null),f={id:uid(),name:'新資料夾',owner:UID||null,parent:parent||null,color:FCOL[7],ord:(sib.length?Math.max(...sib.map(x=>x.ord||0)):0)+1};st.folders.push(f);if(parent){const p=fby(parent);p.open=true}saveFolder(f);nav();renameFolder(f.id)}
 function create(type,tpl){const me=UID||null,it={id:uid(),name:tpl?tpl.name:'未命名'+T[type],type,folder:fby(V.nav)?V.nav:null,star:false,trash:false,ts:Date.now(),seed:Math.floor(Math.random()*997),owner:me};if(tpl)it.tpl=tpl.id;st.items.push(it);if(['trash','star','recent'].includes(V.nav))V.nav='all';V.type='all';V.q='';$('#q').value='';V.sel=new Set([it.id]);saveItem(it,tpl?{tpl:tpl.id}:{});render();if(tpl)openItem(it.id);else rename(it.id)}
 function menu(m,x,y){const e=$('#menu');e.innerHTML='';m.forEach(k=>{const d=document.createElement('div');if(k==='-'){d.className='ms'}else{d.className='mi'+(k[2]?' d':'');d.textContent=k[0];d.onclick=()=>{e.style.display='none';k[1]()}}e.appendChild(d)});e.style.display='block';e.style.left=Math.max(8,Math.min(x,innerWidth-e.offsetWidth-8))+'px';e.style.top=Math.max(8,Math.min(y,innerHeight-e.offsetHeight-8))+'px'}
 function folderPick(L,x,y){const m=[['頂層（不放在資料夾）',()=>mv(L,i=>i.folder=null,'已移出資料夾')]];const w=(p,d)=>kids(p).forEach(f=>{m.push([' '.repeat(d)+f.name,()=>mv(L,i=>{i.folder=f.id;i.trash=false},'已移至「'+f.name+'」')]);w(f.id,d+1)});w(null,0);menu(m,x,y)}
@@ -783,7 +793,7 @@ $('cv').addEventListener('pointerdown',e=>{if(PRES)return;if(e.target.closest&&e
  if(t==='pen'||t==='hl'){const o={id:rid(),t:'pen',x:p.x,y:p.y,w:0,h:0,r:0,pts:[[0,0]],c:S.d.c,sw:t==='hl'?S.d.sw*4+6:S.d.sw,hl:t==='hl',op:S.d.op,z:Date.now()};G={m:'draw',o,ap:[[p.x,p.y]]};busy.add(o.id);put(o);return}
  if(t==='eraser'){G={m:'er',del:[]};erase(e);return}
  if(t==='text'){const id=hitId(e),ex=id&&S.objs.get(id);if(ex&&ex.t==='text')edit(ex);else{const o={id:rid(),t:'text',x:p.x,y:p.y,w:10,h:30,r:0,txt:'',s:S.d.s,c:S.d.c,op:S.d.op,b:!!S.d.b,i:!!S.d.i,ul:!!S.d.ul,st:!!S.d.st,al:S.d.al||'left',ls:S.d.ls||'',ff:S.d.ff||'s',ww:defWW(p),fo:S.d.fo,fc:S.d.fc,bw:S.d.bw,rd:S.d.rd,z:Date.now()};put(o);edit(o,1)}G=null;return}
- const o={id:rid(),t,x:p.x,y:p.y,w:0,h:0,r:0,c:S.d.c,sw:S.d.sw,fo:S.d.fo,fc:S.d.fc,rd:S.d.rd,op:S.d.op,z:Date.now()};if(t==='line'||t==='arrow')o.pts=[[0,0],[0,0]];G={m:'shape',o,p0:p};busy.add(o.id);put(o)});
+ const o={id:rid(),t,x:p.x,y:p.y,w:0,h:0,r:0,c:S.d.c,sw:S.d.sw,fo:S.d.fo,fc:S.d.fc,rd:S.d.rd,op:S.d.op,z:Date.now()};if(t==='line'||t==='arrow')o.pts=[[0,0],[0,0]];if(S.sel.size){S.sel.clear();props()}G={m:'shape',o,p0:p};busy.add(o.id);put(o)});
 $('cv').addEventListener('pointermove',e=>{if(e.pointerType==='touch'&&TP.has(e.pointerId)){TP.set(e.pointerId,{x:e.clientX,y:e.clientY});if(G2){moveG2();return}}const p=W(e);cursor(p);if(!G)return;const g=G;
  if(g.m==='pan'){S.v.x=g.vx+e.clientX-g.sx;S.v.y=g.vy+e.clientY-g.sy;applyV()}
  else if(g.m==='mv'){let dx=p.x-g.p.x,dy=p.y-g.p.y;g.os.forEach(b=>{const o=S.objs.get(b.id);o.x=b.x+dx;o.y=b.y+dy;put(o)})}
@@ -800,7 +810,7 @@ function erase(e){const id=hitId(e);if(id&&!G.del.includes(id)){G.del.push(id);c
 const end=e=>{if(!G)return;const g=G;G=null;busy.clear();$('mq').setAttribute('display','none');$('cv').style.cursor=S.tool==='hand'?'grab':S.tool==='select'?'default':'crosshair';
  if(g.m==='mv')commit(g.os.map(b=>[b.id,b,cl(S.objs.get(b.id))]));
  if(g.m==='rs'||g.m==='rot'){const o=g.o;let ex=[];if(o.t==='text'&&o.ww>0)ex=paginate(o).map(n=>[n.id,null,cl(n)]);commit([[g.b.id,g.b,cl(g.o)]].concat(ex))}
- if(g.m==='draw'||g.m==='shape'){const o=g.o;if(g.m==='shape'&&!o.pts&&o.w<4&&o.h<4){o.w=o.h=90;}if(o.pts&&o.pts.length&&g.m==='shape'&&o.w<3&&o.h<3){rm(o.id);return}put(o);commit([[o.id,null,cl(o)]]);if(g.m==='shape'){setTool('select');S.sel=new Set([o.id]);props();ovl()}}
+ if(g.m==='draw'||g.m==='shape'){const o=g.o;if(g.m==='shape'&&!o.pts&&o.w<4&&o.h<4){o.w=o.h=90;}if(o.pts&&o.pts.length&&g.m==='shape'&&o.w<3&&o.h<3){rm(o.id);return}put(o);commit([[o.id,null,cl(o)]]);if(g.m==='shape'){S.sel=new Set([o.id]);props();ovl()}}
  if(g.m==='er'&&g.del.length){const ch=g.del.map(i=>[i,cl(S.objs.get(i)),null]);g.del.forEach(rm);commit(ch)}
  if(g.m==='mq'&&g.q){const[x1,y1,x2,y2]=[Math.min(g.q[0],g.q[2]),Math.min(g.q[1],g.q[3]),Math.max(g.q[0],g.q[2]),Math.max(g.q[1],g.q[3])];S.objs.forEach(o=>{if(ok(o)&&(o.pg||PGS[0].id)===S.pg&&o.x<x2&&o.x+o.w>x1&&o.y<y2&&o.y+o.h>y1)S.sel.add(o.id)});props();ovl()}};
 const up=e=>{if(e.pointerType==='touch'){TP.delete(e.pointerId);if(G2&&TP.size<2){endG2();noDraw=true}if(!TP.size)noDraw=false}if(G2)return;end(e)};
@@ -962,7 +972,7 @@ wAdd('keydown',e=>{
  if(m&&k==='e'){e.preventDefault();toggleExm();return}if(m&&k==='0'){e.preventDefault();zoomAt(innerWidth/2,innerHeight/2,1);return}
  if(m&&k.length===1&&'biu'.includes(k)&&S.sel.size){e.preventDefault();const p={b:'b',i:'i',u:'ul'}[k],ids=[...S.sel].map(i=>S.objs.get(i)).filter(o=>o&&o.t==='text');if(ids.length){const v=!fmtOn(ids[0],p);chg(o=>{if(o.t==='text')setFmt(o,p,v);return{}});props()}return}
  if(m)return;
- if(k==='delete'||k==='backspace'){act('del');return}if(k==='escape'){S.sel.clear();['help','exm','vp','aip','pp'].forEach(i=>$(i).style.display='none');if($('lp').style.display==='flex')toggleLP();closeCmt();props();ovl();return}
+ if(k==='delete'||k==='backspace'){act('del');return}if(k==='escape'){if(S.tool!=='select'){setTool('select');return}S.sel.clear();['help','exm','vp','aip','pp'].forEach(i=>$(i).style.display='none');if($('lp').style.display==='flex')toggleLP();closeCmt();props();ovl();return}
  if(k==='?'||k==='/'&&e.shiftKey){$('help').style.display='grid';return}
  if(e.key==='!'||(e.shiftKey&&e.code==='Digit1')){fit();return}
  if(k==='['){act('back');return}if(k===']'){act('front');return}
@@ -1096,7 +1106,7 @@ async function close(){if(!ACT.on)return;endPres();finishEdit();closeCmt();clear
  await Promise.race([flushNow(),new Promise(r=>setTimeout(r,5000))]);
  if(wasDirty&&db)await Promise.race([saveVersion('',true),new Promise(r=>setTimeout(r,6000))]);
  unsubs.forEach(f=>{try{f()}catch(e){}});unsubs=[];ACT.on=false;const D=$('dots');D.classList.remove('on','ro');['aip','pp','lp','vp','exm','cpop'].forEach(i=>$(i).style.display='none');peersEl.forEach(e=>e.remove());peersEl.clear();if(room)room.presence({b:null,x:null}).catch(()=>{})}
-const canExit=()=>ACT.on&&!PRES&&!S.sel.size&&ta.hidden&&$('help').style.display!=='grid'&&['cpop','vp','lp','exm','aip','pp'].every(i=>$(i).style.display!=='flex');
+const canExit=()=>ACT.on&&!PRES&&S.tool==='select'&&!S.sel.size&&ta.hidden&&$('help').style.display!=='grid'&&['cpop','vp','lp','exm','aip','pp'].every(i=>$(i).style.display!=='flex');
 // ---------- boot
 R.dataset.wb=R.dataset.wb||'dark';
 theme();setTool('select');applyV();ub();syncLayers();layerUI();pgUI();
