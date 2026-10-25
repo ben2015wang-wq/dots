@@ -1,6 +1,12 @@
 // ---------- data + sync (per-document write queue with retry) + local backup + versions
 const pend=new Map(),infl=new Set(),fails=new Map();let ft=0,lastErr=null;
-function put(o){if(RO)return;if(!o.l)o.l=S.al;if(!o.pg)o.pg=S.pg;if(!o.by&&uid)o.by=uid;if(!o.bn)o.bn=me;S.objs.set(o.id,o);paint(o);ovl();dirty=true;if(db)o.u=cid;pend.set(o.id,o);queue()}
+const CONNT=['text','rect','ellipse','img'];
+function connect(c){const A=S.objs.get(c.ca),B=S.objs.get(c.cb);if(!A||!B)return false;
+ const ac={x:A.x+A.w/2,y:A.y+A.h/2},bc={x:B.x+B.w/2,y:B.y+B.h/2},dx=bc.x-ac.x,dy=bc.y-ac.y,hz=(Math.abs(dx)-(A.w+B.w)/2)>=(Math.abs(dy)-(A.h+B.h)/2);
+ let a,b;if(hz){a=[dx>=0?A.x+A.w:A.x,ac.y];b=[dx>=0?B.x:B.x+B.w,bc.y]}else{a=[ac.x,dy>=0?A.y+A.h:A.y];b=[bc.x,dy>=0?B.y:B.y+B.h]}
+ c.cd=hz?'h':'v';c.cv=1;c.x=Math.min(a[0],b[0]);c.y=Math.min(a[1],b[1]);c.w=Math.abs(a[0]-b[0]);c.h=Math.abs(a[1]-b[1]);c.r=0;c.pts=[[a[0]-c.x,a[1]-c.y],[b[0]-c.x,b[1]-c.y]];return true}
+function syncConns(o){let any=false;S.objs.forEach(c=>{if(c.ca&&(c.ca===o.id||c.cb===o.id)&&connect(c)){any=true;paint(c);dirty=true;if(db)c.u=cid;pend.set(c.id,c)}});if(any)queue()}
+function put(o){if(RO)return;if(CONNT.includes(o.t))syncConns(o);if(!o.l)o.l=S.al;if(!o.pg)o.pg=S.pg;if(!o.by&&uid)o.by=uid;if(!o.bn)o.bn=me;S.objs.set(o.id,o);paint(o);ovl();dirty=true;if(db)o.u=cid;pend.set(o.id,o);queue()}
 function rm(id){if(RO)return;S.objs.delete(id);unpaint(id);S.sel.delete(id);dirty=true;pend.set(id,null);queue();ovl()}
 function queue(){if(db&&!ft)ft=setTimeout(flush,100);saveLocal();syncUI()}
 function flush(){ft=0;if(!db)return;for(const[id,o]of[...pend]){if(infl.has(id))continue;pend.delete(id);send(id,o)}if(pend.size&&!ft)ft=setTimeout(flush,200)}

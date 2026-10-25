@@ -1,6 +1,7 @@
 // ---------- pointer (mouse, pen and touch gestures)
 let G=null,G2=null,noDraw=false;const ta=$('ta'),TP=new Map();
 const hitBox=p=>{const a=[...S.objs.values()].filter(o=>(o.t==='text'||o.t==='img')&&ok(o)&&(o.pg||PGS[0].id)===S.pg).sort((a,b)=>(b.z||0)-(a.z||0));for(const o of a){const r=-(o.r||0)*Math.PI/180,dx=p.x-(o.x+o.w/2),dy=p.y-(o.y+o.h/2),lx=dx*Math.cos(r)-dy*Math.sin(r)+o.w/2,ly=dx*Math.sin(r)+dy*Math.cos(r)+o.h/2;if(lx>=-6&&lx<=o.w+6&&ly>=-6&&ly<=o.h+6)return o.id}return null};
+function objAt(p,ex){let best=null;S.objs.forEach(o=>{if(o.id===ex||!CONNT.includes(o.t)||(o.pg||PGS[0].id)!==S.pg||!ok(o))return;if(p.x>=o.x&&p.x<=o.x+o.w&&p.y>=o.y&&p.y<=o.y+o.h&&(!best||(o.z||0)>=(best.z||0)))best=o});return best&&best.id}
 const hitId=e=>{for(const t of document.elementsFromPoint(e.clientX,e.clientY)){const g=t.closest&&t.closest('g[data-id]');if(g){const o=S.objs.get(g.dataset.id);if(o&&ok(o))return o.id}}return hitBox(W(e))};
 function defWW(p){if(ITEM&&ITEM.type==='doc'){const fr=S.objs.get('fr-'+S.pg);if(fr)return Math.max(120,Math.min(674,Math.round(fr.x+fr.w-60-p.x)))}return S.d.ww||0}
 function abortG(){const g=G;G=null;if(!g)return;busy.clear();$('mq').setAttribute('display','none');
@@ -49,8 +50,8 @@ $('cv').addEventListener('pointerdown',e=>{if(PRES)return;if(e.target.closest&&e
  if(!ok({l:S.al})){toast('目前圖層已鎖定或隱藏');return}
  if(t==='pen'||t==='hl'){const o={id:rid(),t:'pen',x:p.x,y:p.y,w:0,h:0,r:0,pts:[[0,0]],c:S.d.c,sw:t==='hl'?S.d.sw*4+6:S.d.sw,hl:t==='hl',op:S.d.op,z:Date.now()};G={m:'draw',o,ap:[[p.x,p.y]]};busy.add(o.id);put(o);return}
  if(t==='eraser'){G={m:'er',del:[]};erase(e);return}
- if(t==='text'){const id=hitId(e),ex=id&&S.objs.get(id);if(ex&&ex.t==='text')edit(ex);else{const o={id:rid(),t:'text',x:p.x,y:p.y,w:10,h:30,r:0,txt:'',s:S.d.s,c:S.d.c,op:S.d.op,b:!!S.d.b,i:!!S.d.i,ul:!!S.d.ul,st:!!S.d.st,al:S.d.al||'left',ls:S.d.ls||'',ff:S.d.ff||'s',ww:defWW(p),fo:S.d.fo,fc:S.d.fc,bw:S.d.bw,rd:S.d.rd,z:Date.now()};put(o);edit(o,1)}G=null;return}
- const o={id:rid(),t,x:p.x,y:p.y,w:0,h:0,r:0,c:S.d.c,sw:S.d.sw,fo:S.d.fo,fc:S.d.fc,rd:S.d.rd,op:S.d.op,z:Date.now()};if(t==='line'||t==='arrow')o.pts=[[0,0],[0,0]];if(S.sel.size){S.sel.clear();props()}G={m:'shape',o,p0:p};busy.add(o.id);put(o)});
+ if(t==='text'||t==='note'){const id=hitId(e),ex=id&&S.objs.get(id);if(ex&&ex.t==='text')edit(ex);else{const nt=t==='note',o={id:rid(),t:'text',x:p.x,y:p.y,w:10,h:30,r:0,txt:'',s:S.d.s,c:S.d.c,op:S.d.op,b:!!S.d.b,i:!!S.d.i,ul:!!S.d.ul,st:!!S.d.st,al:S.d.al||'left',ls:S.d.ls||'',ff:S.d.ff||'s',ww:defWW(p),fo:S.d.fo,fc:S.d.fc,bw:S.d.bw,rd:S.d.rd,z:Date.now()};if(nt){Object.assign(o,{c:'ink',fc:null,fo:.14,bw:0,rd:14,ww:200,s:20,al:'left',ls:''})}put(o);edit(o,1)}G=null;return}
+ const o={id:rid(),t,x:p.x,y:p.y,w:0,h:0,r:0,c:S.d.c,sw:S.d.sw,fo:S.d.fo,fc:S.d.fc,rd:S.d.rd,op:S.d.op,z:Date.now()};if(t==='line'||t==='arrow')o.pts=[[0,0],[0,0]];if(S.sel.size){S.sel.clear();props()}G={m:'shape',o,p0:p,sa:(t==='arrow'||t==='line')?objAt(p,o.id):null};busy.add(o.id);put(o)});
 $('cv').addEventListener('pointermove',e=>{if(e.pointerType==='touch'&&TP.has(e.pointerId)){TP.set(e.pointerId,{x:e.clientX,y:e.clientY});if(G2){moveG2();return}}const p=W(e);cursor(p);if(!G)return;const g=G;
  if(g.m==='pan'){S.v.x=g.vx+e.clientX-g.sx;S.v.y=g.vy+e.clientY-g.sy;applyV()}
  else if(g.m==='mv'){let dx=p.x-g.p.x,dy=p.y-g.p.y;if(SNAP!==e.altKey){const r=snapMove(g,dx,dy);dx=r[0];dy=r[1];guides(r[2])}else guidesOff();g.os.forEach(b=>{const o=S.objs.get(b.id);o.x=b.x+dx;o.y=b.y+dy;put(o)})}
@@ -73,6 +74,7 @@ function erase(e){const id=hitId(e);if(id&&!G.del.includes(id)){G.del.push(id);c
 const end=e=>{if(!G)return;const g=G;G=null;busy.clear();$('mq').setAttribute('display','none');guidesOff();if(rotb)rotb.style.display='none';$('cv').style.cursor=S.tool==='hand'?'grab':S.tool==='select'?'default':'crosshair';
  if(g.m==='mv')commit(g.os.map(b=>[b.id,b,cl(S.objs.get(b.id))]));
  if(g.m==='rs'||g.m==='rot'||g.m==='sd'){const o=g.o;let ex=[];if(o.t==='text'&&o.ww>0)ex=paginate(o).map(n=>[n.id,null,cl(n)]);commit([[g.b.id,g.b,cl(g.o)]].concat(ex))}
+ if(g.m==='shape'&&g.sa&&(g.o.t==='arrow'||g.o.t==='line')){const o=g.o,tb=objAt(W(e),o.id);if(tb&&tb!==g.sa){Object.assign(o,{ca:g.sa,cb:tb,c:'ink',op:.55,sw:2});if(!connect(o)){delete o.ca;delete o.cb}}}
  if(g.m==='draw'||g.m==='shape'){const o=g.o;if(g.m==='shape'&&!o.pts&&o.w<4&&o.h<4){o.w=o.h=90;}if(o.pts&&o.pts.length&&g.m==='shape'&&o.w<3&&o.h<3){rm(o.id);return}put(o);commit([[o.id,null,cl(o)]]);if(g.m==='shape'){S.sel=new Set([o.id]);props();ovl()}}
  if(g.m==='er'&&g.del.length){const ch=g.del.map(i=>[i,cl(S.objs.get(i)),null]);g.del.forEach(rm);commit(ch)}
  if(g.m==='mq'&&g.q){const[x1,y1,x2,y2]=[Math.min(g.q[0],g.q[2]),Math.min(g.q[1],g.q[3]),Math.max(g.q[0],g.q[2]),Math.max(g.q[1],g.q[3])];S.objs.forEach(o=>{if(ok(o)&&(o.pg||PGS[0].id)===S.pg&&o.x<x2&&o.x+o.w>x1&&o.y<y2&&o.y+o.h>y1)S.sel.add(o.id)});props();ovl()}};

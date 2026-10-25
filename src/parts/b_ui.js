@@ -40,7 +40,7 @@ function domToRuns(root){const out=[],rc=getComputedStyle(root).color;
  return out}
 // ---------- properties panel
 function props(){
- const sel=[...S.sel].map(i=>S.objs.get(i)).filter(Boolean),f=sel[0],ty=new Set(sel.length?sel.map(o=>o.t):[S.tool==='hl'?'pen':S.tool]);
+ const sel=[...S.sel].map(i=>S.objs.get(i)).filter(Boolean),f=sel[0],ty=new Set(sel.length?sel.map(o=>o.t):[S.tool==='hl'?'pen':S.tool==='note'?'text':S.tool]);
  const has=(...a)=>a.some(x=>ty.has(x)),show=!RO&&(sel.length||!['select','hand','eraser','image','cmt'].includes(S.tool));
  $('props').style.display=show?(innerWidth>640?'grid':'flex'):'none';if(!show)return;if(window.__placeProps)window.__placeProps();
  const gv=(k,d)=>f?(f[k]??d):(S.d[k]??d),cc=gv('c','ink'),sw=c=>`<button data-c="${c}" class="${c===cc?'on':''}" style="background:${col(c)}"></button>`;
