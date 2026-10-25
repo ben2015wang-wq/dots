@@ -42,28 +42,28 @@ function domToRuns(root){const out=[],rc=getComputedStyle(root).color;
 function props(){
  const sel=[...S.sel].map(i=>S.objs.get(i)).filter(Boolean),f=sel[0],ty=new Set(sel.length?sel.map(o=>o.t):[S.tool==='hl'?'pen':S.tool]);
  const has=(...a)=>a.some(x=>ty.has(x)),show=!RO&&(sel.length||!['select','hand','eraser','image','cmt'].includes(S.tool));
- $('props').style.display=show?'flex':'none';if(!show)return;
+ $('props').style.display=show?(innerWidth>640?'grid':'flex'):'none';if(!show)return;if(window.__placeProps)window.__placeProps();
  const gv=(k,d)=>f?(f[k]??d):(S.d[k]??d),cc=gv('c','ink'),sw=c=>`<button data-c="${c}" class="${c===cc?'on':''}" style="background:${col(c)}"></button>`;
  const LIM={s:[1,999],ww:[0,5000],w:[5,5000],sw:[0,100],bw:[0,100],rd:[0,500]},nvi=(p,v,mn,mx,sc,stp,u,ph='')=>`<span class="nvw"><input type="number" class="nv" data-pn="${p}" data-mn="${mn}" data-mx="${mx}" data-sc="${sc}" step="${stp}" value="${v}" placeholder="${ph}">${u}</span>`;
- const sl=(p,lab,mn,mx,v,sc=1,u='',stp=1)=>{const L=LIM[p]||[mn,mx];return `<label>${lab}${nvi(p,p==='ww'&&!v?'':Math.round(v),L[0],L[1],sc,stp,u,p==='ww'?'自動':'')}</label><input type="range" data-p="${p}" data-sc="${sc}" data-u="${u}" min="${mn}" max="${mx}" step="${stp}" value="${Math.min(mx,Math.max(mn,v))}">`};
+ const sl=(p,lab,mn,mx,v,sc=1,u='',stp=1)=>{const L=LIM[p]||[mn,mx];return `<div class="pq"><label>${lab}${nvi(p,p==='ww'&&!v?'':Math.round(v),L[0],L[1],sc,stp,u,p==='ww'?'自動':'')}</label><input type="range" data-p="${p}" data-sc="${sc}" data-u="${u}" min="${mn}" max="${mx}" step="${stp}" value="${Math.min(mx,Math.max(mn,v))}"></div>`};
  const onlyImg=ty.size===1&&has('img'),tx=has('text')&&!has('rect','ellipse'),fo=f?(f.fo??(f.fill?.18:0)):S.d.fo;
- let h=`<label>${onlyImg?'邊框顏色':'顏色'}</label><div class="sw">${[...PAL,...S.recent].map(sw).join('')}<div class="cp" title="自訂調色"><input type="color" data-col="c" value="${hex(cc)}"></div></div>`;
- if(has('rect','ellipse','text'))h+=`<div class="row" style="align-items:center;gap:8px"><span style="font-size:11px;color:var(--mut)">${tx?'背景色':'填色'}</span><div class="cp" title="${tx?'背景色':'填色'}"><input type="color" data-col="fc" value="${hex(gv('fc',null)||cc)}"></div><button class="b" style="width:auto;padding:0 8px;font-size:11px;height:24px" data-a="fcauto">同線色</button></div>`;
+ let h=`<div class="pgrip" title="拖曳移動面板（雙擊還原位置）"></div><div class="pq full"><label>${onlyImg?'邊框顏色':'顏色'}</label><div class="sw">${[...PAL,...S.recent].map(sw).join('')}<div class="cp" title="自訂調色"><input type="color" data-col="c" value="${hex(cc)}"></div></div></div>`;
+ if(has('rect','ellipse','text'))h+=`<div class="row pq full" style="align-items:center;gap:8px"><span style="font-size:11px;color:var(--mut)">${tx?'背景色':'填色'}</span><div class="cp" title="${tx?'背景色':'填色'}"><input type="color" data-col="fc" value="${hex(gv('fc',null)||cc)}"></div><button class="b" style="width:auto;padding:0 8px;font-size:11px;height:24px" data-a="fcauto">同線色</button></div>`;
  if(sel.length===1&&['img','rect','ellipse'].includes(f.t))h+=sl('w','尺寸（寬）',20,1600,f.w);
- if(sel.length===1)h+=`<label>角度${nvi('r',Math.round(((f.r||0)%360+360)%360),0,360,1,1,'°')}</label>`;
+ if(sel.length===1)h+=`<div class="pq"><label>角度${nvi('r',Math.round(((f.r||0)%360+360)%360),0,360,1,1,'°')}</label></div>`;
  if(has('text')){h+=sl('s','字級',12,160,gv('s',28));h+=sl('ww','換行寬度',0,1200,gv('ww',0)||0,1,'',10);
   const on=k=>(f?fmtOn(f,k):gv(k,false))?' on':'',al=gv('al','left'),ls=gv('ls',''),B=(k,t,tt,sty='')=>`<button class="b sm${on(k)}" data-f="${k}" title="${tt}" style="font-weight:700;${sty}">${t}</button>`,V=(k,v,ico,tt,cur)=>`<button class="b sm${cur===v?' on':''}" data-f="${k}" data-v="${v}" title="${tt}">${ico}</button>`;
-  h+=`<div class="row" style="gap:3px">${B('b','B','粗體 (Ctrl+B)')}${B('i','I','斜體 (Ctrl+I)','font-style:italic')}${B('ul','U','底線 (Ctrl+U)','text-decoration:underline')}${B('st','S','刪除線','text-decoration:line-through')}<button class="b sm${f&&fmtOn(f,'lk')?' on':''}" data-f="lk" title="文字連結 (Ctrl+K)">連結</button></div><div class="row" style="gap:3px">${V('al','left',ic('al1'),'靠左',al)}${V('al','center',ic('al2'),'置中',al)}${V('al','right',ic('al3'),'靠右',al)}${V('ls','bullet',ic('lb'),'項目符號',ls)}${V('ls','number',ic('ln'),'編號清單',ls)}</div><select data-ff="1">${[['s','預設字體'],['f','襯線體'],['m','等寬體']].map(([v,n])=>`<option value="${v}" ${gv('ff','s')===v?'selected':''}>${n}</option>`).join('')}</select><div style="font-size:10px;color:var(--mut)">編輯文字時，選取部分文字再按 B／I／U／S 或顏色，只會套用到選取的字。</div>`}
+  h+=`<div class="row pq" style="gap:3px">${B('b','B','粗體 (Ctrl+B)')}${B('i','I','斜體 (Ctrl+I)','font-style:italic')}${B('ul','U','底線 (Ctrl+U)','text-decoration:underline')}${B('st','S','刪除線','text-decoration:line-through')}<button class="b sm${f&&fmtOn(f,'lk')?' on':''}" data-f="lk" title="文字連結 (Ctrl+K)">連結</button></div><div class="row pq" style="gap:3px">${V('al','left',ic('al1'),'靠左',al)}${V('al','center',ic('al2'),'置中',al)}${V('al','right',ic('al3'),'靠右',al)}${V('ls','bullet',ic('lb'),'項目符號',ls)}${V('ls','number',ic('ln'),'編號清單',ls)}</div><div class="pq"><select data-ff="1">${[['s','預設字體'],['f','襯線體'],['m','等寬體']].map(([v,n])=>`<option value="${v}" ${gv('ff','s')===v?'selected':''}>${n}</option>`).join('')}</select></div><div class="pq full" style="font-size:10px;color:var(--mut)">編輯文字時，選取部分文字再按 B／I／U／S 或顏色，只會套用到選取的字。</div>`}
  if(has('pen','line','arrow'))h+=sl('sw','線寬',1,24,gv('sw',3));
  if(has('rect','ellipse'))h+=sl('sw','邊框粗細',0,24,gv('sw',2));
  if(has('text','img'))h+=sl('bw','邊框粗細',0,16,gv('bw',0));
  if(has('rect','text','img'))h+=sl('rd','圓角',0,100,gv('rd',f&&f.t==='img'?0:10));
  if(has('rect','ellipse','text'))h+=sl('fo',tx?'背景透明度':'填色透明度',0,100,fo*100,100,'%');
  h+=sl('op','透明度',10,100,gv('op',1)*100,100,'%');
- if(sel.length)h+=`<label>圖層</label><select id="lsel">${[...S.layers].reverse().map(l=>`<option value="${l.id}" ${(f.l||S.layers[0].id)===l.id?'selected':''}>${esc(l.name)}</option>`).join('')}</select>`;
- if(sel.length===1&&(f.bn||f.by))h+=`<div id="byl" style="font-size:11px;color:var(--mut)">${f.bn?'建立者：'+esc(f.bn):''}</div>`;
- if(AI.on&&sel.some(o=>o.t==='text'||o.t==='img'))h+='<button class="btn pri" data-a="ai">✦ AI 分析</button>';
- if(sel.length)h+=`<div class="row"><button class="b" data-a="dup" title="複製 (Ctrl+D)">${ic('dup')}</button><button class="b" data-a="front" title="移到最前 (])">${ic('front')}</button><button class="b" data-a="back" title="移到最後 ([)">${ic('back')}</button><button class="b" data-a="del" title="刪除 (Del)">${ic('del')}</button></div>`;
+ if(sel.length)h+=`<div class="pq"><label>圖層</label><select id="lsel">${[...S.layers].reverse().map(l=>`<option value="${l.id}" ${(f.l||S.layers[0].id)===l.id?'selected':''}>${esc(l.name)}</option>`).join('')}</select></div>`;
+ if(sel.length===1&&(f.bn||f.by))h+=`<div id="byl" class="pq" style="font-size:11px;color:var(--mut)">${f.bn?'建立者：'+esc(f.bn):''}</div>`;
+ if(AI.on&&sel.some(o=>o.t==='text'||o.t==='img'))h+='<button class="btn pri full" data-a="ai">✦ AI 分析</button>';
+ if(sel.length)h+=`<div class="row full"><button class="b" data-a="dup" title="複製 (Ctrl+D)">${ic('dup')}</button><button class="b" data-a="front" title="移到最前 (])">${ic('front')}</button><button class="b" data-a="back" title="移到最後 ([)">${ic('back')}</button><button class="b" data-a="del" title="刪除 (Del)">${ic('del')}</button></div>`;
  $('props').innerHTML=h;if(sel.length===1&&f.by&&!f.bn&&usr)usr.profiles([f.by]).then(p=>{const e=$('byl'),q=p[f.by];if(e&&q)e.textContent='建立者：'+(q.name||'訪客')+(q.isMe?'（你）':'')}).catch(()=>{})}
 function setTool(t){if(RO&&!['select','hand'].includes(t)&&!(t==='cmt'&&ROLE!=='view'))return;if(PRES)return;if(t==='image'){$('fi').click();return}finishEdit();S.tool=t;if(t!=='select')S.sel.clear();document.querySelectorAll('#dots [data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===t));$('cv').style.cursor=t==='select'?'default':t==='hand'?'grab':t==='text'?'text':'crosshair';closeCmt();props();ovl()}
 function setp(k,v){S.d[k]=v;if(k==='c'){chg(o=>{setColor(o,v);return{}})}else chg({[k]:v})}
@@ -89,3 +89,13 @@ $('zi').onclick=()=>zoomAt(innerWidth/2,innerHeight/2,S.v.k*1.25);$('zo').onclic
 const bounds=a=>{let x1=1e9,y1=1e9,x2=-1e9,y2=-1e9;a.forEach(o=>{x1=Math.min(x1,o.x);y1=Math.min(y1,o.y);x2=Math.max(x2,o.x+o.w);y2=Math.max(y2,o.y+o.h)});return{x1,y1,x2,y2}};
 function fit(){const fr=S.objs.get('fr-'+S.pg),a=fr?[fr]:pgObjs();if(!a.length){S.v={x:0,y:0,k:1};return applyV()}const b=bounds(a),k=Math.min(2,Math.min(innerWidth/(b.x2-b.x1+160),innerHeight/(b.y2-b.y1+240)));S.v={k,x:innerWidth/2-(b.x1+b.x2)/2*k,y:innerHeight/2-(b.y1+b.y2)/2*k};applyV()}
 $('bf').onclick=fit;
+
+// ---------- draggable properties panel (desktop)
+(function(){const P=$('props');let pos=null;try{pos=JSON.parse(localStorage.getItem('dots-props-pos'))}catch(e){}
+ function place(){if(innerWidth<=640){P.style.left=P.style.top=P.style.bottom=P.style.maxHeight=P.style.transform='';return}
+  if(pos&&isFinite(pos.x)&&isFinite(pos.y)){const x=Math.max(0,Math.min(innerWidth-120,pos.x)),y=Math.max(0,Math.min(innerHeight-60,pos.y));P.style.left=x+'px';P.style.top=y+'px';P.style.bottom='auto';P.style.transform='none';P.style.maxHeight=Math.max(160,innerHeight-y-14)+'px'}
+  else P.style.left=P.style.top=P.style.bottom=P.style.maxHeight=P.style.transform=''}
+ window.__placeProps=place;addEventListener('resize',place);
+ P.addEventListener('pointerdown',e=>{const g=e.target.closest('.pgrip');if(!g||innerWidth<=640)return;e.preventDefault();const r=P.getBoundingClientRect(),ox=e.clientX-r.left,oy=e.clientY-r.top;try{g.setPointerCapture(e.pointerId)}catch(x){}
+  const mv=ev=>{pos={x:ev.clientX-ox,y:ev.clientY-oy};place()},up=()=>{g.removeEventListener('pointermove',mv);g.removeEventListener('pointerup',up);try{localStorage.setItem('dots-props-pos',JSON.stringify(pos))}catch(x){}};g.addEventListener('pointermove',mv);g.addEventListener('pointerup',up)});
+ P.addEventListener('dblclick',e=>{if(e.target.closest('.pgrip')){pos=null;try{localStorage.removeItem('dots-props-pos')}catch(x){}place()}})})();

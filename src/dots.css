@@ -22,11 +22,12 @@
 #dots #brand i{font-style:normal;font-weight:400;color:var(--mut);font-size:12px}
 #dots .dot{width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;margin-right:5px}
 #dots .dot.off{background:#a8a29e}
-#dots #props{left:14px;top:50%;transform:translateY(-50%);flex-direction:column;align-items:stretch;gap:10px;padding:12px;width:172px;max-height:calc(100vh - 150px);overflow-y:auto}
+#dots #props{left:14px;top:72px;grid-template-columns:1fr 1fr;align-content:start;gap:12px 18px;padding:10px 14px 14px;width:384px;max-height:calc(100vh - 72px - 128px);overflow-y:auto}
+#dots #props{align-items:start}#dots #props .pq{align-self:stretch;display:flex;flex-direction:column;gap:6px;min-width:0}#dots #props .pq.row{flex-direction:row}#dots #props .full{grid-column:1/-1}#dots #props .pgrip{grid-column:1/-1;height:14px;margin:-2px 0 -4px;cursor:grab;display:flex;align-items:center;justify-content:center}#dots #props .pgrip::before{content:'';width:44px;height:4px;border-radius:2px;background:var(--bd);box-shadow:0 0 0 1px var(--bd)}#dots #props .pgrip:active{cursor:grabbing}
 #dots #props .cp{display:block}
 #dots .cp{width:22px;height:22px;border-radius:50%;background:conic-gradient(red,yellow,lime,aqua,blue,magenta,red);cursor:pointer;position:relative;overflow:hidden;box-shadow:0 0 0 1px var(--bd);flex:none}
 #dots .cp input{position:absolute;inset:-6px;width:34px;height:34px;opacity:0;cursor:pointer}
-#dots #props label{font-size:11px;color:var(--mut);display:flex;justify-content:space-between}
+#dots #props label{font-size:11px;color:var(--mut);display:flex;justify-content:space-between;align-items:center;min-height:22px}
 #dots .sw{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
 #dots .sw button{all:unset;width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid var(--bg);box-shadow:0 0 0 1px var(--bd)}
 #dots .sw button.on{box-shadow:0 0 0 2px var(--ac)}
@@ -43,7 +44,7 @@
 #dots kbd{font:11px ui-monospace,monospace;background:var(--hv);border:1px solid var(--bd);border-radius:5px;padding:1px 6px;color:var(--ink)}
 #dots #toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:7px 14px;border-radius:20px;font-size:12px;opacity:0;transition:.25s;z-index:10;pointer-events:none}
 @media(max-width:640px){#dots #props{top:auto;bottom:80px;transform:none;flex-direction:row;width:auto;left:8px;right:8px;flex-wrap:wrap}
-#dots #props>*{flex:1 1 40%}
+#dots #props>*{flex:1 1 40%}#dots #props>.full{flex-basis:100%}#dots #props .pgrip{display:none}#dots #props .pq{display:block}
 }#dots .btn{all:unset;box-sizing:border-box;cursor:pointer;padding:9px 12px;border-radius:9px;background:var(--hv);text-align:center;font-size:12px}
 #dots .btn:hover{opacity:.8}
 #dots .btn.pri{background:var(--ink);color:var(--bg)}
@@ -127,3 +128,4 @@
 #dots #zoom #bsn.on{background:var(--ac);color:#fff}
 #dots #ta a:not([data-ul]){color:inherit;text-decoration:inherit;cursor:text}
 #dots #O .sf{fill:none;stroke:var(--ink)}#dots #O .hd{fill:var(--page);stroke:var(--ink)}#dots #ta{border-color:var(--ink)}
+@media(min-width:641px){#dots #props .sw{grid-template-columns:repeat(8,1fr);justify-items:start}}
