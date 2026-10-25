@@ -1,0 +1,16 @@
+import sys;sys.path.insert(0,'/tmp/claude-0/-home-claude/c56ee7cb-7625-56ea-a2c7-f27e432dee5c/scratchpad/tests')
+from run import *
+srv=serve(S+'/app')
+with sync_playwright() as p:
+    b=launch(p);ctx=b.new_context(viewport={'width':1280,'height':800});pg=newpage(ctx)
+    pg.wait_for_timeout(800);pg.locator('.card').first.dblclick();pg.wait_for_timeout(700)
+    print(pg._errs,pg.locator('#bset').count());pg.click('#bset');pg.wait_for_timeout(300);pg.screenshot(path=S+'/t44a.png')
+    pg.click('#stp [data-k=dots][data-v="0"]');print('bg',pg.evaluate("getComputedStyle(document.getElementById('cv')).backgroundImage"))
+    pg.click('#stp [data-k=dots][data-v="1"]')
+    pg.click('#stp [data-k=snap][data-v="0"]');print('snap',pg.evaluate("localStorage.getItem('dots-snap')"))
+    pg.click('#stp [data-k=lang][data-v=en]');pg.wait_for_timeout(2500)
+    if pg.locator('.card').count() and not pg.locator('#bset').is_visible(): pg.locator('.card').first.dblclick();pg.wait_for_timeout(900)
+    print('lang',pg.evaluate("document.documentElement.lang"),pg.evaluate("document.getElementById('bu').title"),pg.evaluate("document.getElementById('bset').title"))
+    pg.click('#bset');pg.wait_for_timeout(300);pg.screenshot(path=S+'/t44b.png')
+    pg.keyboard.press('Escape');pg.mouse.click(600,500)
+    print('left cjk',pg.evaluate("[...document.querySelectorAll('#dots *')].filter(e=>!e.closest('#cv,#ititle')&&e.children.length==0&&/[\\u4e00-\\u9fff]/.test(e.textContent)).map(e=>e.textContent.slice(0,30))"),pg._errs)

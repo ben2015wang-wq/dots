@@ -9,7 +9,9 @@ import os, sys, shutil
 d = os.path.dirname(os.path.abspath(__file__))
 r = lambda n: open(os.path.join(d, n), encoding='utf8').read()
 PARTS = ['a_core', 'b_ui', 'c_render', 'd_data', 'e_pointer', 'f_export', 'g_social', 'h_life']
+EXT = ['i_i18n', 'j_settings']
 parts = ''.join(r('parts/%s.js' % p) + '\n' for p in PARTS)
+parts = parts.replace('//@@EXT', ''.join(r('parts/%s.js' % p) + '\n' for p in EXT))
 
 def fill(t):
     if '{{LANDING}}' in t:

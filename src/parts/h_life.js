@@ -87,5 +87,6 @@ $('syncbar').onclick=e=>{if(e.target.closest('button'))$('syncbar').hidden=true}
  $('bsh').style.display='';try{const sm=await claude.use('sample');if(!sm){AI.on=false;$('bai').style.display='none'}}catch(e){}
  if(ACT.on&&db&&!unsubs.length)subscribe();syncUI()})();
 addEventListener('dots-storage-error',()=>toast('瀏覽器儲存空間已滿或無法寫入，請匯出備份並清出空間'));
+//@@EXT
 return{open,close,canExit,theme:()=>theme(),templates};
 })();

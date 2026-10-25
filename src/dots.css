@@ -130,3 +130,13 @@
 #dots #O .sf{fill:none;stroke:var(--ink)}#dots #O .hd{fill:var(--page);stroke:var(--ink)}#dots #ta{border-color:var(--ink)}
 @media(min-width:641px){#dots #props .sw{grid-template-columns:repeat(8,1fr);justify-items:start}}
 #dots #props{background:color-mix(in srgb,var(--page) 52%,transparent);backdrop-filter:blur(22px) saturate(1.4);-webkit-backdrop-filter:blur(22px) saturate(1.4)}
+
+#dots #stp{top:calc(66px + env(safe-area-inset-top,0px));right:68px;flex-direction:column;align-items:stretch;gap:10px;padding:14px;display:none;width:min(320px,calc(100vw - 84px));max-height:70vh;overflow-y:auto}
+#dots #stp .lh{display:flex;justify-content:space-between;align-items:center;font-weight:600}
+#dots #stp .sr{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12.5px}
+#dots #stp .sgs{display:flex;background:var(--hv);border-radius:9px;padding:2px}
+#dots #stp .sg{all:unset;cursor:pointer;padding:5px 11px;border-radius:7px;font-size:12px;color:var(--mut)}
+#dots #stp .sg.on{background:var(--ink);color:var(--page)}
+#dots #stp .btn{font-size:12px;padding:6px 10px}
+#dots #stp .sn{font-size:11px;color:var(--mut);line-height:1.5}
+@media(max-width:640px){#dots #stp{top:calc(108px + env(safe-area-inset-top,0px));right:8px;left:8px;width:auto}}
