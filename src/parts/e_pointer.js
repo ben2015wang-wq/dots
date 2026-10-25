@@ -91,19 +91,19 @@ ta.addEventListener('blur',e=>{const rt=e.relatedTarget;if(rt&&rt.closest&&rt.cl
 dAdd('selectionchange',()=>{if(ta.hidden||!ta._o)return;const s=getSelection();if(s.rangeCount&&ta.contains(s.anchorNode))ta._rng=s.getRangeAt(0).cloneRange();fmtState();lkChip()});
 function normUrl(u){u=(u||'').trim();if(!u)return'';if(!/^[a-z][a-z0-9+.-]*:/i.test(u))u='https://'+u;return /^(https?:|mailto:)/i.test(u)?u:null}
 function linkPrompt(){if(RO)return;
- if(ta._o){restoreSel();const sel=getSelection(),an=sel.anchorNode&&(sel.anchorNode.nodeType===1?sel.anchorNode:sel.anchorNode.parentElement),a=an&&an.closest&&an.closest('a');
+ if(ta._o){restoreSel();const sel=getSelection(),an=sel.anchorNode&&(sel.anchorNode.nodeType===1?sel.anchorNode:sel.anchorNode.parentElement),a=an&&an.closest&&an.closest('a[data-ul]');
   if(!a&&(!ta._rng||ta._rng.collapsed))return toast('請先選取要加上連結的文字');
   if(a){const r=document.createRange();r.selectNodeContents(a);sel.removeAllRanges();sel.addRange(r);ta._rng=r.cloneRange()}
   const saved=ta._rng&&ta._rng.cloneRange(),u=prompt('輸入連結網址（留空會移除連結）',a?(a.getAttribute('href')||''):'https://');
   ta.focus();if(saved){ta._rng=saved;restoreSel()}if(u===null)return;
   const n=normUrl(u);if(n===null)return toast('只支援 http、https 或 mailto 連結');
-  try{document.execCommand('styleWithCSS',false,true);if(n)document.execCommand('createLink',false,n);else document.execCommand('unlink')}catch(e){return}
+  try{document.execCommand('styleWithCSS',false,true);if(n){document.execCommand('createLink',false,n);const sl=getSelection();if(sl.rangeCount){const rg=sl.getRangeAt(0);ta.querySelectorAll('a:not([data-ul])').forEach(x=>{if(rg.intersectsNode(x))x.setAttribute('data-ul','1')})}}else document.execCommand('unlink')}catch(e){return}
   syncTa(ta._o);paint(ta._o);ta._pos();put(ta._o);fmtState();return}
  const os=[...S.sel].map(i=>S.objs.get(i)).filter(o=>o&&o.t==='text');if(!os.length)return toast('請先選取文字物件，或編輯文字後選取要加上連結的字');
  const cur=(runsOf(os[0]).find(r=>r.h)||{}).h||'',u=prompt('輸入連結網址（留空會移除連結）',cur||'https://');if(u===null)return;
  const n=normUrl(u);if(n===null)return toast('只支援 http、https 或 mailto 連結');
  const before=os.map(cl);os.forEach(o=>{setFmt(o,'h',n);paint(o);put(o)});commit(os.map((o,i)=>[o.id,before[i],cl(o)]));props()}
-function hitLink(x,y,ed){const q=ed?'#ta a':'#w [data-lk]';for(const n of document.querySelectorAll(q))for(const r of n.getClientRects())if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)return n;return null}
+function hitLink(x,y,ed){const q=ed?'#ta a[data-ul]':'#w [data-lk]';for(const n of document.querySelectorAll(q))for(const r of n.getClientRects())if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)return n;return null}
 let pd0=null;dAdd('pointerdown',e=>{pd0=[e.clientX,e.clientY,!!(ta._o&&!ta.hidden)];if(lkp&&!lkp.contains(e.target))lkp.style.display='none'},true);
 function openLink(h){if(h&&/^(https?:|mailto:)/i.test(h))window.open(h,'_blank','noopener')}
 // link popup (like Canva): shows the address with open / edit / remove
@@ -118,19 +118,19 @@ function lkShow(r,h,o){if(!lkp){lkp=document.createElement('div');lkp.id='lkp';l
     if(a==='x'){const b=cl(o);relink(o,h,'');paint(o);put(o);commit([[o.id,b,cl(o)]]);props();lkp.style.display='none'}
     else if(a==='e'){const u=prompt('輸入連結網址（留空會移除連結）',h);if(u===null)return;const n=normUrl(u);if(n===null)return toast('只支援 http、https 或 mailto 連結');const b=cl(o);relink(o,h,n);paint(o);put(o);commit([[o.id,b,cl(o)]]);props();lkp.style.display='none'}
    }else if(ta._o){ // while editing
-    restoreSel();const sel=getSelection(),an=sel.anchorNode&&(sel.anchorNode.nodeType===1?sel.anchorNode:sel.anchorNode.parentElement),ae=an&&an.closest&&an.closest('a');
+    restoreSel();const sel=getSelection(),an=sel.anchorNode&&(sel.anchorNode.nodeType===1?sel.anchorNode:sel.anchorNode.parentElement),ae=an&&an.closest&&an.closest('a[data-ul]');
     if(a==='x'&&ae){const r=document.createRange();r.selectNodeContents(ae);sel.removeAllRanges();sel.addRange(r);document.execCommand('unlink');syncTa(ta._o);paint(ta._o);ta._pos();put(ta._o);lkp.style.display='none'}
     else if(a==='e')linkPrompt()}
   });
   $('dots').appendChild(lkp)}
  lkp._h=h;lkp._o=o||null;lkp.firstChild.textContent=h.length>46?h.slice(0,44)+'…':h;lkp.firstChild.title=h;lkp.style.display='flex';
  lkp.style.left=Math.max(8,Math.min(innerWidth-lkp.offsetWidth-8,r.left))+'px';lkp.style.top=(r.top-lkp.offsetHeight-8<8?r.bottom+8:r.top-lkp.offsetHeight-8)+'px'}
-function hitLink(x,y,ed){const q=ed?'#ta a':'#w [data-lk]';for(const n of document.querySelectorAll(q))for(const r of n.getClientRects())if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)return n;return null}
+function hitLink(x,y,ed){const q=ed?'#ta a[data-ul]':'#w [data-lk]';for(const n of document.querySelectorAll(q))for(const r of n.getClientRects())if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)return n;return null}
 dAdd('click',e=>{if(lkp&&lkp.contains(e.target))return;const ed=pd0?pd0[2]:!!ta._o;if(pd0&&Math.hypot(e.clientX-pd0[0],e.clientY-pd0[1])>5)return;
  const t=hitLink(e.clientX,e.clientY,ed);if(!t)return;const h=t.getAttribute('data-lk')||t.getAttribute('href');if(!h)return;
  if(e.ctrlKey||e.metaKey||RO||PRES){e.preventDefault();openLink(h);return}
  if(ed)return;const id=[...S.sel][0],o=id&&S.objs.get(id);lkShow(t.getBoundingClientRect(),h,o&&o.t==='text'?o:null)});
-function lkChip(){const a=ta._o&&!ta.hidden?(()=>{const s=getSelection();if(!s.rangeCount||!ta.contains(s.anchorNode))return null;const n=s.anchorNode.nodeType===1?s.anchorNode:s.anchorNode.parentElement;return n&&n.closest('a')})():null;
+function lkChip(){const a=ta._o&&!ta.hidden?(()=>{const s=getSelection();if(!s.rangeCount||!ta.contains(s.anchorNode))return null;const n=s.anchorNode.nodeType===1?s.anchorNode:s.anchorNode.parentElement;return n&&n.closest('a[data-ul]')})():null;
  if(!a){if(lkp&&!lkp._o)lkp.style.display='none';return}
  lkShow(a.getBoundingClientRect(),a.getAttribute('href'),null)}
 function restoreSel(){if(!ta._o)return;ta.focus();if(ta._rng){const s=getSelection();s.removeAllRanges();s.addRange(ta._rng)}}

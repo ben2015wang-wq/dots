@@ -125,3 +125,4 @@
 
 #dots .nvw{display:inline-flex;align-items:center;gap:2px;color:var(--mut)}#dots .nv{width:54px;height:22px;padding:0 4px;border:1px solid var(--bd);border-radius:6px;background:transparent;color:var(--ink);font:inherit;font-size:11px;text-align:right;-moz-appearance:textfield;outline:none}#dots .nv:focus{border-color:var(--ac)}#dots .nv::-webkit-outer-spin-button,#dots .nv::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 #dots #zoom #bsn.on{background:var(--ac);color:#fff}
+#dots #ta a:not([data-ul]){color:inherit;text-decoration:inherit;cursor:text}

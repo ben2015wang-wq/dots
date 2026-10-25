@@ -775,6 +775,7 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-install]')&&win
 
 #dots .nvw{display:inline-flex;align-items:center;gap:2px;color:var(--mut)}#dots .nv{width:54px;height:22px;padding:0 4px;border:1px solid var(--bd);border-radius:6px;background:transparent;color:var(--ink);font:inherit;font-size:11px;text-align:right;-moz-appearance:textfield;outline:none}#dots .nv:focus{border-color:var(--ac)}#dots .nv::-webkit-outer-spin-button,#dots .nv::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 #dots #zoom #bsn.on{background:var(--ac);color:#fff}
+#dots #ta a:not([data-ul]){color:inherit;text-decoration:inherit;cursor:text}
 </style>
 <div id="dots">
 <div id="cv"><svg id="svg"><g id="w"><g id="L"></g><g id="O"></g></g><rect id="mq" fill="rgba(59,130,246,.1)" stroke="#3b82f6" stroke-dasharray="4" display="none"/></svg></div>
@@ -841,10 +842,10 @@ function linesToRuns(lines){const out=[];lines.forEach((ln,i)=>{if(i>0&&ln.hard)
 function textSVG(o,c,w){const al=o.al||'left',an=al==='center'?'middle':al==='right'?'end':'start',X=al==='center'?w/2:al==='right'?w:0,lines=layout(o);
  const at=f=>`${f.b?' font-weight="700"':''}${f.i?' font-style="italic"':''}${f.ul||f.st||f.h?` text-decoration="${[(f.ul||f.h)&&'underline',f.st&&'line-through'].filter(Boolean).join(' ')}"`:''}${f.h?` fill="#2563eb" data-lk="${esc(f.h)}"`:f.c?` fill="${esc(f.c)}"`:''}`;
  return `<text font-size="${o.s}" fill="${c}" font-weight="400" font-family="${FF[o.ff]||FF.s}" text-anchor="${an}" style="white-space:pre">${lines.map((ln,i)=>{const sg=segsOf(ln);if(!sg.length)sg.push({t:' ',f:PLAIN});return sg.map((s,k)=>`<tspan${k?'':` x="${X+(al==='left'?ln.ind:0)}" dy="${i?1.25:1}em"`}${at(s.f)}>${esc(s.t)}</tspan>`).join('')}).join('')}</text>`}
-const runsHTML=o=>runsOf(o).map(r=>r.t.split('\n').map(esc).join('<br>')===''?'':`<span style="${r.b?'font-weight:700;':''}${r.i?'font-style:italic;':''}${r.ul||r.st?`text-decoration:${[r.ul&&'underline',r.st&&'line-through'].filter(Boolean).join(' ')};`:''}${r.c&&!r.h?`color:${esc(r.c)};`:''}">${r.h?`<a href="${esc(r.h)}">`:''}${r.t.split('\n').map(esc).join('<br>')}${r.h?'</a>':''}</span>`).join('');
+const runsHTML=o=>runsOf(o).map(r=>r.t.split('\n').map(esc).join('<br>')===''?'':`<span style="${r.b?'font-weight:700;':''}${r.i?'font-style:italic;':''}${r.ul||r.st?`text-decoration:${[r.ul&&'underline',r.st&&'line-through'].filter(Boolean).join(' ')};`:''}${r.c&&!r.h?`color:${esc(r.c)};`:''}">${r.h?`<a href="${esc(r.h)}" data-ul="1">`:''}${r.t.split('\n').map(esc).join('<br>')}${r.h?'</a>':''}</span>`).join('');
 function rgb2hex(s){const m=s.match(/\d+(\.\d+)?/g);if(!m)return s;return'#'+m.slice(0,3).map(x=>Math.round(+x).toString(16).padStart(2,'0')).join('')}
 function domToRuns(root){const out=[],rc=getComputedStyle(root).color;
- const fmtOf=el=>{const cs=getComputedStyle(el),w=cs.fontWeight;let ul=false,st=false;const ha=el.closest&&el.closest('a'),h=ha&&root.contains(ha)?(ha.getAttribute('href')||''):'';for(let n=el;n&&n!==root.parentNode;n=n.parentElement){if(n.tagName==='A')continue;const d=getComputedStyle(n).textDecorationLine||'';if(d.includes('underline'))ul=true;if(d.includes('line-through'))st=true}return{b:w==='bold'||parseInt(w)>=600,i:cs.fontStyle==='italic'||cs.fontStyle==='oblique',ul,st,c:!h&&cs.color!==rc?rgb2hex(cs.color):null,h:h||null}};
+ const fmtOf=el=>{const cs=getComputedStyle(el),w=cs.fontWeight;let ul=false,st=false;const ha=el.closest&&el.closest('a[data-ul]'),h=ha&&root.contains(ha)?(ha.getAttribute('href')||''):'';for(let n=el;n&&n!==root.parentNode;n=n.parentElement){if(n.tagName==='A')continue;const d=getComputedStyle(n).textDecorationLine||'';if(d.includes('underline'))ul=true;if(d.includes('line-through'))st=true}return{b:w==='bold'||parseInt(w)>=600,i:cs.fontStyle==='italic'||cs.fontStyle==='oblique',ul,st,c:!h&&cs.color!==rc?rgb2hex(cs.color):null,h:h||null}};
  const add=(t,f)=>{if(!t)return;const l=out[out.length-1];if(l&&l.b===f.b&&l.i===f.i&&l.ul===f.ul&&l.st===f.st&&(l.c||null)===(f.c||null)&&(l.h||null)===(f.h||null))l.t+=t;else{const r={t,b:f.b,i:f.i,ul:f.ul,st:f.st};if(f.c)r.c=f.c;if(f.h)r.h=f.h;out.push(r)}};
  const endsNL=()=>{const l=out[out.length-1];return !l||l.t.endsWith('\n')};
  const walk=n=>{if(n.nodeType===3){add(n.nodeValue.replace(/​/g,''),fmtOf(n.parentElement));return}if(n.nodeType!==1)return;if(n.tagName==='BR'){add('\n',NF);return}
@@ -1085,19 +1086,19 @@ ta.addEventListener('blur',e=>{const rt=e.relatedTarget;if(rt&&rt.closest&&rt.cl
 dAdd('selectionchange',()=>{if(ta.hidden||!ta._o)return;const s=getSelection();if(s.rangeCount&&ta.contains(s.anchorNode))ta._rng=s.getRangeAt(0).cloneRange();fmtState();lkChip()});
 function normUrl(u){u=(u||'').trim();if(!u)return'';if(!/^[a-z][a-z0-9+.-]*:/i.test(u))u='https://'+u;return /^(https?:|mailto:)/i.test(u)?u:null}
 function linkPrompt(){if(RO)return;
- if(ta._o){restoreSel();const sel=getSelection(),an=sel.anchorNode&&(sel.anchorNode.nodeType===1?sel.anchorNode:sel.anchorNode.parentElement),a=an&&an.closest&&an.closest('a');
+ if(ta._o){restoreSel();const sel=getSelection(),an=sel.anchorNode&&(sel.anchorNode.nodeType===1?sel.anchorNode:sel.anchorNode.parentElement),a=an&&an.closest&&an.closest('a[data-ul]');
   if(!a&&(!ta._rng||ta._rng.collapsed))return toast('請先選取要加上連結的文字');
   if(a){const r=document.createRange();r.selectNodeContents(a);sel.removeAllRanges();sel.addRange(r);ta._rng=r.cloneRange()}
   const saved=ta._rng&&ta._rng.cloneRange(),u=prompt('輸入連結網址（留空會移除連結）',a?(a.getAttribute('href')||''):'https://');
   ta.focus();if(saved){ta._rng=saved;restoreSel()}if(u===null)return;
   const n=normUrl(u);if(n===null)return toast('只支援 http、https 或 mailto 連結');
-  try{document.execCommand('styleWithCSS',false,true);if(n)document.execCommand('createLink',false,n);else document.execCommand('unlink')}catch(e){return}
+  try{document.execCommand('styleWithCSS',false,true);if(n){document.execCommand('createLink',false,n);const sl=getSelection();if(sl.rangeCount){const rg=sl.getRangeAt(0);ta.querySelectorAll('a:not([data-ul])').forEach(x=>{if(rg.intersectsNode(x))x.setAttribute('data-ul','1')})}}else document.execCommand('unlink')}catch(e){return}
   syncTa(ta._o);paint(ta._o);ta._pos();put(ta._o);fmtState();return}
  const os=[...S.sel].map(i=>S.objs.get(i)).filter(o=>o&&o.t==='text');if(!os.length)return toast('請先選取文字物件，或編輯文字後選取要加上連結的字');
  const cur=(runsOf(os[0]).find(r=>r.h)||{}).h||'',u=prompt('輸入連結網址（留空會移除連結）',cur||'https://');if(u===null)return;
  const n=normUrl(u);if(n===null)return toast('只支援 http、https 或 mailto 連結');
  const before=os.map(cl);os.forEach(o=>{setFmt(o,'h',n);paint(o);put(o)});commit(os.map((o,i)=>[o.id,before[i],cl(o)]));props()}
-function hitLink(x,y,ed){const q=ed?'#ta a':'#w [data-lk]';for(const n of document.querySelectorAll(q))for(const r of n.getClientRects())if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)return n;return null}
+function hitLink(x,y,ed){const q=ed?'#ta a[data-ul]':'#w [data-lk]';for(const n of document.querySelectorAll(q))for(const r of n.getClientRects())if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)return n;return null}
 let pd0=null;dAdd('pointerdown',e=>{pd0=[e.clientX,e.clientY,!!(ta._o&&!ta.hidden)];if(lkp&&!lkp.contains(e.target))lkp.style.display='none'},true);
 function openLink(h){if(h&&/^(https?:|mailto:)/i.test(h))window.open(h,'_blank','noopener')}
 // link popup (like Canva): shows the address with open / edit / remove
@@ -1112,19 +1113,19 @@ function lkShow(r,h,o){if(!lkp){lkp=document.createElement('div');lkp.id='lkp';l
     if(a==='x'){const b=cl(o);relink(o,h,'');paint(o);put(o);commit([[o.id,b,cl(o)]]);props();lkp.style.display='none'}
     else if(a==='e'){const u=prompt('輸入連結網址（留空會移除連結）',h);if(u===null)return;const n=normUrl(u);if(n===null)return toast('只支援 http、https 或 mailto 連結');const b=cl(o);relink(o,h,n);paint(o);put(o);commit([[o.id,b,cl(o)]]);props();lkp.style.display='none'}
    }else if(ta._o){ // while editing
-    restoreSel();const sel=getSelection(),an=sel.anchorNode&&(sel.anchorNode.nodeType===1?sel.anchorNode:sel.anchorNode.parentElement),ae=an&&an.closest&&an.closest('a');
+    restoreSel();const sel=getSelection(),an=sel.anchorNode&&(sel.anchorNode.nodeType===1?sel.anchorNode:sel.anchorNode.parentElement),ae=an&&an.closest&&an.closest('a[data-ul]');
     if(a==='x'&&ae){const r=document.createRange();r.selectNodeContents(ae);sel.removeAllRanges();sel.addRange(r);document.execCommand('unlink');syncTa(ta._o);paint(ta._o);ta._pos();put(ta._o);lkp.style.display='none'}
     else if(a==='e')linkPrompt()}
   });
   $('dots').appendChild(lkp)}
  lkp._h=h;lkp._o=o||null;lkp.firstChild.textContent=h.length>46?h.slice(0,44)+'…':h;lkp.firstChild.title=h;lkp.style.display='flex';
  lkp.style.left=Math.max(8,Math.min(innerWidth-lkp.offsetWidth-8,r.left))+'px';lkp.style.top=(r.top-lkp.offsetHeight-8<8?r.bottom+8:r.top-lkp.offsetHeight-8)+'px'}
-function hitLink(x,y,ed){const q=ed?'#ta a':'#w [data-lk]';for(const n of document.querySelectorAll(q))for(const r of n.getClientRects())if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)return n;return null}
+function hitLink(x,y,ed){const q=ed?'#ta a[data-ul]':'#w [data-lk]';for(const n of document.querySelectorAll(q))for(const r of n.getClientRects())if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)return n;return null}
 dAdd('click',e=>{if(lkp&&lkp.contains(e.target))return;const ed=pd0?pd0[2]:!!ta._o;if(pd0&&Math.hypot(e.clientX-pd0[0],e.clientY-pd0[1])>5)return;
  const t=hitLink(e.clientX,e.clientY,ed);if(!t)return;const h=t.getAttribute('data-lk')||t.getAttribute('href');if(!h)return;
  if(e.ctrlKey||e.metaKey||RO||PRES){e.preventDefault();openLink(h);return}
  if(ed)return;const id=[...S.sel][0],o=id&&S.objs.get(id);lkShow(t.getBoundingClientRect(),h,o&&o.t==='text'?o:null)});
-function lkChip(){const a=ta._o&&!ta.hidden?(()=>{const s=getSelection();if(!s.rangeCount||!ta.contains(s.anchorNode))return null;const n=s.anchorNode.nodeType===1?s.anchorNode:s.anchorNode.parentElement;return n&&n.closest('a')})():null;
+function lkChip(){const a=ta._o&&!ta.hidden?(()=>{const s=getSelection();if(!s.rangeCount||!ta.contains(s.anchorNode))return null;const n=s.anchorNode.nodeType===1?s.anchorNode:s.anchorNode.parentElement;return n&&n.closest('a[data-ul]')})():null;
  if(!a){if(lkp&&!lkp._o)lkp.style.display='none';return}
  lkShow(a.getBoundingClientRect(),a.getAttribute('href'),null)}
 function restoreSel(){if(!ta._o)return;ta.focus();if(ta._rng){const s=getSelection();s.removeAllRanges();s.addRange(ta._rng)}}
