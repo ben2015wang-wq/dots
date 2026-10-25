@@ -6,7 +6,7 @@ open(os.path.join(d,'dots.js'),'w',encoding='utf8').write(parts)
 out=r('pre.html')+'<style>'+r('dash.css')+'</style></head>'+r('body.html')+'<script>'+r('dash.new.js')+'</script><style>'+r('dots.css')+'</style>'+r('dots.html')+'<script>'+parts+'</script></body></html>'
 open(os.path.join(d,'app.html'),'w',encoding='utf8').write(out)
 def fill(t):
-    for k,f in [('{{LOGO}}','logo'),('{{ICON180}}','icon180'),('{{ICON}}','icon')]:
+    for k,f in [('{{LOGO_DK}}','logo_dk'),('{{LOGO_LT}}','logo_lt'),('{{ICON180}}','icon180'),('{{ICON}}','icon')]:
         t=t.replace(k,r('assets/'+f+'.txt').strip())
     return t
 out=fill(out)
