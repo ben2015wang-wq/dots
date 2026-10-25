@@ -109,9 +109,9 @@ const READY=(async()=>{if(!CFG)return;
     resetProfile:async()=>{await FS.doc('profiles/'+FU.uid).set({name:GN,nameLower:GN.toLowerCase(),photo:GP,custom:false},{merge:true});PRF={name:GN,photo:GP,custom:false};const m=await fbUser.me();m.name=GN;m.avatarUrl=GP;window.__ACCT.user={...cur(),email:FU.email,custom:false}}};
    if(!PRF.custom){try{await FS.doc('profiles/'+FU.uid).set({name:GN,nameLower:GN.toLowerCase(),photo:GP},{merge:true})}catch(e){}}}
  }catch(e){console.error(e);window.__fbError=e.message||String(e);if(document.body){const t=document.createElement('div');t.textContent='無法連線到 Firebase，已改用本機模式：'+window.__fbError;t.style.cssText='position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:999;background:#b45309;color:#fff;padding:8px 14px;border-radius:10px;font:13px sans-serif;max-width:90vw';document.addEventListener('DOMContentLoaded',()=>{});setTimeout(()=>document.body&&document.body.appendChild(t),400);setTimeout(()=>t.remove(),9000)}}})();
-const AIP={anthropic:{n:'Anthropic（Claude）',m:'claude-sonnet-5-5',ms:['claude-sonnet-5-5','claude-opus-5-5','claude-haiku-5-5','claude-fable-5-1'],ph:'sk-ant-…'},openai:{n:'OpenAI（ChatGPT）',m:'gpt-4o',ms:['gpt-4o','gpt-4o-mini'],ph:'sk-…',base:'https://api.openai.com/v1'},gemini:{n:'Google Gemini',m:'gemini-2.0-flash',ms:['gemini-2.0-flash','gemini-1.5-pro'],ph:'AIza…'},local:{n:'本機模型（免金鑰、免費，在你的裝置上執行）',m:'auto',ms:['auto','chrome','webllm'],ph:''},custom:{n:'自訂（OpenAI 相容端點，例如 OpenRouter、Ollama）',m:'',ms:[],ph:'API 金鑰（本機模型可留空）'}};
+const AIP={anthropic:{n:'Anthropic（Claude）',m:'claude-sonnet-5-5',ms:['claude-sonnet-5-5','claude-opus-5-5','claude-haiku-5-5','claude-fable-5-1'],ph:'sk-ant-…'},openai:{n:'OpenAI（ChatGPT）',m:'gpt-4o',ms:['gpt-4o','gpt-4o-mini'],ph:'sk-…',base:'https://api.openai.com/v1'},gemini:{n:'Google Gemini',m:'gemini-3.8-flash',ms:['gemini-3.8-flash'],ph:'AIza…'},local:{n:'本機模型（免金鑰、免費，在你的裝置上執行）',m:'auto',ms:['auto','chrome','webllm'],ph:''},custom:{n:'自訂（OpenAI 相容端點，例如 OpenRouter、Ollama）',m:'',ms:[],ph:'API 金鑰（本機模型可留空）'}};
 const aiCfg=()=>{let c={};try{c=JSON.parse(localStorage.getItem('dots-ai')||'{}')}catch(e){}if(!c.provider){let k='',m='';try{k=localStorage.getItem('dots-aikey')||'';m=localStorage.getItem('dots-aimodel')||''}catch(e){}if(k)c={provider:'anthropic',key:k,model:m}}return c};
-window.__AICFG=aiCfg;window.__AIP=AIP;
+const aiCfg0=aiCfg;const aiCfg2=()=>{const c=aiCfg0();if(c.provider==='gemini'&&/^gemini-(1\.|2\.0)/.test(c.model||''))c.model=AIP.gemini.m;return c};window.__AICFG=aiCfg2;window.__AIP=AIP;
 const b2b64=b=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(b)});
 
 // ---- on-device models: Chrome built-in Prompt API, or WebLLM (WebGPU) ----
@@ -129,7 +129,7 @@ async function localRun(input,o,mode){const txt=flatTxt(input);let eng=mode;
   WLE=await w.CreateMLCEngine(WL_MODEL,{initProgressCallback:p=>o.onProgress&&o.onProgress({text:'下載並載入模型（只需第一次，約 1 GB）',pct:Math.round((p.progress||0)*100)})})}
  let text='';const it=await WLE.chat.completions.create({messages:[{role:'user',content:txt}],stream:true,max_tokens:1024});
  for await(const ch of it){if(o.signal&&o.signal.aborted)throw new DOMException('Aborted','AbortError');const t=(((ch.choices||[])[0]||{}).delta||{}).content||'';if(t){text+=t;o.onText&&o.onText({text,delta:t})}}return{text,truncated:false}}
-const sample=async(input,o={})=>{const c=aiCfg(),pv=c.provider;if(!pv||(pv!=='custom'&&pv!=='local'&&!c.key)||(pv==='custom'&&!c.base))throw {code:'nokey',message:'尚未設定 AI'};
+const sample=async(input,o={})=>{const c=aiCfg2(),pv=c.provider;if(!pv||(pv!=='custom'&&pv!=='local'&&!c.key)||(pv==='custom'&&!c.base))throw {code:'nokey',message:'尚未設定 AI'};
  if(pv==='local')return localRun(input,o,c.model||'auto');const model=c.model||AIP[pv].m;if(!model)throw {code:'nokey',message:'尚未設定模型'};
  const imgs=[];if(o.images&&o.images.length)for(const im of o.images)imgs.push({type:im.type||'image/png',data:await b2b64(im)});
  const msgs=typeof input==='string'?[{role:'user',content:input}]:input.map(m=>({role:m.role,content:m.content}));
