@@ -1,7 +1,8 @@
 // ---------- data + sync (per-document write queue with retry) + local backup + versions
 const pend=new Map(),infl=new Set(),fails=new Map();let ft=0,lastErr=null;
 const CONNT=['text','rect','ellipse','img'];
-function connect(c){const A=S.objs.get(c.ca),B=S.objs.get(c.cb);if(!A||!B)return false;
+const cbox=o=>{if(o.t==='text'&&(o.gl||o.fo>0||o.bw>0)){const p=o.gl?14:10;return{x:o.x-p,y:o.y-p,w:o.w+2*p,h:o.h+2*p}}return{x:o.x,y:o.y,w:o.w,h:o.h}};
+function connect(c){const A0=S.objs.get(c.ca),B0=S.objs.get(c.cb);if(!A0||!B0)return false;const A=cbox(A0),B=cbox(B0);
  const ac={x:A.x+A.w/2,y:A.y+A.h/2},bc={x:B.x+B.w/2,y:B.y+B.h/2},dx=bc.x-ac.x,dy=bc.y-ac.y,hz=(Math.abs(dx)-(A.w+B.w)/2)>=(Math.abs(dy)-(A.h+B.h)/2);
  let a,b;if(hz){a=[dx>=0?A.x+A.w:A.x,ac.y];b=[dx>=0?B.x:B.x+B.w,bc.y]}else{a=[ac.x,dy>=0?A.y+A.h:A.y];b=[bc.x,dy>=0?B.y:B.y+B.h]}
  c.cd=hz?'h':'v';c.cv=1;c.x=Math.min(a[0],b[0]);c.y=Math.min(a[1],b[1]);c.w=Math.abs(a[0]-b[0]);c.h=Math.abs(a[1]-b[1]);c.r=0;c.pts=[[a[0]-c.x,a[1]-c.y],[b[0]-c.x,b[1]-c.y]];return true}
@@ -28,7 +29,7 @@ function ub(){$('bu').disabled=!hist.length;$('br').disabled=!redo.length}
 $('bu').onclick=undo;$('br').onclick=rdo;
 let sel0=null;function chg(p){const ids=[...S.sel];if(!ids.length||RO)return;if(!sel0)sel0=ids.map(i=>cl(S.objs.get(i)));ids.forEach(i=>{const o=S.objs.get(i);if(!o)return;Object.assign(o,typeof p==='function'?p(o):p);put(o)});props.skip=1;clearTimeout(chg.h);chg.h=setTimeout(()=>{const extra=[];sel0.forEach(b=>{const o=S.objs.get(b.id);if(o&&o.t==='text'&&('ww' in b||o.ww)){paginate(o).forEach(n=>extra.push([n.id,null,cl(n)]))}});commit(sel0.map(b=>[b.id,b,cl(S.objs.get(b.id))]).concat(extra));sel0=null},400)}
 function act(a){const ids=[...S.sel].map(i=>S.objs.get(i)).filter(Boolean);if(RO)return;
- if(a==='ai')return aiOpen();if(a==='fcauto'){S.d.fc=null;chg({fc:null});props()}
+ if(a==='ai')return aiOpen();if(a==='fcauto'){S.d.fc=null;chg({fc:null});props()}if(a==='gl'){const f=[...S.sel].map(i=>S.objs.get(i)).find(o=>o&&o.t==='text'),v=f?!f.gl:!S.d.gl;S.d.gl=v;chg(o=>o.t==='text'?(v?{gl:1,rd:Math.max(o.rd||0,22),fo:o.fo>0?o.fo:.14}:{gl:0}):{});props()}
  if(a==='del'){commit(ids.map(o=>[o.id,cl(o),null]));ids.forEach(o=>rm(o.id));props()}
  if(a==='dup'){const n=ids.map(o=>{const c=cl(o);c.id=rid();c.x+=24;c.y+=24;c.z=Date.now();if(c.t==='img'&&!c.src)c.src=imgSrc(o);put(c);return c});commit(n.map(c=>[c.id,null,cl(c)]));S.sel=new Set(n.map(c=>c.id));props()}
  if(a==='front'||a==='back'){const zs=[...S.objs.values()].map(o=>o.z||0),b=ids.map(cl);ids.forEach((o,i)=>{o.z=a==='front'?Math.max(...zs)+1+i:Math.min(...zs)-1-i;put(o)});commit(ids.map((o,i)=>[o.id,b[i],cl(o)]))}}
