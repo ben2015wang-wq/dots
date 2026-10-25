@@ -1,0 +1,140 @@
+<style>
+#fbgate{--bg:#0b0b0d;--tx:#ececee;--mu:#9a9aa4;--bd:rgba(255,255,255,.1);--ac:#3b82f6;--card:rgba(255,255,255,.04);position:fixed;inset:0;z-index:999;background:var(--bg);color:var(--tx);overflow-y:auto;overflow-x:hidden;font:15px/1.65 -apple-system,BlinkMacSystemFont,"Inter","PingFang TC","Noto Sans TC","Segoe UI",sans-serif;scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+#fbgate *{box-sizing:border-box}
+#fbgate a{color:inherit}
+#fbgate .ld-dots{position:absolute;inset:0 0 auto 0;height:900px;background-image:radial-gradient(circle,rgba(255,255,255,.16) 1.1px,transparent 1.4px);background-size:26px 26px;mask-image:linear-gradient(#000 20%,transparent 92%);-webkit-mask-image:linear-gradient(#000 20%,transparent 92%);pointer-events:none}
+#fbgate .ld-glow{position:absolute;left:50%;top:-220px;width:900px;height:560px;transform:translateX(-50%);background:radial-gradient(closest-side,rgba(59,130,246,.28),rgba(139,92,246,.12) 55%,transparent);filter:blur(30px);pointer-events:none}
+#fbgate .ld-w{position:relative;width:min(1120px,100%);margin:0 auto;padding:0 22px}
+#fbgate nav{position:sticky;top:0;z-index:5;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:rgba(11,11,13,.62);border-bottom:1px solid transparent}
+#fbgate nav .ld-w{display:flex;align-items:center;gap:26px;height:62px}
+#fbgate nav img{height:30px;display:block}
+#fbgate nav .ld-sp{flex:1}
+#fbgate nav a.ld-n{font-size:13.5px;color:var(--mu);text-decoration:none;cursor:pointer}
+#fbgate nav a.ld-n:hover{color:var(--tx)}
+#fbgate .ld-b{appearance:none;border:1px solid var(--bd);background:transparent;color:var(--tx);border-radius:10px;padding:9px 16px;font:500 14px/1 inherit;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:9px;transition:.15s}
+#fbgate .ld-b:hover{background:rgba(255,255,255,.07)}
+#fbgate .ld-b.p{background:#fff;color:#16161a;border-color:#fff}
+#fbgate .ld-b.p:hover{background:#e9e9ee}
+#fbgate .ld-b.lg{padding:14px 22px;font-size:15px;border-radius:12px}
+#fbgate .ld-b svg{flex:none}
+#fbgate .ld-hero{text-align:center;padding:84px 0 40px}
+#fbgate .ld-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--bd);background:var(--card);border-radius:99px;padding:6px 14px;font-size:12.5px;color:var(--mu)}
+#fbgate .ld-pill i{width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block}
+#fbgate h1{font-size:clamp(36px,6.4vw,68px);line-height:1.1;letter-spacing:-.02em;margin:22px auto 18px;max-width:880px;font-weight:700}
+#fbgate h1 em{font-style:normal;background:linear-gradient(100deg,#60a5fa,#a78bfa 55%,#f472b6);-webkit-background-clip:text;background-clip:text;color:transparent}
+#fbgate .ld-sub{font-size:clamp(15px,2vw,18px);color:var(--mu);max-width:640px;margin:0 auto 30px}
+#fbgate .ld-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+#fbgate .ld-note{margin-top:16px;font-size:12.5px;color:var(--mu)}
+#fbgate #fbe{color:#ff8a8a;min-height:20px;font-size:13px;margin-top:10px}
+#fbgate .ld-shot{position:relative;margin:34px auto 0;width:min(980px,100%);border:1px solid var(--bd);border-radius:18px;background:#101013;box-shadow:0 40px 120px -30px rgba(59,130,246,.35),0 10px 40px rgba(0,0,0,.5);overflow:hidden;text-align:left}
+#fbgate .ld-bar{display:flex;align-items:center;gap:7px;padding:12px 16px;border-bottom:1px solid var(--bd);background:rgba(255,255,255,.025)}
+#fbgate .ld-bar i{width:10px;height:10px;border-radius:50%;background:#3a3a42}
+#fbgate .ld-bar span{margin-left:12px;font-size:12px;color:var(--mu)}
+#fbgate .ld-cv{position:relative;height:430px;background-image:radial-gradient(circle,rgba(255,255,255,.14) 1.1px,transparent 1.4px);background-size:24px 24px}
+#fbgate .ld-el{position:absolute;border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.45;font-weight:500}
+#fbgate .ld-tool{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);display:flex;gap:4px;padding:6px;border-radius:14px;background:rgba(30,30,36,.9);border:1px solid var(--bd)}
+#fbgate .ld-tool i{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:#c9c9d1}
+#fbgate .ld-tool i.on{background:#fff;color:#16161a}
+#fbgate .ld-cur{position:absolute;display:flex;align-items:flex-start;gap:4px;animation:ldf 7s ease-in-out infinite}
+#fbgate .ld-cur b{font-size:11px;font-weight:600;color:#fff;padding:2px 8px;border-radius:99px;margin-top:14px}
+#fbgate .ld-cur.b2{animation-duration:9s;animation-direction:reverse}
+@keyframes ldf{0%,100%{transform:translate(0,0)}35%{transform:translate(46px,26px)}70%{transform:translate(-24px,40px)}}
+#fbgate section{padding:84px 0 0}
+#fbgate h2{font-size:clamp(26px,4vw,40px);line-height:1.2;letter-spacing:-.015em;text-align:center;margin:0 0 12px;font-weight:700}
+#fbgate .ld-lead{color:var(--mu);text-align:center;max-width:620px;margin:0 auto 44px}
+#fbgate .ld-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+#fbgate .ld-card{border:1px solid var(--bd);background:var(--card);border-radius:16px;padding:24px;transition:.2s}
+#fbgate .ld-card:hover{border-color:rgba(255,255,255,.22);transform:translateY(-2px)}
+#fbgate .ld-ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;margin-bottom:16px;background:rgba(59,130,246,.14);color:#7db1ff}
+#fbgate .ld-ic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+#fbgate .ld-card h3{margin:0 0 6px;font-size:16.5px;font-weight:600}
+#fbgate .ld-card p{margin:0;color:var(--mu);font-size:14px}
+#fbgate .ld-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;counter-reset:s}
+#fbgate .ld-step{border-left:1px solid var(--bd);padding:4px 0 4px 22px}
+#fbgate .ld-step:before{counter-increment:s;content:"0" counter(s);display:block;font-size:13px;color:#7db1ff;font-weight:600;margin-bottom:8px;letter-spacing:.08em}
+#fbgate .ld-step h3{margin:0 0 6px;font-size:18px}
+#fbgate .ld-step p{margin:0;color:var(--mu);font-size:14px}
+#fbgate .ld-cmp{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--bd);border-radius:16px;overflow:hidden;font-size:14px}
+#fbgate .ld-cmp th,#fbgate .ld-cmp td{padding:15px 20px;text-align:left;border-bottom:1px solid var(--bd)}
+#fbgate .ld-cmp tr:last-child td{border-bottom:0}
+#fbgate .ld-cmp th{font-weight:600;background:rgba(255,255,255,.035)}
+#fbgate .ld-cmp td:first-child{color:var(--mu);width:22%}
+#fbgate .ld-cmp td:nth-child(2){background:rgba(59,130,246,.07)}
+#fbgate .ld-cmp td:nth-child(3){color:var(--mu)}
+#fbgate details{border:1px solid var(--bd);border-radius:14px;background:var(--card);padding:0 20px;margin-bottom:10px}
+#fbgate summary{cursor:pointer;padding:17px 0;font-weight:500;list-style:none;display:flex;justify-content:space-between;gap:12px}
+#fbgate summary::-webkit-details-marker{display:none}
+#fbgate summary:after{content:"+";color:var(--mu);font-size:20px;line-height:1}
+#fbgate details[open] summary:after{content:"–"}
+#fbgate details p{margin:0 0 18px;color:var(--mu);font-size:14px}
+#fbgate .ld-final{margin-top:90px;text-align:center;border:1px solid var(--bd);border-radius:24px;padding:60px 22px;background:radial-gradient(70% 120% at 50% 0,rgba(59,130,246,.2),transparent),var(--card)}
+#fbgate .ld-final h2{margin-bottom:10px}
+#fbgate footer{padding:44px 0 56px;color:var(--mu);font-size:12.5px;display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
+#fbgate footer a{text-decoration:none}
+#fbgate footer a:hover{color:var(--tx)}
+@media(max-width:860px){#fbgate .ld-grid,#fbgate .ld-steps{grid-template-columns:1fr}#fbgate nav a.ld-n{display:none}#fbgate .ld-hero{padding-top:56px}#fbgate .ld-cv{height:360px}#fbgate .ld-hide{display:none}}
+@media(prefers-reduced-motion:reduce){#fbgate .ld-cur{animation:none}#fbgate{scroll-behavior:auto}}
+</style>
+<div class="ld-dots"></div><div class="ld-glow"></div>
+<nav><div class="ld-w"><img src="{{LOGO_DK}}" alt="DOTS"><span class="ld-sp"></span><a class="ld-n" data-go="#ld-f">功能</a><a class="ld-n" data-go="#ld-h">怎麼用</a><a class="ld-n" data-go="#ld-c">為什麼選 DOTS</a><a class="ld-n" data-go="#ld-q">常見問題</a><button class="ld-b ld-g" type="button">登入</button><button class="ld-b p ld-g" type="button">免費開始</button></div></nav>
+<div class="ld-w">
+<header class="ld-hero">
+<span class="ld-pill"><i></i>白板 · 文件 · 簡報，全在同一張點狀畫布</span>
+<h1>把想法，<em>一點一點</em><br>連成作品</h1>
+<p class="ld-sub">DOTS 是一個輕巧的協作畫布：隨手畫、寫、排版，再直接變成簡報。免費使用，作品與資料由你自己掌控，AI 也用你自己的。</p>
+<div class="ld-cta"><button class="ld-b p lg ld-g" id="fbg" type="button"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7a14.5 14.5 0 010-9.4l-7.9-6.1a24 24 0 000 21.6l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>使用 Google 開始</button><button class="ld-b lg ld-l" id="fbl" type="button">不登入，直接試用</button></div>
+<div id="fbe"></div>
+<div class="ld-note">免費・不需信用卡・登入後作品會同步到雲端</div>
+<div class="ld-shot" aria-hidden="true">
+<div class="ld-bar"><i></i><i></i><i></i><span>產品路線圖 · 3 人在線</span></div>
+<div class="ld-cv">
+<svg style="position:absolute;inset:0;width:100%;height:100%" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round"><path d="M270 120 C 340 120, 330 210, 400 210"/><path d="M270 120 C 340 120, 360 70, 450 70" /><path d="M590 215 C 640 215, 640 285, 690 285"/></svg>
+<div class="ld-el" style="left:70px;top:90px;width:200px;background:#fde68a;color:#3b2f06;transform:rotate(-2deg)">🎯 目標<br><span style="font-weight:400">本季上線協作與簡報模式</span></div>
+<div class="ld-el" style="left:400px;top:44px;width:190px;background:#bfdbfe;color:#0c2a55;transform:rotate(1.5deg)">研究<br><span style="font-weight:400">訪談 8 位使用者</span></div>
+<div class="ld-el" style="left:400px;top:180px;width:190px;background:#bbf7d0;color:#0b3a22">設計<br><span style="font-weight:400">原型與對齊吸附</span></div>
+<div class="ld-el" style="left:690px;top:250px;width:210px;background:#fbcfe8;color:#4a0f2e;transform:rotate(-1.5deg)">發佈 ✨<br><span style="font-weight:400">直接播放成簡報</span></div>
+<div class="ld-el ld-hide" style="left:660px;top:60px;width:230px;background:rgba(255,255,255,.06);border:1px dashed rgba(255,255,255,.28);font-weight:400;color:#d4d4dc">✦ AI 分析：<br>「三個重點：使用者痛點集中在協作延遲…」</div>
+<div class="ld-cur" style="left:300px;top:250px"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M3 2l7 19 3-8 8-3z" fill="#f472b6" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg><b style="background:#ec4899">Amy</b></div>
+<div class="ld-cur b2" style="left:560px;top:140px"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M3 2l7 19 3-8 8-3z" fill="#60a5fa" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg><b style="background:#3b82f6">Ben</b></div>
+<div class="ld-tool"><i class="on"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M5 3l14 8-6 2-2 6z"/></svg></i><i><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg></i><i><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 5h14M12 5v14"/></svg></i><i><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="14" rx="2"/></svg></i><i><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 19L19 5M12 5h7v7"/></svg></i></div>
+</div></div>
+</header>
+
+<section id="ld-f"><h2>一張畫布，什麼都能做</h2><p class="ld-lead">不用在白板、文件、簡報之間來回切換。從發想到發表，同一份作品就能完成。</p>
+<div class="ld-grid">
+<div class="ld-card"><div class="ld-ic"><svg viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM17 14v6M14 17h6"/></svg></div><h3>無限畫布</h3><p>手寫、形狀、箭頭、圖片、文字，隨手擺放。移動時自動對齊，角度也能吸附，整齊不費力。</p></div>
+<div class="ld-card"><div class="ld-ic"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h7"/></svg></div><h3>文件模式</h3><p>長文會自動分頁，部分文字可單獨設定粗體、顏色與連結，圖文並排也行。</p></div>
+<div class="ld-card"><div class="ld-ic"><svg viewBox="0 0 24 24"><path d="M3 5h18v12H3zM8 21h8M12 17v4M10 9l5 2.5L10 14z"/></svg></div><h3>簡報播放</h3><p>把頁面直接播放成簡報，也能匯出 PDF、PPTX 或圖片，不必重做一次。</p></div>
+<div class="ld-card"><div class="ld-ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.5 3-6 6-6s6 2.5 6 6M15 14.5c3 0 6 1.5 6 5"/></svg></div><h3>即時協作</h3><p>看見大家的游標與選取，留言討論。連結可設為「可編輯」、「僅檢視」或關閉，也能指定誰是編輯或留言者。</p></div>
+<div class="ld-card"><div class="ld-ic"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM18 16l.8 2.2L21 19l-2.2.8L18 22l-.8-2.2L15 19l2.2-.8z"/></svg></div><h3>自備 AI</h3><p>選取文字或圖片就能摘要、翻譯、潤飾。用你自己的 Claude、OpenAI 或 Gemini 金鑰，或直接在瀏覽器裡用本機模型。</p></div>
+<div class="ld-card"><div class="ld-ic"><svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg></div><h3>可安裝、可離線</h3><p>能像 App 一樣安裝到手機或電腦，沒網路時也能打開已載入過的頁面。</p></div>
+</div></section>
+
+<section id="ld-h"><h2>三步驟，從空白到完成</h2><p class="ld-lead">不需要學習，打開就能開始。</p>
+<div class="ld-steps">
+<div class="ld-step"><h3>建立作品</h3><p>從空白或範本開始，選白板、文件或簡報。</p></div>
+<div class="ld-step"><h3>邀請夥伴</h3><p>貼上連結，或加入名單並指定權限；隨時可以關閉連結。</p></div>
+<div class="ld-step"><h3>播放或匯出</h3><p>一鍵播放成簡報，或匯出成 PDF、PPTX、圖片。</p></div>
+</div></section>
+
+<section id="ld-c"><h2>為什麼選 DOTS</h2><p class="ld-lead">專注在「輕、快、由你掌控」，而不是堆疊功能。</p>
+<table class="ld-cmp"><thead><tr><th></th><th>DOTS</th><th>一般訂閱制白板</th></tr></thead><tbody>
+<tr><td>費用</td><td>免費使用，沒有方案限制</td><td>多半依席位或功能收費</td></tr>
+<tr><td>資料位置</td><td>存在你自己的雲端帳號，也可自行架設</td><td>存放在服務商的伺服器</td></tr>
+<tr><td>AI</td><td>用你自己的金鑰，或完全在瀏覽器本機執行</td><td>綁定服務商的 AI 方案</td></tr>
+<tr><td>離線</td><td>可安裝成 App，離線可開</td><td>通常需要連線</td></tr>
+<tr><td>輸出</td><td>PDF、PPTX、PNG、JSON</td><td>部分格式需升級方案</td></tr>
+</tbody></table></section>
+
+<section id="ld-q"><h2>常見問題</h2><p class="ld-lead">還有疑問？先看看這裡。</p>
+<div style="max-width:760px;margin:0 auto">
+<details><summary>真的免費嗎？</summary><p>是的，目前使用沒有付費方案。如果你要用 AI 分析，費用依你選的 AI 服務計算（使用瀏覽器本機模型則不需要金鑰）。</p></details>
+<details><summary>我的作品存在哪裡？</summary><p>登入後會同步到雲端資料庫，換裝置也能繼續。選擇「不登入」則只存在這個瀏覽器裡，清除瀏覽器資料就會消失。</p></details>
+<details><summary>AI 分析會把我的內容傳去哪裡？</summary><p>只有在你按下分析時，才會送到你自己設定的 AI 服務；使用本機模型則完全不會離開你的裝置。</p></details>
+<details><summary>手機可以用嗎？</summary><p>可以，介面會自動適應手機畫面，也能安裝到主畫面。手機上的操作體驗仍在持續改進中。</p></details>
+<details><summary>可以多人同時編輯嗎？</summary><p>可以，你能看到其他人的游標與正在編輯的物件，並用留言討論。</p></details>
+</div></section>
+
+<div class="ld-final"><h2>現在就開始畫第一個點</h2><p class="ld-sub" style="margin-bottom:26px">登入只要幾秒，也可以先不登入直接試用。</p><div class="ld-cta"><button class="ld-b p lg ld-g" type="button">使用 Google 開始</button><button class="ld-b lg ld-l" type="button">不登入，直接試用</button></div></div>
+<footer><a href="terms.html" target="_blank" rel="noopener">服務條款</a><a href="privacy.html" target="_blank" rel="noopener">隱私權政策</a><span>© DOTS</span></footer>
+</div>

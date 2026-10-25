@@ -12,6 +12,9 @@ PARTS = ['a_core', 'b_ui', 'c_render', 'd_data', 'e_pointer', 'f_export', 'g_soc
 parts = ''.join(r('parts/%s.js' % p) + '\n' for p in PARTS)
 
 def fill(t):
+    if '{{LANDING}}' in t:
+        import json
+        t = t.replace('{{LANDING}}', json.dumps(r('landing.html')))
     for k, f in [('{{LOGO_DK}}', 'logo_dk'), ('{{LOGO_LT}}', 'logo_lt'), ('{{ICON180}}', 'icon180'), ('{{ICON}}', 'icon')]:
         t = t.replace(k, r('assets/' + f + '.txt').strip())
     return t
@@ -34,7 +37,7 @@ if '--out' in sys.argv:
             os.makedirs(os.path.dirname(dst), exist_ok=True)
             shutil.copyfile(src, dst)
     open(os.path.join(out, '.nojekyll'), 'w').close()
-    left = [k for k in ('{{LOGO_DK}}', '{{LOGO_LT}}', '{{ICON}}', '{{ICON180}}') if k in standalone]
+    left = [k for k in ('{{LOGO_DK}}', '{{LOGO_LT}}', '{{ICON}}', '{{ICON180}}', '{{LANDING}}') if k in standalone]
     if left:
         sys.exit('unreplaced placeholders: %s' % left)
     print('built', out, len(standalone), 'bytes')
