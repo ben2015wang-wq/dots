@@ -31,6 +31,7 @@ let sel0=null;function chg(p){const ids=[...S.sel];if(!ids.length||RO)return;if(
 function act(a){const ids=[...S.sel].map(i=>S.objs.get(i)).filter(Boolean);if(RO)return;
  if(a==='ai')return aiOpen();if(a==='fcauto'){S.d.fc=null;chg({fc:null});props()}if(a==='gl'){const f=[...S.sel].map(i=>S.objs.get(i)).find(o=>o&&o.t==='text'),v=f?!f.gl:!S.d.gl;S.d.gl=v;chg(o=>o.t==='text'?(v?{gl:1,rd:12,fo:o.fo>0?o.fo:.14}:{gl:0}):{});props()}
  if(a==='del'){commit(ids.map(o=>[o.id,cl(o),null]));ids.forEach(o=>rm(o.id));props()}
+ if(a.startsWith('al-')&&ids.length>1){const bb=gbox(ids),k=a[3],ch=[];ids.forEach(o=>{const b=cl(o),r=(o.r||0)*Math.PI/180,ex=(Math.abs(Math.cos(r))*o.w+Math.abs(Math.sin(r))*o.h)/2,ey=(Math.abs(Math.sin(r))*o.w+Math.abs(Math.cos(r))*o.h)/2,cx=o.x+o.w/2,cy=o.y+o.h/2;if(k==='l')o.x+=bb.x-(cx-ex);else if(k==='r')o.x+=bb.x+bb.w-(cx+ex);else if(k==='c')o.x+=bb.x+bb.w/2-cx;else if(k==='t')o.y+=bb.y-(cy-ey);else if(k==='b')o.y+=bb.y+bb.h-(cy+ey);else o.y+=bb.y+bb.h/2-cy;put(o);ch.push([o.id,b,cl(o)])});commit(ch);ovl();return}
  if(a==='dup'){const n=ids.map(o=>{const c=cl(o);c.id=rid();c.x+=24;c.y+=24;c.z=Date.now();if(c.t==='img'&&!c.src)c.src=imgSrc(o);put(c);return c});commit(n.map(c=>[c.id,null,cl(c)]));S.sel=new Set(n.map(c=>c.id));props()}
  if(a==='front'||a==='back'){const zs=[...S.objs.values()].map(o=>o.z||0),b=ids.map(cl);ids.forEach((o,i)=>{o.z=a==='front'?Math.max(...zs)+1+i:Math.min(...zs)-1-i;put(o)});commit(ids.map((o,i)=>[o.id,b[i],cl(o)]))}}
 // ---------- version history (snapshots stored in chunks under 256 KiB)
