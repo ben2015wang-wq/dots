@@ -38,10 +38,10 @@ function drawOvl(){const O=$('O'),k=S.v.k;let h='';if(PRES||RO){O.innerHTML='';r
 function gbox(a){let x1=1e9,y1=1e9,x2=-1e9,y2=-1e9;a.forEach(o=>{const r=(o.r||0)*Math.PI/180,cx=o.x+o.w/2,cy=o.y+o.h/2;[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([i,j])=>{const dx=i*o.w/2,dy=j*o.h/2,X=cx+dx*Math.cos(r)-dy*Math.sin(r),Y=cy+dx*Math.sin(r)+dy*Math.cos(r);x1=Math.min(x1,X);y1=Math.min(y1,Y);x2=Math.max(x2,X);y2=Math.max(y2,Y)})});return x1>x2?null:{x:x1,y:y1,w:x2-x1,h:y2-y1}}
 function render(){els.forEach((g,id)=>{if(!S.objs.has(id))unpaint(id)});S.objs.forEach(paint);ovl();lazyScan()}
 // ---------- lazy image loading (images live in their own documents)
-const IQ=[],IFLY=new Set(),UP=new Set();let lzT=0;
+const IMISS={},IQ=[],IFLY=new Set(),UP=new Set();let lzT=0;
 function need(o){if(!o.iid||IMG.has(o.iid)||IFLY.has(o.iid)||!db)return;if(!IQ.includes(o.iid))IQ.push(o.iid);pump()}
 function visible(o){const k=S.v.k,x=o.x*k+S.v.x,y=o.y*k+S.v.y,m=innerWidth*.5;return x<innerWidth+m&&x+o.w*k>-m&&y<innerHeight+m&&y+o.h*k>-m}
 function lazyScan(){if(!db||lzT)return;lzT=setTimeout(()=>{lzT=0;S.objs.forEach(o=>{if(o.t==='img'&&!imgSrc(o)&&(o.pg||PGS[0].id)===S.pg&&visible(o))need(o)})},120)}
-function pump(){while(IFLY.size<3&&IQ.length){const id=IQ.shift();if(IMG.has(id))continue;IFLY.add(id);db.doc(BP+'imgs/'+id).get().then(s=>{IFLY.delete(id);if(s.exists&&s.data().d){IMG.set(id,s.data().d);S.objs.forEach(o=>{if(o.iid===id&&!o.src){const g=els.get(o.id);if(g)paint(o)}})}else{IMG.set(id,TINY)}pump()}).catch(()=>{IFLY.delete(id);setTimeout(()=>{if(db)need({iid:id})},4000);pump()})}}
+function pump(){while(IFLY.size<3&&IQ.length){const id=IQ.shift();if(IMG.has(id))continue;IFLY.add(id);db.doc(BP+'imgs/'+id).get().then(s=>{IFLY.delete(id);if(s.exists&&s.data().d){IMG.set(id,s.data().d);S.objs.forEach(o=>{if(o.iid===id&&!o.src){const g=els.get(o.id);if(g)paint(o)}})}else{const n=(IMISS[id]||0)+1;IMISS[id]=n;if(n<4)setTimeout(()=>{if(db)need({iid:id})},2500*n);else IMG.set(id,TINY)}pump()}).catch(()=>{IFLY.delete(id);setTimeout(()=>{if(db)need({iid:id})},4000);pump()})}}
 async function loadImgs(a){const ids=[...new Set(a.filter(o=>o.t==='img'&&o.iid&&!imgSrc(o)).map(o=>o.iid))];if(!ids.length||!db)return;await Promise.all(ids.map(async id=>{if(IMG.has(id))return;try{const s=await db.doc(BP+'imgs/'+id).get();if(s.exists&&s.data().d)IMG.set(id,s.data().d)}catch(e){}}))}
 async function upImg(o){if(!db||!o.src)return;if(!o.iid)o.iid=rid();if(UP.has(o.iid))return;await db.doc(BP+'imgs/'+o.iid).set({d:o.src});UP.add(o.iid);IMG.set(o.iid,o.src)}
