@@ -30,8 +30,3 @@ dAdd('click',e=>{const t=e.target;if(!t.closest('#stp')&&!t.closest('#bset')){st
  else if(a==='tour'){stp.style.display='none';const b=document.createElement('button');b.setAttribute('data-help','1');b.hidden=true;document.body.appendChild(b);b.click();b.remove()}
  else if(a==='pos'){try{localStorage.removeItem('dots-props-pos')}catch(x){}if(window.__placeProps)window.__placeProps();toast('已重設面板位置')}});
 dotsApply();
-// ---------- pop the current board / page out into its own window (second monitor, like detaching a document tab) ----------
-IC.popout='M14 4h6v6M20 4l-9 9M18 14v5H5V6h5';
-$('be').insertAdjacentHTML('afterend',`<button class="b" id="bpo" title="在新視窗開啟目前頁面" aria-label="在新視窗開啟目前頁面">${ic('popout')}</button>`);
-$('bpo').onclick=()=>{if(!BID)return;const u=location.href.split('#')[0]+'#/b/'+BID+'&pg='+encodeURIComponent(S.pg);const w=window.open('','dots-'+BID+'-'+S.pg,'popup=yes,width='+Math.min(1280,screen.availWidth-80)+',height='+Math.min(820,screen.availHeight-80)+',left=60,top=60');if(w)setTimeout(()=>{try{w.location.href=u}catch(e){}},900);if(!w)toast('瀏覽器擋住了新視窗，請允許彈出視窗後再試');else toast('已在新視窗開啟，可拖到其他螢幕；兩個視窗會即時同步')};
-(function(){const m=/[#&]pg=([\w-]+)/.exec(location.hash);if(!m)return;const want=decodeURIComponent(m[1]);let n=0;const iv=setInterval(()=>{n++;if(n>120)return clearInterval(iv);if(ACT.on&&PGS.some(p=>p.id===want)){clearInterval(iv);if(S.pg!==want)gotoPg(want)}},250)})();
