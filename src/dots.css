@@ -14,7 +14,7 @@
 #dots .b[data-k]::after{content:attr(data-k);position:absolute;right:3px;bottom:1px;font-size:8px;opacity:.45}
 #dots .sp{width:1px;height:20px;background:var(--bd);margin:0 4px}
 #dots #zoom{right:14px;top:50%;transform:translateY(-50%);flex-direction:column;padding:6px;gap:0}
-#dots #zoom input{writing-mode:vertical-lr;direction:rtl;height:130px;width:22px;margin:6px 0}
+#dots #zsw{position:relative;display:block;width:22px;height:130px;margin:6px 0}#dots #zsw input{position:absolute;left:50%;top:50%;width:130px;height:22px;margin:0;transform:translate(-50%,-50%) rotate(-90deg);writing-mode:horizontal-tb;direction:ltr}
 #dots #zoom .b{font-size:12px}
 #dots #tools{bottom:calc(18px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);max-width:calc(100vw - 16px);overflow-x:auto}
 #dots #top{top:calc(14px + env(safe-area-inset-top,0px));right:14px}
@@ -104,7 +104,7 @@
 #dots.pres .pn,#dots.pres #syncbar,#dots.pres .cur,#dots.pres #cmts{display:none!important}
 #dots.pres #cv{background:#000;cursor:none}
 #dots.pres #cv svg{cursor:none}
-@media(max-width:640px){#dots #brand{left:8px;right:8px;top:calc(8px + env(safe-area-inset-top,0px));padding:5px 10px;gap:6px}#dots #ititle{flex:1;width:auto;min-width:0}#dots #brand i{display:none}#dots #top{left:8px;right:8px;top:calc(58px + env(safe-area-inset-top,0px));justify-content:center;overflow-x:auto}#dots #lp,#dots #vp,#dots #exm{top:calc(108px + env(safe-area-inset-top,0px));right:8px;width:min(310px,calc(100vw - 16px))}#dots #zoom{top:auto;bottom:130px;transform:none;flex-direction:row;right:8px}#dots #zoom input{writing-mode:horizontal-tb;direction:ltr;width:90px;height:22px;margin:0 6px}}
+@media(max-width:640px){#dots #brand{left:8px;right:8px;top:calc(8px + env(safe-area-inset-top,0px));padding:5px 10px;gap:6px}#dots #ititle{flex:1;width:auto;min-width:0}#dots #brand i{display:none}#dots #top{left:8px;right:8px;top:calc(58px + env(safe-area-inset-top,0px));justify-content:center;overflow-x:auto}#dots #lp,#dots #vp,#dots #exm{top:calc(108px + env(safe-area-inset-top,0px));right:8px;width:min(310px,calc(100vw - 16px))}#dots #zoom{top:auto;bottom:130px;transform:none;flex-direction:row;right:8px}#dots #zsw{width:90px;height:22px;margin:0 6px}#dots #zsw input{width:90px;transform:translate(-50%,-50%)}}
 
 #dots #udock{left:14px;bottom:calc(72px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:8px;padding:6px 10px;max-width:calc(100vw - 28px);overflow:hidden}
 #dots #udock .acct{border-left:0;padding-left:0;flex:none}
