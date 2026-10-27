@@ -47,7 +47,7 @@ function props(){
  const LIM={s:[1,999],ww:[0,5000],w:[5,5000],sw:[0,100],bw:[0,100],rd:[0,500]},nvi=(p,v,mn,mx,sc,stp,u,ph='')=>`<span class="nvw"><input type="number" class="nv" data-pn="${p}" data-mn="${mn}" data-mx="${mx}" data-sc="${sc}" step="${stp}" value="${v}" placeholder="${ph}">${u}</span>`;
  const sl=(p,lab,mn,mx,v,sc=1,u='',stp=1)=>{const L=LIM[p]||[mn,mx];return `<div class="pq"><label>${lab}${nvi(p,p==='ww'&&!v?'':Math.round(v),L[0],L[1],sc,stp,u,p==='ww'?'自動':'')}</label><input type="range" data-p="${p}" data-sc="${sc}" data-u="${u}" min="${mn}" max="${mx}" step="${stp}" value="${Math.min(mx,Math.max(mn,v))}"></div>`};
  const onlyImg=ty.size===1&&has('img'),tx=has('text')&&!has('rect','ellipse'),fo=f?(f.fo??(f.fill?.18:0)):S.d.fo;
- let h=`<div class="pgrip" title="拖曳移動面板（雙擊還原位置）"><button class="b sm pgpop" data-a="popprops" title="${PWIN&&!PWIN.closed?'收回到主視窗':'拖出為獨立視窗'}" aria-label="${PWIN&&!PWIN.closed?'收回到主視窗':'拖出為獨立視窗'}">${ic(PWIN&&!PWIN.closed?'dock':'popout')}</button></div><div class="pq full"><label>${onlyImg?'邊框顏色':'顏色'}</label><div class="sw">${[...PAL,...S.recent].map(sw).join('')}<div class="cp" title="自訂調色"><input type="color" data-col="c" value="${hex(cc)}"></div></div></div>`;
+ let h=`<div class="pgrip" title="拖曳移動面板（雙擊還原位置）"></div><div class="pq full"><label>${onlyImg?'邊框顏色':'顏色'}</label><div class="sw">${[...PAL,...S.recent].map(sw).join('')}<div class="cp" title="自訂調色"><input type="color" data-col="c" value="${hex(cc)}"></div></div></div>`;
  if(has('rect','ellipse','text'))h+=`<div class="row pq full" style="align-items:center;gap:8px"><span style="font-size:11px;color:var(--mut)">${tx?'背景色':'填色'}</span><div class="cp" title="${tx?'背景色':'填色'}"><input type="color" data-col="fc" value="${hex(gv('fc',null)||cc)}"></div><button class="b" style="width:auto;padding:0 8px;font-size:11px;height:24px" data-a="fcauto">同線色</button>${has('text')?`<button class="b${gv('gl',0)?' on':''}" style="width:auto;padding:0 8px;font-size:11px;height:24px" data-a="gl" title="液態玻璃質感">玻璃</button>`:''}</div>`;
  if(sel.length===1&&['img','rect','ellipse'].includes(f.t))h+=sl('w','尺寸（寬）',20,1600,f.w);
  if(sel.length===1)h+=`<div class="pq"><label>角度${nvi('r',Math.round(((f.r||0)%360+360)%360),0,360,1,1,'°')}</label></div>`;
@@ -93,10 +93,10 @@ $('bf').onclick=fit;
 
 // ---------- draggable properties panel (desktop)
 (function(){const P=$('props');let pos=null;try{pos=JSON.parse(localStorage.getItem('dots-props-pos'))}catch(e){}
- function place(){if(P.dataset.pop)return;if(innerWidth<=640){P.style.left=P.style.top=P.style.bottom=P.style.maxHeight=P.style.transform='';return}
+ function place(){if(innerWidth<=640){P.style.left=P.style.top=P.style.bottom=P.style.maxHeight=P.style.transform='';return}
   if(pos&&isFinite(pos.x)&&isFinite(pos.y)){const x=Math.max(0,Math.min(innerWidth-120,pos.x)),y=Math.max(0,Math.min(innerHeight-60,pos.y));P.style.left=x+'px';P.style.top=y+'px';P.style.bottom='auto';P.style.transform='none';P.style.maxHeight=Math.max(160,innerHeight-y-14)+'px'}
   else P.style.left=P.style.top=P.style.bottom=P.style.maxHeight=P.style.transform=''}
  window.__placeProps=place;addEventListener('resize',place);
- P.addEventListener('pointerdown',e=>{const g=e.target.closest('.pgrip');if(!g||e.target.closest('.pgpop')||P.dataset.pop||innerWidth<=640)return;e.preventDefault();const r=P.getBoundingClientRect(),ox=e.clientX-r.left,oy=e.clientY-r.top;try{g.setPointerCapture(e.pointerId)}catch(x){}
+ P.addEventListener('pointerdown',e=>{const g=e.target.closest('.pgrip');if(!g||innerWidth<=640)return;e.preventDefault();const r=P.getBoundingClientRect(),ox=e.clientX-r.left,oy=e.clientY-r.top;try{g.setPointerCapture(e.pointerId)}catch(x){}
   const mv=ev=>{pos={x:ev.clientX-ox,y:ev.clientY-oy};place()},up=()=>{g.removeEventListener('pointermove',mv);g.removeEventListener('pointerup',up);try{localStorage.setItem('dots-props-pos',JSON.stringify(pos))}catch(x){}};g.addEventListener('pointermove',mv);g.addEventListener('pointerup',up)});
  P.addEventListener('dblclick',e=>{if(e.target.closest('.pgrip')){pos=null;try{localStorage.removeItem('dots-props-pos')}catch(x){}place()}})})();

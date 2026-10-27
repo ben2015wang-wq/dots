@@ -140,5 +140,3 @@
 #dots #stp .btn{font-size:12px;padding:6px 10px}
 #dots #stp .sn{font-size:11px;color:var(--mut);line-height:1.5}
 @media(max-width:640px){#dots #stp{top:calc(108px + env(safe-area-inset-top,0px));right:8px;left:8px;width:auto}}
-
-#dots #props .pgrip{position:relative}#dots #props .pgpop{position:absolute;right:-6px;top:-8px;width:26px;height:26px;opacity:.7}#dots #props .pgpop:hover{opacity:1}#dots #props .pgpop svg{width:14px;height:14px}

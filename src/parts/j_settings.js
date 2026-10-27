@@ -35,25 +35,3 @@ IC.popout='M14 4h6v6M20 4l-9 9M18 14v5H5V6h5';
 $('be').insertAdjacentHTML('afterend',`<button class="b" id="bpo" title="在新視窗開啟目前頁面" aria-label="在新視窗開啟目前頁面">${ic('popout')}</button>`);
 $('bpo').onclick=()=>{if(!BID)return;const u=location.href.split('#')[0]+'#/b/'+BID+'&pg='+encodeURIComponent(S.pg);const w=window.open('','dots-'+BID+'-'+S.pg,'popup=yes,width='+Math.min(1280,screen.availWidth-80)+',height='+Math.min(820,screen.availHeight-80)+',left=60,top=60');if(w)setTimeout(()=>{try{w.location.href=u}catch(e){}},900);if(!w)toast('瀏覽器擋住了新視窗，請允許彈出視窗後再試');else toast('已在新視窗開啟，可拖到其他螢幕；兩個視窗會即時同步')};
 (function(){const m=/[#&]pg=([\w-]+)/.exec(location.hash);if(!m)return;const want=decodeURIComponent(m[1]);let n=0;const iv=setInterval(()=>{n++;if(n>120)return clearInterval(iv);if(ACT.on&&PGS.some(p=>p.id===want)){clearInterval(iv);if(S.pg!==want)gotoPg(want)}},250)})();
-// ---------- detach the properties panel into its own window ----------
-IC.dock='M4 5h16v14H4zM4 9h16';
-function popProps(){
- if(PWIN&&!PWIN.closed){PWIN.close();return}
- const w=window.open('','dots-props','popup=yes,width=420,height='+Math.min(760,screen.availHeight-100)+',left='+Math.max(0,(window.screenX||0)+60)+',top='+Math.max(0,(window.screenY||0)+80));
- if(!w){toast('瀏覽器擋住了新視窗，請允許彈出視窗後再試');return}
- const P=$('props'),home=P.parentNode,d=w.document;
- d.open();d.write('<!doctype html><html><head><meta charset="utf-8"><title>DOTS · 屬性</title><meta name="viewport" content="width=device-width,initial-scale=1"></head><body></body></html>');d.close();
- d.documentElement.dataset.wb=R.dataset.wb;d.documentElement.lang=document.documentElement.lang;
- document.querySelectorAll('head style,head link[rel=stylesheet],body style').forEach(n=>{const c=n.cloneNode(true);if(c.tagName==='STYLE')c.textContent=c.textContent.replace(/max-width:\s*640px/g,'max-width:0px');d.head.appendChild(c)});
- const st=d.createElement('style');st.textContent='html,body{margin:0;height:100%;overflow:hidden;background:var(--bg,var(--page))}#dots.pw{position:fixed;inset:0;overflow:auto}#dots.pw #props{position:static!important;left:auto!important;top:auto!important;bottom:auto!important;transform:none!important;width:auto!important;max-height:none!important;height:100%;box-sizing:border-box;border:0;border-radius:0;box-shadow:none;display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-content:start;gap:12px 18px;flex-wrap:nowrap;background:var(--page);backdrop-filter:none}#dots.pw #props .pq{display:flex;flex-direction:column}#dots.pw #props .pq.row{flex-direction:row}#dots.pw #props .full{grid-column:1/-1;flex-basis:auto}#dots.pw #props .pgrip{display:flex!important;cursor:default}#dots.pw #props[data-empty]{display:none!important}#dots.pw #pwe{display:none;position:absolute;inset:0;align-items:center;justify-content:center;text-align:center;padding:24px;color:var(--mut);font:13px/1.6 system-ui,sans-serif}#dots.pw #props[data-empty]~#pwe{display:flex}#dots.pw .pgpop{position:static}';d.head.appendChild(st);
- const wrap=d.createElement('div');wrap.id='dots';wrap.className='on pw';d.body.appendChild(wrap);
- const empty=d.createElement('div');empty.id='pwe';empty.textContent=tr('選取物件後，這裡會顯示它的屬性');
- P.dataset.pop='1';wrap.appendChild(P);wrap.appendChild(empty);PWIN=w;
- const sync=()=>{if(P.style.display==='none')P.setAttribute('data-empty','');else P.removeAttribute('data-empty')};sync();
- const mo=new MutationObserver(sync);mo.observe(P,{attributes:true,attributeFilter:['style']});
- const to=new MutationObserver(()=>{d.documentElement.dataset.wb=R.dataset.wb});to.observe(R,{attributes:true,attributeFilter:['data-wb']});
- const ty=['click','input','change','keydown','dblclick'];DREG.forEach(([t,f,o])=>{if(ty.includes(t))d.addEventListener(t,e=>{if(ACT.on)f(e)},o)});
- let back=false;const dock=()=>{if(back)return;back=true;mo.disconnect();to.disconnect();delete P.dataset.pop;P.removeAttribute('data-empty');try{home.appendChild(P)}catch(e){}PWIN=null;if(window.__placeProps)window.__placeProps();props();ovl()};
- w.addEventListener('pagehide',dock);addEventListener('pagehide',()=>{try{w.close()}catch(e){}});
- if(EN)trNode(d.body);props();toast('屬性面板已拖出為獨立視窗；再按一次面板上的按鈕即可收回')}
-
