@@ -4,7 +4,7 @@ function gotoPg(id){finishEdit();closeCmt();S.pg=id;S.sel.clear();psg='';sendPre
 function mkFrame(pg){const t=ITEM.type,sz=t==='doc'?[794,1123]:t==='slide'?[1280,720]:null;if(!sz||S.objs.has('fr-'+pg))return;put({id:'fr-'+pg,t:'frame',x:0,y:0,w:sz[0],h:sz[1],r:0,pg,l:'l1',z:-1e12,op:1})}
 function newPage(){const p={id:'p'+rid().slice(0,5),name:'頁面 '+(PGS.length+1)};PGS.push(p);DASH.patch(BID,{pages:PGS});mkFrame(p.id);pgUI();return p}
 function addPage(){const p=newPage();gotoPg(p.id)}
-function delPage(){if(PGS.length<2||RO)return;const id=S.pg;[...S.objs.values()].forEach(o=>{if((o.pg||PGS[0].id)===id)rm(o.id)});[...CM.values()].filter(c=>c.pg===id).forEach(cmDel);PGS=PGS.filter(p=>p.id!==id);DASH.patch(BID,{pages:PGS});gotoPg(PGS[0].id)}
+function delPage(){if(PGS.length<2||RO)return;const id=S.pg,pb=cl(PGS),gone=[...S.objs.values()].filter(o=>(o.pg||PGS[0].id)===id).map(o=>cl(o));gone.forEach(o=>rm(o.id));[...CM.values()].filter(c=>c.pg===id).forEach(cmDel);PGS=PGS.filter(p=>p.id!==id);DASH.patch(BID,{pages:PGS});commit([['__pages',pb,cl(PGS)]].concat(gone.map(o=>{if(o.t==='img'&&!o.src)o.src=imgSrc(o);return[o.id,o,null]})));gotoPg(PGS[0].id)}
 dAdd('click',e=>{const b=e.target.closest('[data-pg]');if(!b)return;const v=b.dataset.pg;if(v==='+')addPage();else if(v==='-')delPage();else gotoPg(v)});
 // ---------- templates
 let zc=0;const Z=()=>Date.now()+(zc++);

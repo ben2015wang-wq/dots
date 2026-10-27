@@ -23,7 +23,7 @@ function readLocal(){try{const j=JSON.parse(localStorage.getItem('dots-local-'+B
 function loadLocal(){const j=readLocal();if(!j)return false;j.objs.forEach(o=>{S.objs.set(o.id,o)});if(Array.isArray(j.layers)&&j.layers.length)S.layers=j.layers;if(Array.isArray(j.pages)&&j.pages.length)PGS=j.pages;(j.cm||[]).forEach(c=>CM.set(c.id,c));syncLayers();return true}
 // history
 function commit(ch){ch=ch.filter(c=>JSON.stringify(c[1])!==JSON.stringify(c[2]));if(!ch.length)return;hist.push(ch);if(hist.length>100)hist.shift();redo.length=0;ub()}
-function apply(ch,dir){let lay=false;ch.forEach(([id,b,a])=>{const v=dir?a:b;if(id==='__layers'){S.layers=cl(v);if(!S.layers.some(l=>l.id===S.al))S.al=S.layers[0].id;lay=true;return}if(v)put(cl(v));else rm(id)});if(lay){saveLayers()}S.objs.forEach(paint);props();ub();ovl()}
+function apply(ch,dir){let lay=false,goto=null;ch.forEach(([id,b,a])=>{const v=dir?a:b;if(id==='__pages'){const old=PGS.map(p=>p.id);PGS=cl(v);DASH.patch(BID,{pages:PGS});const nw=PGS.find(p=>!old.includes(p.id));goto=nw?nw.id:PGS.some(p=>p.id===S.pg)?null:PGS[0].id;return}if(id==='__layers'){S.layers=cl(v);if(!S.layers.some(l=>l.id===S.al))S.al=S.layers[0].id;lay=true;return}if(v)put(cl(v));else rm(id)});if(lay){saveLayers()}S.objs.forEach(paint);if(goto){PGS.forEach(p=>mkFrame(p.id));gotoPg(goto)}else pgUI();props();ub();ovl()}
 function undo(){const c=hist.pop();if(c){redo.push(c);apply(c,0)}}function rdo(){const c=redo.pop();if(c){hist.push(c);apply(c,1)}}
 function ub(){$('bu').disabled=!hist.length;$('br').disabled=!redo.length}
 $('bu').onclick=undo;$('br').onclick=rdo;

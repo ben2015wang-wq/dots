@@ -1,0 +1,15 @@
+import sys;sys.path.insert(0,'/tmp/claude-0/-home-claude/c56ee7cb-7625-56ea-a2c7-f27e432dee5c/scratchpad/tests')
+from run import *
+srv=serve(S+'/app')
+objs=lambda pg:pg.evaluate("""()=>{const d=window.__db.load();return Object.entries(d).filter(([k])=>/^b\\/[^/]+\\/objs\\//.test(k)).map(([k,v])=>v)}""")
+with sync_playwright() as p:
+    b=launch(p);ctx=b.new_context(viewport={'width':1280,'height':800});pg=newpage(ctx)
+    pg.wait_for_timeout(800);pg.locator('.card').first.dblclick();pg.wait_for_timeout(700)
+    pg.click('#pgs [data-pg="+"]');pg.wait_for_timeout(500)
+    pg.keyboard.press('r');pg.mouse.move(600,300);pg.mouse.down();pg.mouse.move(700,380,steps=4);pg.mouse.up();pg.wait_for_timeout(500)
+    pg.keyboard.press('t');pg.mouse.click(500,500);pg.keyboard.type('page two');pg.keyboard.press('Escape');pg.wait_for_timeout(500)
+    n=lambda:(pg.locator('#pgs .pgb').count(),len(objs(pg)))
+    print('before',n())
+    pg.click('#pgs [data-pg="-"]');pg.wait_for_timeout(600);print('deleted',n())
+    pg.keyboard.press('Control+z');pg.wait_for_timeout(800);print('undo',n(),pg.evaluate("document.querySelector('#pgs .on').textContent"))
+    pg.keyboard.press('Control+Shift+z');pg.wait_for_timeout(800);print('redo',n());print(pg._errs)
