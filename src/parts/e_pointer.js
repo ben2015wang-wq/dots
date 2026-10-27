@@ -120,7 +120,7 @@ function linkPrompt(){if(RO)return;
  const n=normUrl(u);if(n===null)return toast('只支援 http、https 或 mailto 連結');
  const before=os.map(cl);os.forEach(o=>{setFmt(o,'lk',n);paint(o);put(o)});commit(os.map((o,i)=>[o.id,before[i],cl(o)]));props()}
 function hitLink(x,y,ed){const q=ed?'#ta a[data-ul]':'#w [data-lk]';for(const n of document.querySelectorAll(q))for(const r of n.getClientRects())if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)return n;return null}
-let pd0=null;dAdd('pointerdown',e=>{pd0=[e.clientX,e.clientY,!!(ta._o&&!ta.hidden)];if(lkp&&!lkp.contains(e.target))lkp.style.display='none'},true);
+let pd0=null;dAddL('pointerdown',e=>{pd0=[e.clientX,e.clientY,!!(ta._o&&!ta.hidden)];if(lkp&&!lkp.contains(e.target))lkp.style.display='none'},true);
 function openLink(h){if(h&&/^(https?:|mailto:)/i.test(h))window.open(h,'_blank','noopener')}
 // link popup (like Canva): shows the address with open / edit / remove
 let lkp=null;
@@ -142,7 +142,7 @@ function lkShow(r,h,o){if(!lkp){lkp=document.createElement('div');lkp.id='lkp';l
  lkp._h=h;lkp._o=o||null;lkp.firstChild.textContent=h.length>46?h.slice(0,44)+'…':h;lkp.firstChild.title=h;lkp.style.display='flex';
  lkp.style.left=Math.max(8,Math.min(innerWidth-lkp.offsetWidth-8,r.left))+'px';lkp.style.top=(r.top-lkp.offsetHeight-8<8?r.bottom+8:r.top-lkp.offsetHeight-8)+'px'}
 function hitLink(x,y,ed){const q=ed?'#ta a[data-ul]':'#w [data-lk]';for(const n of document.querySelectorAll(q))for(const r of n.getClientRects())if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)return n;return null}
-dAdd('click',e=>{if(lkp&&lkp.contains(e.target))return;const ed=pd0?pd0[2]:!!ta._o;if(pd0&&Math.hypot(e.clientX-pd0[0],e.clientY-pd0[1])>5)return;
+dAddL('click',e=>{if(lkp&&lkp.contains(e.target))return;const ed=pd0?pd0[2]:!!ta._o;if(pd0&&Math.hypot(e.clientX-pd0[0],e.clientY-pd0[1])>5)return;
  const t=hitLink(e.clientX,e.clientY,ed);if(!t)return;const h=t.getAttribute('data-lk')||t.getAttribute('href');if(!h)return;
  if(e.ctrlKey||e.metaKey||RO||PRES){e.preventDefault();openLink(h);return}
  if(ed)return;const id=[...S.sel][0],o=id&&S.objs.get(id);lkShow(t.getBoundingClientRect(),h,o&&o.t==='text'?o:null)});
