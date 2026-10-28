@@ -1,6 +1,6 @@
 // 日常行程本 service worker: lets the app open offline and install to the home screen.
 // Only same-origin files are cached. AI requests and web fonts always go to the network.
-const V = 'planner-v1';
+const V = 'planner-v2';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
@@ -37,4 +37,13 @@ self.addEventListener('fetch', e => {
       return hit || net;
     })
   );
+});
+
+// tapping a reminder opens (or focuses) the app
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cs => {
+    for (const c of cs) if ('focus' in c) return c.focus();
+    return self.clients.openWindow('./');
+  }));
 });
