@@ -25,7 +25,7 @@ const b64 = blob => new Promise((res, rej) => { const r = new FileReader(); r.on
 /* ---------- AI (same call shape as the claude.ai `sample` capability) ---------- */
 async function sample(input, o = {}){
   const c = aiCfg();
-  if (!configured(c)) { openSettings('請先設定 AI 服務與金鑰，才能辨識圖片。'); throw { code: 'nokey', message: '尚未設定 AI 金鑰。請點右上角的齒輪設定。' }; }
+  if (!configured(c)) { openSettings('請先設定 AI 服務與金鑰，才能辨識圖片。'); throw { code: 'nokey', message: '尚未設定 AI 金鑰。請點右上角的齒輪，在「AI 辨識」設定。' }; }
   const pv = c.provider, model = c.model || AIP[pv].m;
   const imgs = [];
   for (const im of (o.images ? [].concat(o.images) : [])) imgs.push({ type: im.type || 'image/jpeg', data: await b64(im) });
@@ -88,81 +88,83 @@ sample.json = async (input, o) => {
 window.claude = { use: async n => (n === 'sample' ? sample : null) };
 try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}
 
-/* ---------- settings: AI key + backup ---------- */
-let dlg = null;
+/* ---------- files: share sheet on iPhone, download elsewhere ---------- */
+window.__plannerSave = async (name, text, mime) => {
+  const blob = new Blob([text], { type: mime });
+  const file = new File([blob], name, { type: mime });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: name }); return 'shared'; }
+    catch (e) { if (e && e.name === 'AbortError') throw { code: 'declined' }; }
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  return 'downloaded';
+};
+
+/* ---------- settings sections added to the page's 設定 dialog: AI key + backup ---------- */
 function el(html){ const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstChild; }
-function buildSettings(){
-  dlg = el(`<div class="scrim" id="setScrim" hidden>
-  <form class="mb" id="setForm" autocomplete="off">
-    <h3>設定</h3>
-    <p class="status err" id="setMsg" hidden></p>
-    <div class="fields">
-      <label class="f full">AI 服務<select class="inp" id="set-pv">${Object.entries(AIP).map(([k, v]) => `<option value="${k}">${v.n}</option>`).join('')}</select></label>
-      <label class="f full">API 金鑰<input class="inp" id="set-key" type="password" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
-      <label class="f full">模型<input class="inp" id="set-model" list="set-models" autocapitalize="off" autocorrect="off" spellcheck="false"><datalist id="set-models"></datalist></label>
-      <p class="hint full">金鑰只存在這台裝置，用來辨識課表圖片；費用由該服務向你的帳號計算。和 DOTS 共用同一份設定。</p>
+function openSettings(note){
+  if (window.__openPrefs) window.__openPrefs('prefAi', note);
+}
+function buildSettings(slot){
+  slot.appendChild(el(`<div>
+    <h4 id="prefAi">AI 辨識</h4>
+    <div class="pgroup">
+      <div class="prow"><span>AI 服務</span><select class="inp" id="set-pv">${Object.entries(AIP).map(([k, v]) => `<option value="${k}">${v.n}</option>`).join('')}</select></div>
+      <div class="prow stack"><span>API 金鑰<small>只存在這台裝置，費用由該服務向你的帳號計算。和 DOTS 共用。</small></span>
+        <input class="inp" id="set-key" type="password" autocapitalize="off" autocorrect="off" spellcheck="false" style="width:100%"></div>
+      <div class="prow stack"><span>模型</span><input class="inp" id="set-model" list="set-models" autocapitalize="off" autocorrect="off" spellcheck="false" style="width:100%"><datalist id="set-models"></datalist></div>
+      <div class="prow"><span id="set-state"></span><button type="button" class="btn" id="set-save">儲存金鑰</button></div>
     </div>
-    <div class="sh" style="padding:6px 0 0"><b>備份</b><span>資料只存在這台裝置</span></div>
-    <div class="row">
-      <button type="button" class="btn ghost" id="set-export">匯出備份</button>
-      <label class="btn ghost" for="set-import">從備份還原</label>
-      <input type="file" id="set-import" class="vh" accept="application/json,.json">
+    <h4>備份</h4>
+    <div class="pgroup">
+      <div class="prow"><span>匯出備份<small>行程與待辦存成一個 .json 檔</small></span><button type="button" class="btn ghost" id="set-export">匯出</button></div>
+      <div class="prow"><span>從備份還原<small>會合併到目前的資料</small></span><label class="btn ghost" for="set-import">選擇檔案</label><input type="file" id="set-import" class="vh" accept="application/json,.json"></div>
     </div>
-    <p class="status" id="setBackupMsg"></p>
-    <div class="actions">
-      <span class="status">日常行程本 · App 版</span>
-      <div class="r"><button type="button" class="btn ghost" id="setCancel">關閉</button><button type="submit" class="btn">儲存</button></div>
-    </div>
-  </form>
-</div>`);
-  document.body.appendChild(dlg);
-  const $ = s => dlg.querySelector(s);
+    <p class="pnote" id="setBackupMsg" hidden></p>
+  </div>`));
+  const $ = s => slot.querySelector(s);
   const fillModels = () => { const p = AIP[$('#set-pv').value]; $('#set-models').innerHTML = p.ms.map(m => `<option value="${m}">`).join(''); $('#set-key').placeholder = p.ph; $('#set-model').placeholder = p.m; };
+  const fill = () => {
+    const c = aiCfg();
+    $('#set-pv').value = AIP[c.provider] ? c.provider : 'anthropic'; fillModels();
+    $('#set-key').value = c.key || ''; $('#set-model').value = c.model || '';
+    $('#set-state').textContent = configured(c) ? '已設定 ✓' : '尚未設定';
+  };
   $('#set-pv').onchange = () => { fillModels(); $('#set-model').value = ''; };
-  $('#setCancel').onclick = closeSettings;
-  dlg.addEventListener('mousedown', e => { if (e.target === dlg) closeSettings(); });
-  $('#setForm').addEventListener('submit', e => {
-    e.preventDefault();
-    const prev = aiCfg();
-    const c = Object.assign({}, prev, { provider: $('#set-pv').value, key: $('#set-key').value.trim(), model: $('#set-model').value.trim() });
-    if (!c.key) { const m = $('#setMsg'); m.textContent = '請輸入 API 金鑰。'; m.hidden = false; return; }
-    ls.set('dots-ai', JSON.stringify(c));
-    closeSettings();
-  });
-  $('#set-export').onclick = () => {
+  $('#set-save').onclick = () => {
+    const key = $('#set-key').value.trim();
+    if (!key) { $('#set-state').textContent = '請輸入金鑰'; return; }
+    ls.set('dots-ai', JSON.stringify(Object.assign({}, aiCfg(), { provider: $('#set-pv').value, key, model: $('#set-model').value.trim() })));
+    $('#set-state').textContent = '已儲存 ✓';
+    const s = document.getElementById('importStatus'); if (s && /金鑰/.test(s.textContent)) s.textContent = '';
+  };
+  $('#set-export').onclick = async () => {
+    const msg = $('#setBackupMsg');
     const data = { app: 'daily-planner', version: 1, exportedAt: new Date().toISOString(),
       events: JSON.parse(ls.get(KEYS.events) || '[]'), todos: JSON.parse(ls.get(KEYS.todos) || '[]') };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const name = `行程備份-${new Date().toISOString().slice(0, 10)}.json`;
-    const file = new File([blob], name, { type: 'application/json' });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) { navigator.share({ files: [file], title: name }).catch(() => {}); return; }
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
-    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    try { await window.__plannerSave(`planner-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(data, null, 2), 'application/json');
+      msg.textContent = `已匯出 ${data.events.length} 筆行程、${data.todos.length} 項待辦。`; msg.className = 'pnote ok'; }
+    catch (e) { if (e && e.code === 'declined') return; msg.textContent = '匯出失敗，請再試一次。'; msg.className = 'pnote err'; }
+    msg.hidden = false;
   };
   $('#set-import').onchange = async e => {
     const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return;
-    const msg = $('#setBackupMsg');
+    const msg = $('#setBackupMsg'); msg.hidden = false;
     try {
       const d = JSON.parse(await f.text());
       if (!d || !Array.isArray(d.events) || !Array.isArray(d.todos)) throw new Error('format');
       const merge = (key, list) => { const cur = JSON.parse(ls.get(key) || '[]'); const m = new Map(cur.map(x => [x.id, x])); list.forEach(x => x && x.id && m.set(x.id, x)); ls.set(key, JSON.stringify([...m.values()])); };
       merge(KEYS.events, d.events); merge(KEYS.todos, d.todos);
-      msg.textContent = `已還原 ${d.events.length} 筆行程、${d.todos.length} 項待辦，重新載入中…`; msg.className = 'status ok';
+      msg.textContent = `已還原 ${d.events.length} 筆行程、${d.todos.length} 項待辦，重新載入中…`; msg.className = 'pnote ok';
       setTimeout(() => location.reload(), 800);
-    } catch (x) { msg.textContent = '這不是行程本的備份檔。'; msg.className = 'status err'; }
+    } catch (x) { msg.textContent = '這不是行程本的備份檔。'; msg.className = 'pnote err'; }
   };
-  fillModels();
+  fill();
+  document.getElementById('prefBtn')?.addEventListener('click', fill);
+  return fill;
 }
-function openSettings(note){
-  if (!dlg) buildSettings();
-  const c = aiCfg(), $ = s => dlg.querySelector(s);
-  $('#set-pv').value = AIP[c.provider] ? c.provider : 'anthropic';
-  $('#set-pv').onchange(); $('#set-key').value = c.key || ''; $('#set-model').value = c.model || '';
-  const m = $('#setMsg'); m.textContent = note || ''; m.hidden = !note;
-  $('#setBackupMsg').textContent = '';
-  dlg.hidden = false;
-}
-function closeSettings(){ if (dlg) dlg.hidden = true; }
 
 /* ---------- install hint (iOS Safari) + offline ---------- */
 function installHint(){
@@ -177,23 +179,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const st = document.createElement('style');
   st.textContent = `.installhint{position:fixed;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:60;display:flex;gap:10px;align-items:center;background:var(--pop);border:1px solid var(--bd2);border-radius:14px;padding:12px 10px 12px 14px;box-shadow:0 12px 40px rgba(0,0,0,.35);font-size:13px}
 .installhint span{flex:1;min-width:0}.installhint b{font-weight:600}.installhint svg.i{width:15px;height:15px;vertical-align:-2px;color:var(--ac)}
-.installhint~.fab{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
-.hint.full{grid-column:1/-1}`;
+.installhint~.fab{bottom:calc(84px + env(safe-area-inset-bottom,0px))}`;
   document.head.appendChild(st);
-  const bar = document.querySelector('header.bar');
-  if (bar) {
-    const g = el(`<button class="ib" id="setBtn" aria-label="設定" title="設定"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg></button>`);
-    g.onclick = () => openSettings();
-    bar.appendChild(g);
-  }
+  const slot = document.getElementById('prefApp');
+  if (slot) buildSettings(slot);
   const sync = document.querySelector('#sync span');
   if (sync) sync.textContent = '存在這台裝置';
   installHint();
   if (!configured(aiCfg())) {
     const s = document.getElementById('importStatus');
-    if (s && !s.textContent) s.textContent = '第一次使用請先點右上角齒輪，設定 AI 金鑰。';
+    if (s && !s.textContent) s.textContent = '第一次使用請先點右上角齒輪，在「AI 辨識」設定金鑰。';
   }
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSettings(); });
 });
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));

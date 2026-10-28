@@ -144,6 +144,30 @@ header.bar .c{color:var(--mu);font-size:13px}
 .compact .tp{padding:2px 3px;gap:3px;border-radius:5px}
 .compact .tp .tl{font-size:9.5px}
 .compact .tp .ck{width:11px;height:11px}
+.prefs{width:min(560px,100%)}
+.prefs h4{margin:14px 0 0;font-size:12px;font-weight:500;color:var(--mu);letter-spacing:.02em}
+.prefs h4:first-of-type{margin-top:4px}
+.pgroup{border:1px solid var(--bd);border-radius:12px;background:var(--card)}
+.prow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-top:1px solid var(--bd);min-height:46px}
+.prow:first-child{border-top:0}
+.prow>span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.prow small{color:var(--mu);font-size:11.5px}
+.prow select.inp,.prow input.inp{width:auto;min-width:0;flex:none}
+.prow .pair{display:flex;align-items:center;gap:6px;flex:none}
+.prow.stack{flex-direction:column;align-items:stretch}
+.sw{appearance:none;-webkit-appearance:none;width:42px;height:25px;border-radius:13px;background:var(--bd2);position:relative;cursor:pointer;flex:none;transition:background .15s;margin:0}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:19px;height:19px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .15s}
+.sw:checked{background:var(--brand)}
+.sw:checked::after{transform:translateX(17px)}
+.pnote{font-size:11.5px;color:var(--mu);margin:6px 2px 0}
+.pnote.err{color:var(--dang)}
+.pnote.ok{color:var(--brand)}
+.alerts{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:90;display:flex;flex-direction:column;gap:8px;width:min(420px,calc(100% - 24px))}
+.alert{display:flex;gap:10px;align-items:flex-start;background:var(--pop);border:1px solid var(--bd2);border-radius:14px;padding:12px 10px 12px 14px;box-shadow:0 14px 40px rgba(0,0,0,.35)}
+.alert .dot{width:9px;height:9px;border-radius:50%;background:var(--brand);margin-top:5px;flex:none}
+.alert div{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.alert b{font-weight:600}
+.alert span{color:var(--mu);font-size:12px}
 .menu{position:fixed;z-index:80;background:var(--pop);border:1px solid var(--bd2);border-radius:12px;padding:4px;min-width:150px;box-shadow:0 16px 40px rgba(0,0,0,.35);display:flex;flex-direction:column}
 .mi{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;border:0;background:none;text-align:left;color:var(--tx)}
 .mi:hover{background:var(--hv)}
@@ -285,6 +309,8 @@ li.done .tt span{text-decoration:line-through;color:var(--mu)}
   <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/></symbol>
   <symbol id="i-auto" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17a8.5 8.5 0 000-17z" fill="currentColor"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 003.4 0"/></symbol>
   <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></symbol>
 </svg>
 
@@ -300,6 +326,7 @@ li.done .tt span{text-decoration:line-through;color:var(--mu)}
         <button class="ib" id="next" aria-label="下一週"><svg class="i"><use href="#i-r"/></svg></button>
       </div>
       <button class="ib" id="themeBtn" aria-label="外觀" title="外觀" aria-haspopup="menu"><svg class="i"><use href="#i-auto"/></svg></button>
+      <button class="ib" id="prefBtn" aria-label="設定" title="設定"><svg class="i"><use href="#i-gear"/></svg></button>
       <button class="chip" id="todayBtn">本週</button>
       <button class="chip mshow" id="todoJump">待辦</button>
       <label class="btn ghost" for="file" id="importTop"><svg class="i"><use href="#i-img"/></svg>匯入課表</label>
@@ -376,6 +403,61 @@ li.done .tt span{text-decoration:line-through;color:var(--mu)}
     </div>
   </aside>
 </div>
+
+<div class="scrim" id="prefScrim" hidden>
+  <div class="mb prefs" role="dialog" aria-labelledby="prefTitle">
+    <h3 id="prefTitle">設定</h3>
+    <p class="pnote err" id="prefNote" hidden></p>
+
+    <h4>外觀</h4>
+    <div class="pgroup">
+      <div class="prow"><span>主題</span>
+        <div class="tg" role="group" aria-label="主題" id="p-look">
+          <button type="button" data-v="system">跟隨系統</button><button type="button" data-v="light">淺色</button><button type="button" data-v="dark">深色</button>
+        </div></div>
+    </div>
+
+    <h4>行程表</h4>
+    <div class="pgroup">
+      <div class="prow"><span>每週第一天</span>
+        <select class="inp" id="p-weekStart"><option value="1">星期一</option><option value="7">星期日</option></select></div>
+      <div class="prow"><span>顯示時段<small>有行程超出範圍時會自動延伸</small></span>
+        <div class="pair"><select class="inp" id="p-dayStart"></select><span>–</span><select class="inp" id="p-dayEnd"></select></div></div>
+      <div class="prow"><span>手機預設檢視</span>
+        <div class="tg" role="group" aria-label="手機預設檢視" id="p-view"><button type="button" data-v="day">日</button><button type="button" data-v="week">週</button></div></div>
+      <div class="prow"><span>新行程預設長度</span>
+        <select class="inp" id="p-defLen"><option value="30">30 分鐘</option><option value="50">50 分鐘</option><option value="60">1 小時</option><option value="90">1.5 小時</option><option value="120">2 小時</option></select></div>
+      <div class="prow"><span>匯入課表的重複週數<small>每週行程預設持續多久</small></span>
+        <select class="inp" id="p-weeks"><option value="8">8 週</option><option value="12">12 週</option><option value="16">16 週</option><option value="18">18 週</option><option value="20">20 週</option><option value="26">26 週</option></select></div>
+    </div>
+
+    <h4 id="p-notifyHead">通知</h4>
+    <div class="pgroup">
+      <div class="prow"><span>行程與待辦提醒<small id="p-notifyState"></small></span>
+        <input type="checkbox" class="sw" id="p-notify" aria-label="開啟提醒"></div>
+      <div class="prow"><span>行程開始前</span>
+        <select class="inp" id="p-lead"><option value="0">準時</option><option value="5">5 分鐘</option><option value="10">10 分鐘</option><option value="15">15 分鐘</option><option value="30">30 分鐘</option><option value="60">1 小時</option></select></div>
+      <div class="prow"><span>待辦當天提醒時間<small>沒有設定時間的待辦</small></span>
+        <input type="time" class="inp" id="p-todoTime" step="300"></div>
+      <div class="prow"><span>測試</span><button type="button" class="btn ghost" id="p-test"><svg class="i"><use href="#i-bell"/></svg>傳送測試通知</button></div>
+      <div class="prow stack"><span>App 關閉時也要提醒<small>匯出到 iPhone「行事曆」，由行事曆準時通知（含每週重複與上面的提前時間）。之後修改行程需要重新匯出。</small></span>
+        <div class="row"><button type="button" class="btn ghost" id="p-ics">匯出到行事曆（.ics）</button></div></div>
+    </div>
+    <p class="pnote" id="p-icsNote" hidden></p>
+
+    <div id="prefApp"></div>
+
+    <h4>資料</h4>
+    <div class="pgroup">
+      <div class="prow"><span>儲存位置<small id="p-where"></small></span></div>
+      <div class="prow"><span>清除所有行程與待辦<small>無法復原</small></span><button type="button" class="btn danger" id="p-wipe">清除</button></div>
+    </div>
+
+    <div class="actions"><span class="status">設定只存在這台裝置</span><div class="r"><button type="button" class="btn" id="prefClose">完成</button></div></div>
+  </div>
+</div>
+
+<div class="alerts" id="alerts" aria-live="polite"></div>
 
 <div class="menu" id="themeMenu" role="menu" hidden>
   <button class="mi" role="menuitemradio" data-look="system"><svg class="i"><use href="#i-auto"/></svg>跟隨系統<svg class="i ok"><use href="#i-check"/></svg></button>
@@ -476,12 +558,18 @@ const validTime = t => /^([01]\d|2[0-3]):[0-5]\d$/.test(t);
 const validDate = s => /^\d{4}-\d{2}-\d{2}$/.test(s || '');
 const colorFor = title => { let h = 0; for (const ch of String(title)) h = (h*31 + ch.codePointAt(0)) >>> 0; return 'c' + (h % 6); };
 let HOUR = 52;
+const PREF_KEY = 'planner.prefs';
+const S = Object.assign({ weekStart: 1, dayStart: 7, dayEnd: 22, defLen: 60, weeks: 18, notify: false, lead: 10, todoTime: '09:00' },
+  (() => { try { return JSON.parse(localStorage.getItem(PREF_KEY) || '{}') || {}; } catch { return {}; } })());
+function savePrefs(){ try { localStorage.setItem(PREF_KEY, JSON.stringify(S)); } catch {} }
+const weekStartOf = d => addDays(startOfDay(d), -((d.getDay() - (S.weekStart === 7 ? 0 : 1) + 7) % 7));
+const dayIndex = (ws, d) => Math.round((startOfDay(d) - ws) / 864e5);
 
 /* ---------- state ---------- */
 let events = new Map();
 let todos = new Map();
-let weekStart = mondayOf(new Date());
-let selDay = isoDow(new Date()) - 1;
+let weekStart = weekStartOf(new Date());
+let selDay = dayIndex(weekStart, new Date());
 let narrow = false;
 let view = (() => { try { return localStorage.getItem('planner.view') || 'day'; } catch { return 'day'; } })();
 let col = null; // db collection when signed in
@@ -655,7 +743,7 @@ function render(){
   $('#weekNo').textContent = `${weekStart.getFullYear()} 年 ${weekStart.getMonth()+1} 月`;
 
   // day tabs (phone)
-  $('#daytabs').innerHTML = days.map((d,i) => `<button type="button" data-i="${i}" aria-pressed="${i===selDay}">週${WD[i]}<b>${d.getDate()}</b></button>`).join('');
+  $('#daytabs').innerHTML = days.map((d,i) => `<button type="button" data-i="${i}" aria-pressed="${i===selDay}">週${WD[isoDow(d)-1]}<b>${d.getDate()}</b></button>`).join('');
 
   const dayMode = narrow && view === 'day', compact = narrow && !dayMode;
   const board = $('#board'); board.classList.toggle('dayview', dayMode); board.classList.toggle('compact', compact);
@@ -663,14 +751,14 @@ function render(){
   HOUR = compact ? 38 : 52;
   const shown = dayMode ? [days[selDay]] : days;
   const per = shown.map(d => real ? eventsOn(d) : demoOn(d));
-  let minH = 7, maxH = 22;
+  let minH = Math.min(S.dayStart, S.dayEnd - 1), maxH = Math.max(S.dayEnd, minH + 1);
   per.flat().forEach(e => { minH = Math.min(minH, Math.floor(toMin(e.start)/60)); maxH = Math.max(maxH, Math.ceil(toMin(e.end)/60)); });
   maxH = Math.min(maxH, 24);
   const H = (maxH - minH) * HOUR;
   const cols = `${compact ? 30 : 52}px repeat(${shown.length}, minmax(0,1fr))`;
 
   const dh = $('#dayhead'); dh.style.gridTemplateColumns = cols;
-  dh.innerHTML = '<div></div>' + shown.map(d => `<div class="${+d===+today?'today':''}" data-i="${isoDow(d)-1}">${compact ? '' : '週'}${WD[isoDow(d)-1]}<b>${d.getDate()}</b></div>`).join('');
+  dh.innerHTML = '<div></div>' + shown.map(d => `<div class="${+d===+today?'today':''}" data-i="${dayIndex(weekStart, d)}">${compact ? '' : '週'}${WD[isoDow(d)-1]}<b>${d.getDate()}</b></div>`).join('');
 
   const dr = $('#duerow'); dr.style.gridTemplateColumns = cols;
   const dueBy = shown.map(d => todosOn(ymd(d)));
@@ -742,7 +830,7 @@ function setKind(k){
 function setColor(c){ formColor = c; document.querySelectorAll('#f-color button').forEach(b => b.setAttribute('aria-pressed', b.dataset.c === c)); }
 function openEditor(ev, preset){
   editing = ev || null; delArmed = false;
-  const e = ev || { title:'', kind:'once', date: ymd(new Date()), weekday: isoDow(new Date()), start:'09:00', end:'10:00', location:'', note:'', color:null, ...preset };
+  const e = ev || { title:'', kind:'once', date: ymd(new Date()), weekday: isoDow(new Date()), start:'09:00', end: fmtMin(9*60 + S.defLen), location:'', note:'', color:null, ...preset };
   $('#evTitle').textContent = ev ? '編輯行程' : '新增行程';
   $('#f-title').value = e.title; $('#f-date').value = e.date || ymd(new Date()); $('#f-wd').value = e.weekday || isoDow(parseYmd(e.date || ymd(new Date())));
   $('#f-start').value = e.start; $('#f-end').value = e.end; $('#f-loc').value = e.location || ''; $('#f-note').value = e.note || '';
@@ -782,7 +870,7 @@ $('#grid').addEventListener('click', e => {
   const minH = +$('#grid').dataset.minh, y = e.clientY - c.getBoundingClientRect().top;
   const m = Math.floor((minH*60 + y / HOUR * 60) / 30) * 30;
   const dt = parseYmd(c.dataset.date);
-  openEditor(null, { date: c.dataset.date, weekday: isoDow(dt), start: fmtMin(m), end: fmtMin(Math.min(m+60, 23*60+55)) });
+  openEditor(null, { date: c.dataset.date, weekday: isoDow(dt), start: fmtMin(m), end: fmtMin(Math.min(m+S.defLen, 23*60+55)) });
 });
 document.addEventListener('click', e => {
   const ck = e.target.closest('[data-tid]'); if (ck) { toggleTodo(ck.dataset.tid); return; }
@@ -853,12 +941,12 @@ addEventListener('resize', () => { menu.hidden = true; });
 $('#daytabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { selDay = +b.dataset.i; render(); } });
 $('#prev').onclick = () => { weekStart = addDays(weekStart, -7); render(); };
 $('#next').onclick = () => { weekStart = addDays(weekStart, 7); render(); };
-$('#todayBtn').onclick = () => { weekStart = mondayOf(new Date()); selDay = isoDow(new Date())-1; render(); };
+$('#todayBtn').onclick = () => { weekStart = weekStartOf(new Date()); selDay = dayIndex(weekStart, new Date()); render(); };
 $('#addBtn').onclick = $('#fab').onclick = () => openEditor(null, narrow ? { date: ymd(addDays(weekStart, selDay)) } : {});
 const mq = matchMedia('(max-width:800px)');
 const applyMq = () => { narrow = mq.matches; $('#board').classList.toggle('narrow', narrow); render(); };
 mq.addEventListener('change', applyMq);
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { menu.hidden = true; if (!$('#evScrim').hidden) closeEditor(); else if (!$('#tdScrim').hidden) closeTodo(); else if (!$('#impScrim').hidden) $('#impScrim').hidden = true; } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { menu.hidden = true; if (!P('prefScrim').hidden) { closePrefs(); return; } if (!$('#evScrim').hidden) closeEditor(); else if (!$('#tdScrim').hidden) closeTodo(); else if (!$('#impScrim').hidden) $('#impScrim').hidden = true; } });
 
 /* ---------- import (AI) ---------- */
 let sample = null, imgLimits = null, images = [], abort = null, proposals = [];
@@ -985,7 +1073,7 @@ function openReview(summary){
   const hasWeekly = proposals.some(p => p.kind === 'weekly');
   $('#impRange').hidden = !hasWeekly;
   $('#imp-from').value = ymd(mondayOf(new Date()));
-  $('#imp-until').value = ymd(addDays(mondayOf(new Date()), 18*7 - 1));
+  $('#imp-until').value = ymd(addDays(mondayOf(new Date()), S.weeks*7 - 1));
   renderReview();
   $('#impScrim').hidden = false;
 }
@@ -1046,14 +1134,180 @@ $('#impAdd').onclick = async () => {
   saveLocal();
   $('#impScrim').hidden = true;
   images.forEach(i => URL.revokeObjectURL(i.url)); images = []; renderThumbs(); $('#importText').value = '';
-  if (!chosen.some(p => p.kind === 'weekly') && firstDate) weekStart = mondayOf(parseYmd(firstDate));
-  else if (from && parseYmd(from) > addDays(weekStart, 6)) weekStart = mondayOf(parseYmd(from));
+  if (!chosen.some(p => p.kind === 'weekly') && firstDate) weekStart = weekStartOf(parseYmd(firstDate));
+  else if (from && parseYmd(from) > addDays(weekStart, 6)) weekStart = weekStartOf(parseYmd(from));
   render();
   const nEv = chosen.length - nTodo;
   setStatus(nTodo ? `已加入 ${nEv} 筆行程、${nTodo} 項待辦。` : `已加入 ${nEv} 筆行程。`, 'ok');
 };
 
 function showToast(msg){ setStatus(msg, true); }
+
+/* ---------- settings dialog ---------- */
+const P = id => document.getElementById(id);
+for (let h = 0; h <= 23; h++) P('p-dayStart').insertAdjacentHTML('beforeend', `<option value="${h}">${pad(h)}:00</option>`);
+for (let h = 1; h <= 24; h++) P('p-dayEnd').insertAdjacentHTML('beforeend', `<option value="${h}">${pad(h)}:00</option>`);
+const setTg = (id, v) => P(id).querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v));
+function notifySupport(){
+  if (!('Notification' in window)) {
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    return ios && !navigator.standalone ? 'iPhone 要先把 App 加入主畫面，才能收到系統通知。' : '這裡不支援系統通知，App 開著時會在畫面上方提醒。';
+  }
+  if (Notification.permission === 'granted') return '';
+  if (Notification.permission === 'denied') return '系統通知被拒絕，App 開著時會在畫面上方提醒。可到 iPhone「設定 › 通知」開啟。';
+  return null; // can still ask
+}
+function notifyStateText(){
+  if (!S.notify) return 'App 開著時，時間到會提醒你';
+  const why = notifySupport();
+  return why === '' ? '已開啟 · App 開著時跳出系統通知' : why === null ? '尚未允許系統通知' : why;
+}
+function fillPrefs(){
+  setTg('p-look', look);
+  P('p-weekStart').value = String(S.weekStart);
+  P('p-dayStart').value = String(S.dayStart); P('p-dayEnd').value = String(S.dayEnd);
+  setTg('p-view', view);
+  P('p-defLen').value = String(S.defLen); P('p-weeks').value = String(S.weeks);
+  P('p-notify').checked = !!S.notify; P('p-lead').value = String(S.lead); P('p-todoTime').value = S.todoTime || '';
+  P('p-notifyState').textContent = notifyStateText();
+  P('p-where').textContent = col ? '你的 Claude 帳號（僅你可見）' : '這台裝置';
+  P('p-wipe').textContent = '清除'; wipeArmed = false;
+}
+let wipeArmed = false;
+function openPrefs(section, note){
+  fillPrefs();
+  const n = P('prefNote'); n.textContent = note || ''; n.hidden = !note;
+  P('prefScrim').hidden = false;
+  if (section) setTimeout(() => P(section)?.scrollIntoView({ block: 'start', behavior: 'smooth' }), 50);
+}
+window.__openPrefs = openPrefs;
+const closePrefs = () => { P('prefScrim').hidden = true; };
+P('prefBtn').onclick = () => openPrefs();
+P('prefClose').onclick = closePrefs;
+P('prefScrim').addEventListener('mousedown', e => { if (e.target.id === 'prefScrim') closePrefs(); });
+P('p-look').onclick = e => { const b = e.target.closest('button'); if (!b) return; look = b.dataset.v; try { localStorage.setItem('planner.look', look); } catch {} applyLook(look); setTg('p-look', look); };
+P('p-view').onclick = e => { const b = e.target.closest('button'); if (!b) return; setView(b.dataset.v); setTg('p-view', view); };
+P('p-weekStart').onchange = e => { S.weekStart = +e.target.value; savePrefs(); const ref = addDays(weekStart, selDay); weekStart = weekStartOf(ref); selDay = dayIndex(weekStart, ref); render(); };
+P('p-dayStart').onchange = e => { S.dayStart = +e.target.value; if (S.dayEnd <= S.dayStart) { S.dayEnd = S.dayStart + 1; P('p-dayEnd').value = String(S.dayEnd); } savePrefs(); render(); };
+P('p-dayEnd').onchange = e => { S.dayEnd = +e.target.value; if (S.dayEnd <= S.dayStart) { S.dayStart = S.dayEnd - 1; P('p-dayStart').value = String(S.dayStart); } savePrefs(); render(); };
+P('p-defLen').onchange = e => { S.defLen = +e.target.value; savePrefs(); };
+P('p-weeks').onchange = e => { S.weeks = +e.target.value; savePrefs(); };
+P('p-lead').onchange = e => { S.lead = +e.target.value; savePrefs(); };
+P('p-todoTime').onchange = e => { S.todoTime = e.target.value || ''; savePrefs(); };
+P('p-notify').onchange = async e => {
+  S.notify = e.target.checked; savePrefs();
+  if (S.notify && 'Notification' in window && Notification.permission === 'default') {
+    try { await Notification.requestPermission(); } catch {}
+  }
+  P('p-notifyState').textContent = notifyStateText();
+  checkAlerts();
+};
+P('p-test').onclick = async () => {
+  if ('Notification' in window && Notification.permission === 'default') { try { await Notification.requestPermission(); } catch {} P('p-notifyState').textContent = notifyStateText(); }
+  fireAlert({ key: 'test', title: '測試通知', body: S.notify ? `行程開始前 ${S.lead} 分鐘會這樣提醒你` : '提醒目前是關閉的，打開上面的開關才會在時間到時提醒' });
+};
+P('p-wipe').onclick = () => {
+  if (!wipeArmed) { wipeArmed = true; P('p-wipe').textContent = `確定清除 ${events.size} 筆行程、${todos.size} 項待辦？`; return; }
+  for (const id of [...events.keys()]) removeEv(id);
+  for (const id of [...todos.keys()]) removeTodo(id);
+  wipeArmed = false; P('p-wipe').textContent = '已清除';
+};
+
+/* ---------- reminders ---------- */
+const FIRED_KEY = 'planner.fired';
+let fired = (() => { try { return JSON.parse(localStorage.getItem(FIRED_KEY) || '{}') || {}; } catch { return {}; } })();
+function dueAlerts(now){
+  const out = [], lead = S.lead || 0;
+  for (let i = 0; i < 2; i++) {
+    const d = addDays(startOfDay(now), i), ds = ymd(d);
+    for (const e of eventsOn(d)) out.push({ key: `e:${e.id}:${ds}`, at: +d + (toMin(e.start) - lead) * 60000, title: e.title,
+      body: `${lead ? lead + ' 分鐘後開始' : '現在開始'} · ${e.start}–${e.end}${e.location ? ' · ' + e.location : ''}` });
+    for (const t of todos.values()) {
+      if (t.done || t.date !== ds) continue;
+      if (t.time) out.push({ key: `t:${t.id}:${ds}`, at: +d + (toMin(t.time) - lead) * 60000, title: '待辦：' + t.title, body: `${t.time} 截止` });
+      else if (S.todoTime) out.push({ key: `t:${t.id}:${ds}`, at: +d + toMin(S.todoTime) * 60000, title: '待辦：' + t.title, body: '今天截止' });
+    }
+  }
+  return out;
+}
+async function sysNotify(a){
+  if (!('Notification' in window) || Notification.permission !== 'granted') return false;
+  const opts = { body: a.body, tag: a.key, icon: 'icons/icon-192.png' };
+  try { const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration(); if (reg) { await reg.showNotification(a.title, opts); return true; } } catch {}
+  try { new Notification(a.title, opts); return true; } catch { return false; }
+}
+function fireAlert(a){
+  sysNotify(a);
+  const box = P('alerts');
+  const el = document.createElement('div'); el.className = 'alert'; el.setAttribute('role', 'status');
+  el.innerHTML = `<i class="dot"></i><div><b>${esc(a.title)}</b><span>${esc(a.body)}</span></div><button type="button" class="ib" aria-label="關閉"><svg class="i"><use href="#i-x"/></svg></button>`;
+  el.querySelector('button').onclick = () => el.remove();
+  box.prepend(el); setTimeout(() => el.remove(), 20000);
+}
+function checkAlerts(){
+  if (!S.notify) return;
+  const now = Date.now(); let changed = false;
+  for (const a of dueAlerts(new Date())) {
+    if (a.at <= now && a.at > now - 5 * 60000 && !fired[a.key]) { fired[a.key] = now; changed = true; fireAlert(a); }
+  }
+  for (const k in fired) if (fired[k] < now - 3 * 864e5) { delete fired[k]; changed = true; }
+  if (changed) try { localStorage.setItem(FIRED_KEY, JSON.stringify(fired)); } catch {}
+}
+setInterval(checkAlerts, 20000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkAlerts(); });
+
+/* ---------- calendar export (.ics) ---------- */
+const icsText = v => String(v || '').replace(/\\/g, '\\\\').replace(/;/g, '\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+const icsDT = (ds, t) => ds.replace(/-/g, '') + 'T' + t.replace(':', '') + '00';
+function buildIcs(){
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  const lead = S.lead || 0, L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Daily Planner//ZH-TW', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:日常行程本'];
+  const alarm = trig => ['BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:提醒', 'TRIGGER:' + trig, 'END:VALARM'];
+  let n = 0;
+  for (const e of events.values()) {
+    let ds;
+    if (e.kind === 'weekly') {
+      const base = e.from ? parseYmd(e.from) : weekStartOf(new Date());
+      ds = ymd(addDays(base, (e.weekday - isoDow(base) + 7) % 7));
+      if (e.until && ds > e.until) continue;
+    } else ds = e.date;
+    if (!validDate(ds)) continue;
+    L.push('BEGIN:VEVENT', `UID:${e.id}@daily-planner`, 'DTSTAMP:' + stamp, 'DTSTART:' + icsDT(ds, e.start), 'DTEND:' + icsDT(ds, e.end), 'SUMMARY:' + icsText(e.title));
+    if (e.location) L.push('LOCATION:' + icsText(e.location));
+    if (e.note) L.push('DESCRIPTION:' + icsText(e.note));
+    if (e.kind === 'weekly') L.push('RRULE:FREQ=WEEKLY' + (e.until ? ';UNTIL=' + e.until.replace(/-/g, '') + 'T235959' : ''));
+    L.push(...alarm(lead ? `-PT${lead}M` : 'PT0M'), 'END:VEVENT'); n++;
+  }
+  for (const t of todos.values()) {
+    if (t.done || !validDate(t.date)) continue;
+    L.push('BEGIN:VEVENT', `UID:${t.id}@daily-planner`, 'DTSTAMP:' + stamp, 'SUMMARY:' + icsText('待辦：' + t.title));
+    if (t.time) L.push('DTSTART:' + icsDT(t.date, t.time), 'DURATION:PT15M', ...alarm(lead ? `-PT${lead}M` : 'PT0M'));
+    else {
+      L.push('DTSTART;VALUE=DATE:' + t.date.replace(/-/g, ''), 'DTEND;VALUE=DATE:' + ymd(addDays(parseYmd(t.date), 1)).replace(/-/g, ''));
+      if (S.todoTime) { const m = toMin(S.todoTime); L.push(...alarm(`PT${Math.floor(m / 60)}H${m % 60}M`)); }
+    }
+    if (t.note) L.push('DESCRIPTION:' + icsText(t.note));
+    L.push('END:VEVENT'); n++;
+  }
+  L.push('END:VCALENDAR');
+  return { text: L.join('\r\n') + '\r\n', n };
+}
+async function saveFile(name, text, mime){
+  if (window.__plannerSave) return window.__plannerSave(name, text, mime);
+  const dl = window.claude?.use ? await claude.use('downloads') : null;
+  if (dl) { await dl.save({ filename: name, data: new Blob([text], { type: mime }) }); return 'saved'; }
+  throw { message: '這個檢視無法下載檔案' };
+}
+P('p-ics').onclick = async () => {
+  const note = P('p-icsNote'); const { text, n } = buildIcs();
+  if (!n) { note.textContent = '目前沒有可以匯出的行程或有期限的待辦。'; note.className = 'pnote err'; note.hidden = false; return; }
+  try {
+    await saveFile('daily-planner.ics', text, 'text/calendar');
+    note.textContent = `已匯出 ${n} 筆。在 iPhone 上打開這個 .ics 檔（例如從「檔案」App），點「加入全部」即可加入行事曆。`;
+    note.className = 'pnote ok';
+  } catch (x) { if (x?.code === 'declined' || x?.name === 'AbortError') return; note.textContent = '匯出失敗：' + (x?.message || '請再試一次'); note.className = 'pnote err'; }
+  note.hidden = false;
+};
 
 async function initSample(){
   if (!window.claude?.use) { drop.hidden = true; $('#importTop').hidden = true; $('#textDetails').open = true; setStatus('請在 claude.ai 開啟此頁面以使用 AI 辨識；手動新增行程仍可使用。'); return; }
@@ -1073,5 +1327,6 @@ applyMq();
 setInterval(render, 60000);
 initCloud();
 initSample();
+checkAlerts();
 })();
 </script>
