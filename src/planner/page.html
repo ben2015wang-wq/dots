@@ -2,53 +2,73 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;800&family=Noto+Sans+TC:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap">
 <style>
 /* DOTS design language: dark-first neutrals, hairline rgba borders, white primary buttons, green brand dot.
    Layout: left side panel (brand, today, import) + main week board; ≤800px stacks to one column. */
+/* Frame: 02「浮起卡片」— soft grey ground, large white cards with deep soft shadows, dark date badge.
+   Event blocks: 15「黑帶」block without the number — tinted (有色) or grey (無色). */
 :root{
-  --bg:#0e0e10; --side:#121214; --card:#1a1a1d; --pop:#212124;
-  --bd:rgba(255,255,255,.07); --bd2:rgba(255,255,255,.15);
-  --tx:#ececee; --mu:#8a8a93; --ac:#8197ff; --hv:rgba(255,255,255,.055); --sel:rgba(255,255,255,.08);
-  --dang:#ff8080; --brand:#22c55e;
-  --e0:#8197ff; --e1:#22c55e; --e2:#f472b6; --e3:#f5c542; --e4:#60a5fa; --e5:#ff8a8a;
-  --tint:16%;
-  --f-ui:Inter,-apple-system,"SF Pro Text","PingFang TC","Noto Sans TC","Segoe UI",sans-serif;
+  --bg:#E9ECF1; --side:transparent; --card:#FFFFFF; --pop:#FFFFFF;
+  --bd:#EEF0F4; --bd2:#DDE1E8; --grid:#E3E6EC;
+  --tx:#18202E; --mu:#5A6273; --sub:#3F4654; --ac:#2F5FB3; --hv:rgba(24,32,46,.05); --sel:rgba(24,32,46,.08);
+  --dang:#C93A33; --brand:#2E7D52; --on-ink:#FFFFFF;
+  --e0:#2F5FB3; --e1:#2E7D52; --e2:#C2387A; --e3:#A65A24; --e4:#C93A33; --e5:#6B4FB3;
+  --tint:10%;
+  --mono-bg:#F2F2F2; --mono-ink:#121212; --mono-sub:#4A4A4A;
+  --sh-l:0 30px 60px -24px rgba(24,32,46,.28),0 2px 6px rgba(24,32,46,.06);
+  --sh-s:0 18px 36px -22px rgba(24,32,46,.24),0 1px 3px rgba(24,32,46,.05);
+  color-scheme:light;
+  --f-ui:"Noto Sans TC","PingFang TC",-apple-system,"Microsoft JhengHei",sans-serif;
   --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
-  color-scheme:dark;
 }
-@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
-  --bg:#f6f6f4; --side:#ffffff; --card:#ffffff; --pop:#ffffff;
-  --bd:rgba(0,0,0,.08); --bd2:rgba(0,0,0,.17);
-  --tx:#1b1b1d; --mu:#6e6e76; --ac:#3b6cf6; --hv:rgba(0,0,0,.05); --sel:rgba(0,0,0,.07);
-  --dang:#d63a3a; --brand:#16a34a;
-  --e0:#3b6cf6; --e1:#16a34a; --e2:#db2777; --e3:#b45309; --e4:#0284c7; --e5:#dc2626;
-  --tint:12%; color-scheme:light;
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1117; --side:transparent; --card:#181C24; --pop:#1F242E;
+  --bd:rgba(255,255,255,.07); --bd2:rgba(255,255,255,.14); --grid:rgba(255,255,255,.09);
+  --tx:#E8EBF1; --mu:#98A1B1; --sub:#B4BBC8; --ac:#8DB0F0; --hv:rgba(255,255,255,.05); --sel:rgba(255,255,255,.08);
+  --dang:#F08A82; --brand:#4CC38A; --on-ink:#0E1117;
+  --e0:#8DB0F0; --e1:#6FCF9C; --e2:#EC8DBB; --e3:#D9A06B; --e4:#F08A82; --e5:#A99AE8;
+  --tint:20%;
+  --mono-bg:#262A33; --mono-ink:#E8EBF1; --mono-sub:#A9B0BD;
+  --sh-l:0 30px 60px -24px rgba(0,0,0,.65),0 2px 6px rgba(0,0,0,.3);
+  --sh-s:0 18px 36px -22px rgba(0,0,0,.6),0 1px 3px rgba(0,0,0,.25);
+  color-scheme:dark;
 }}
-:root[data-theme="light"]{
-  --bg:#f6f6f4; --side:#ffffff; --card:#ffffff; --pop:#ffffff;
-  --bd:rgba(0,0,0,.08); --bd2:rgba(0,0,0,.17);
-  --tx:#1b1b1d; --mu:#6e6e76; --ac:#3b6cf6; --hv:rgba(0,0,0,.05); --sel:rgba(0,0,0,.07);
-  --dang:#d63a3a; --brand:#16a34a;
-  --e0:#3b6cf6; --e1:#16a34a; --e2:#db2777; --e3:#b45309; --e4:#0284c7; --e5:#dc2626;
-  --tint:12%; color-scheme:light;
+:root[data-theme="dark"]{
+  --bg:#0E1117; --side:transparent; --card:#181C24; --pop:#1F242E;
+  --bd:rgba(255,255,255,.07); --bd2:rgba(255,255,255,.14); --grid:rgba(255,255,255,.09);
+  --tx:#E8EBF1; --mu:#98A1B1; --sub:#B4BBC8; --ac:#8DB0F0; --hv:rgba(255,255,255,.05); --sel:rgba(255,255,255,.08);
+  --dang:#F08A82; --brand:#4CC38A; --on-ink:#0E1117;
+  --e0:#8DB0F0; --e1:#6FCF9C; --e2:#EC8DBB; --e3:#D9A06B; --e4:#F08A82; --e5:#A99AE8;
+  --tint:20%;
+  --mono-bg:#262A33; --mono-ink:#E8EBF1; --mono-sub:#A9B0BD;
+  --sh-l:0 30px 60px -24px rgba(0,0,0,.65),0 2px 6px rgba(0,0,0,.3);
+  --sh-s:0 18px 36px -22px rgba(0,0,0,.6),0 1px 3px rgba(0,0,0,.25);
+  color-scheme:dark;
 }
 /* viewer-chosen appearance (外觀) wins over system and host theme */
 :root[data-look="light"]{
-  --bg:#f6f6f4; --side:#ffffff; --card:#ffffff; --pop:#ffffff;
-  --bd:rgba(0,0,0,.08); --bd2:rgba(0,0,0,.17);
-  --tx:#1b1b1d; --mu:#6e6e76; --ac:#3b6cf6; --hv:rgba(0,0,0,.05); --sel:rgba(0,0,0,.07);
-  --dang:#d63a3a; --brand:#16a34a;
-  --e0:#3b6cf6; --e1:#16a34a; --e2:#db2777; --e3:#b45309; --e4:#0284c7; --e5:#dc2626;
-  --tint:12%; color-scheme:light;
+  --bg:#E9ECF1; --side:transparent; --card:#FFFFFF; --pop:#FFFFFF;
+  --bd:#EEF0F4; --bd2:#DDE1E8; --grid:#E3E6EC;
+  --tx:#18202E; --mu:#5A6273; --sub:#3F4654; --ac:#2F5FB3; --hv:rgba(24,32,46,.05); --sel:rgba(24,32,46,.08);
+  --dang:#C93A33; --brand:#2E7D52; --on-ink:#FFFFFF;
+  --e0:#2F5FB3; --e1:#2E7D52; --e2:#C2387A; --e3:#A65A24; --e4:#C93A33; --e5:#6B4FB3;
+  --tint:10%;
+  --mono-bg:#F2F2F2; --mono-ink:#121212; --mono-sub:#4A4A4A;
+  --sh-l:0 30px 60px -24px rgba(24,32,46,.28),0 2px 6px rgba(24,32,46,.06);
+  --sh-s:0 18px 36px -22px rgba(24,32,46,.24),0 1px 3px rgba(24,32,46,.05);
+  color-scheme:light;
 }
 :root[data-look="dark"]{
-  --bg:#0e0e10; --side:#121214; --card:#1a1a1d; --pop:#212124;
-  --bd:rgba(255,255,255,.07); --bd2:rgba(255,255,255,.15);
-  --tx:#ececee; --mu:#8a8a93; --ac:#8197ff; --hv:rgba(255,255,255,.055); --sel:rgba(255,255,255,.08);
-  --dang:#ff8080; --brand:#22c55e;
-  --e0:#8197ff; --e1:#22c55e; --e2:#f472b6; --e3:#f5c542; --e4:#60a5fa; --e5:#ff8a8a;
-  --tint:16%;
+  --bg:#0E1117; --side:transparent; --card:#181C24; --pop:#1F242E;
+  --bd:rgba(255,255,255,.07); --bd2:rgba(255,255,255,.14); --grid:rgba(255,255,255,.09);
+  --tx:#E8EBF1; --mu:#98A1B1; --sub:#B4BBC8; --ac:#8DB0F0; --hv:rgba(255,255,255,.05); --sel:rgba(255,255,255,.08);
+  --dang:#F08A82; --brand:#4CC38A; --on-ink:#0E1117;
+  --e0:#8DB0F0; --e1:#6FCF9C; --e2:#EC8DBB; --e3:#D9A06B; --e4:#F08A82; --e5:#A99AE8;
+  --tint:20%;
+  --mono-bg:#262A33; --mono-ink:#E8EBF1; --mono-sub:#A9B0BD;
+  --sh-l:0 30px 60px -24px rgba(0,0,0,.65),0 2px 6px rgba(0,0,0,.3);
+  --sh-s:0 18px 36px -22px rgba(0,0,0,.6),0 1px 3px rgba(0,0,0,.25);
   color-scheme:dark;
 }
 *,*::before,*::after{box-sizing:border-box}
@@ -297,6 +317,95 @@ li.done .tt span{text-decoration:line-through;color:var(--mu)}
 @media (hover:none){.drop .desk{display:none}}
 @media (hover:hover){.drop .touch{display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ===== 02 frame ===== */
+body{font-family:var(--f-ui)}
+.app{grid-template-columns:320px minmax(0,1fr);gap:0}
+#side{background:none;border:0;gap:16px;padding-block:20px 24px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:4px}
+#side .logo{padding:6px 6px 4px}
+.pcard{background:var(--card);border-radius:24px;box-shadow:var(--sh-s);padding:16px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.pcard .sh{padding:0 6px 4px}
+.pcard .sh b{font-size:15px;font-weight:700}
+.pcard .sect{padding:0}
+.foot{border-top:0;padding:4px 8px 0;margin-top:0}
+header.bar{border-bottom:0;padding-block:20px 4px}
+#ct{padding-block:14px 96px}
+.board{border:0;border-radius:32px;box-shadow:var(--sh-l);background:var(--card)}
+.bhead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px 20px 16px;border-bottom:1px solid var(--bd)}
+.bhead .lead{display:flex;align-items:center;gap:12px;min-width:0}
+.badge{width:48px;height:48px;border-radius:16px;background:var(--tx);color:var(--on-ink);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;flex:none}
+.badge span{font-size:10px}
+.badge b{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.btitle{min-width:0}
+.btitle h1{margin:0;font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+.btitle p{margin:0;font-size:12px;color:var(--mu)}
+.round{width:44px;height:44px;border-radius:50%;border:1px solid var(--bd2);background:var(--card);color:var(--tx);display:grid;place-items:center;flex:none}
+.round:hover{background:var(--hv)}
+.round svg.i{width:20px;height:20px;stroke-width:2}
+.banner{border-bottom:1px solid var(--bd)}
+.viewbar{border-bottom:1px solid var(--bd)}
+.dayhead{border-bottom:1px solid var(--bd)}
+.dayhead div{border-left:0;display:flex;flex-direction:column;align-items:center;gap:1px}
+.dayhead div:first-child{display:block}
+.dayhead b{display:inline-flex}
+.dayhead b{font-size:16px}
+.dayhead .today b{background:var(--tx);color:var(--on-ink);border-radius:10px;padding:0 7px}
+.dayhead .today b::after{display:none}
+.grid{margin:14px 12px 14px 4px}
+.col{border-left:0}
+.col.weekend{background:none}
+.hourline{border-top:1px dashed var(--grid)}
+.hourline.half{display:none}
+.gutter span{font-size:11px;right:10px}
+.duerow{border-bottom:1px solid var(--bd)}
+.duerow>div{border-left:0}
+.now{border-top:2px solid var(--brand);left:0}
+.now::before{display:none}
+.now span{display:none;position:absolute;left:-46px;top:-9px;font-family:var(--f-mono);font-size:10px;color:#fff;background:var(--brand);border-radius:6px;padding:1px 4px;line-height:1.4}
+.dayview .now span,.board:not(.compact) .col:only-of-type .now span{display:block}
+.board:not(.compact):not(.dayview) .now::before{content:"";display:block;position:absolute;left:-4px;top:-5px;width:8px;height:8px;border-radius:50%;background:var(--brand)}
+.btn{border-radius:12px}
+.btn:not(.ghost):not(.danger){background:var(--tx);color:var(--on-ink)}
+.btn.ghost,.chip,.seg,.inp,textarea{border-color:var(--bd2)}
+.seg{border-radius:12px;background:var(--card)}
+.chip{background:var(--card)}
+.mb{border:0;border-radius:24px;box-shadow:var(--sh-l)}
+.pgroup{background:var(--card);border-color:var(--bd2)}
+.fab{background:var(--tx);color:var(--on-ink);border-radius:50%}
+.alert,.menu{border:0;box-shadow:var(--sh-l)}
+.logo .dot{background:var(--brand)}
+
+/* ===== 15 event block (no number): 有色 / 無色 ===== */
+.ev{border:0;border-radius:14px;padding:4px 12px;display:flex;align-items:stretch;gap:10px;color:var(--tx);background:color-mix(in srgb,var(--k) var(--tint),var(--card))}
+.ev:hover{background:color-mix(in srgb,var(--k) calc(var(--tint) + 6%),var(--card))}
+.ev .rule{flex:none;width:2px;border-radius:1px;margin:5px 0;background:var(--k)}
+.ev .evb{display:flex;flex-direction:column;justify-content:center;gap:1px;min-width:0;flex:1}
+.ev strong{font-size:14px;line-height:1.25;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev .t{font-family:var(--f-mono);font-size:11px;line-height:1.3;color:var(--sub)}
+.ev .loc{font-size:12px;line-height:1.35;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev.short{padding-block:2px}
+.ev.short .rule{margin:3px 0}
+.ev.ghost{opacity:.5;border-left:0}
+:root.ev-mono .ev{background:var(--mono-bg);color:var(--mono-ink)}
+:root.ev-mono .ev:hover{background:color-mix(in srgb,var(--mono-ink) 8%,var(--mono-bg))}
+:root.ev-mono .ev .rule{width:1px;background:var(--mono-ink)}
+:root.ev-mono .ev .t,:root.ev-mono .ev .loc{color:var(--mono-sub)}
+:root.ev-mono .agenda .dot,:root.ev-mono .swatches button{--k:var(--mono-ink)}
+.compact .ev{border-radius:8px;padding:3px 4px;gap:3px}
+.compact .ev .rule{margin:2px 0;width:1.5px}
+.compact .ev strong{white-space:normal;word-break:break-all;font-size:10px;line-height:1.2;font-weight:600}
+.compact .grid{margin:10px 6px 10px 0}
+.compact .dayhead .today b{border-radius:7px;padding:0 4px}
+
+@media (max-width:800px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  #side{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:8px 32px}
+  header.bar{padding-block:16px 0}
+  .bhead{padding:16px 16px 14px}
+  .board{border-radius:28px}
+  #importTop{padding:7px 9px}
+  header.bar{gap:8px}
+}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -318,8 +427,6 @@ li.done .tt span{text-decoration:line-through;color:var(--mu)}
   <main>
     <header class="bar">
       <div class="logo mlogo" aria-hidden="true"><span class="gt">&gt;</span>行程<span class="dot"></span></div>
-      <h1 id="range"></h1>
-      <span class="c hide-m" id="weekNo"></span>
       <span class="fill"></span>
       <div class="seg">
         <button class="ib" id="prev" aria-label="上一週"><svg class="i"><use href="#i-l"/></svg></button>
@@ -329,11 +436,17 @@ li.done .tt span{text-decoration:line-through;color:var(--mu)}
       <button class="ib" id="prefBtn" aria-label="設定" title="設定"><svg class="i"><use href="#i-gear"/></svg></button>
       <button class="chip" id="todayBtn">本週</button>
       <button class="chip mshow" id="todoJump">待辦</button>
-      <label class="btn ghost" for="file" id="importTop"><svg class="i"><use href="#i-img"/></svg>匯入課表</label>
-      <button class="btn hide-m" id="addBtn"><svg class="i"><use href="#i-plus"/></svg>新增行程</button>
+      <label class="btn ghost" for="file" id="importTop" title="匯入課表"><svg class="i"><use href="#i-img"/></svg><span class="hide-m">匯入課表</span></label>
     </header>
     <div id="ct">
       <section class="board" id="board" aria-label="週行程表">
+        <header class="bhead">
+          <div class="lead">
+            <div class="badge" aria-hidden="true"><span id="bMonth"></span><b id="bDay"></b></div>
+            <div class="btitle"><h1 id="range"></h1><p id="weekNo"></p></div>
+          </div>
+          <button class="round" id="addBtn" aria-label="新增行程" title="新增行程"><svg class="i"><use href="#i-plus"/></svg></button>
+        </header>
         <div class="banner" id="demoBanner" hidden><i class="dot"></i><span>目前顯示的是<b>範例行程</b>。匯入課表圖片，或點選表格中的時段開始建立。</span></div>
         <div class="viewbar">
           <div class="tg" role="group" aria-label="檢視方式">
@@ -353,12 +466,15 @@ li.done .tt span{text-decoration:line-through;color:var(--mu)}
   <aside id="side">
     <div class="logo"><span class="gt">&gt;</span>行程<span class="dot"></span><small>日常行程本</small></div>
 
+    <section class="pcard">
     <div class="sh"><b>今天</b><span id="todayLabel"></span></div>
     <div class="sect">
       <p class="nextup" id="nextup"></p>
       <ul class="agenda" id="agenda"></ul>
     </div>
 
+    </section>
+    <section class="pcard">
     <div class="sh" id="todoCard"><b>待辦</b><span id="todoCount"></span></div>
     <div class="sect">
       <form class="tadd" id="todoAdd" autocomplete="off">
@@ -377,6 +493,8 @@ li.done .tt span{text-decoration:line-through;color:var(--mu)}
       </details>
     </div>
 
+    </section>
+    <section class="pcard">
     <div class="sh" id="importCard"><b>匯入課表</b><span>AI 辨識</span></div>
     <div class="sect">
       <label class="drop" id="drop" for="file">
@@ -398,6 +516,7 @@ li.done .tt span{text-decoration:line-through;color:var(--mu)}
       <p class="status" id="importStatus"></p>
     </div>
 
+    </section>
     <div class="foot">
       <div class="sync" id="sync"><i></i><span>存在此瀏覽器</span></div>
     </div>
@@ -415,6 +534,11 @@ li.done .tt span{text-decoration:line-through;color:var(--mu)}
         <div class="tg" role="group" aria-label="主題" id="p-look">
           <button type="button" data-v="system">跟隨系統</button><button type="button" data-v="light">淺色</button><button type="button" data-v="dark">深色</button>
         </div></div>
+    </div>
+
+    <div class="pgroup" style="margin-top:8px">
+      <div class="prow"><span>行程框<small>有色：依行程顏色上色 · 無色：灰底黑線</small></span>
+        <div class="tg" role="group" aria-label="行程框" id="p-evStyle"><button type="button" data-v="color">有色</button><button type="button" data-v="mono">無色</button></div></div>
     </div>
 
     <h4>行程表</h4>
@@ -559,8 +683,10 @@ const validDate = s => /^\d{4}-\d{2}-\d{2}$/.test(s || '');
 const colorFor = title => { let h = 0; for (const ch of String(title)) h = (h*31 + ch.codePointAt(0)) >>> 0; return 'c' + (h % 6); };
 let HOUR = 52;
 const PREF_KEY = 'planner.prefs';
-const S = Object.assign({ weekStart: 1, dayStart: 7, dayEnd: 22, defLen: 60, weeks: 18, notify: false, lead: 10, todoTime: '09:00' },
+const S = Object.assign({ evStyle: 'color', weekStart: 1, dayStart: 7, dayEnd: 22, defLen: 60, weeks: 18, notify: false, lead: 10, todoTime: '09:00' },
   (() => { try { return JSON.parse(localStorage.getItem(PREF_KEY) || '{}') || {}; } catch { return {}; } })());
+const applyEvStyle = () => document.documentElement.classList.toggle('ev-mono', S.evStyle === 'mono');
+applyEvStyle();
 function savePrefs(){ try { localStorage.setItem(PREF_KEY, JSON.stringify(S)); } catch {} }
 const weekStartOf = d => addDays(startOfDay(d), -((d.getDay() - (S.weekStart === 7 ? 0 : 1) + 7) % 7));
 const dayIndex = (ws, d) => Math.round((startOfDay(d) - ws) / 864e5);
@@ -739,8 +865,6 @@ function render(){
   const real = events.size > 0;
   $('#demoBanner').hidden = real;
   const end = days[6];
-  $('#range').textContent = `${weekStart.getMonth()+1}/${weekStart.getDate()} – ${end.getMonth()+1}/${end.getDate()}`;
-  $('#weekNo').textContent = `${weekStart.getFullYear()} 年 ${weekStart.getMonth()+1} 月`;
 
   // day tabs (phone)
   $('#daytabs').innerHTML = days.map((d,i) => `<button type="button" data-i="${i}" aria-pressed="${i===selDay}">週${WD[isoDow(d)-1]}<b>${d.getDate()}</b></button>`).join('');
@@ -761,6 +885,19 @@ function render(){
   dh.innerHTML = '<div></div>' + shown.map(d => `<div class="${+d===+today?'today':''}" data-i="${dayIndex(weekStart, d)}">${compact ? '' : '週'}${WD[isoDow(d)-1]}<b>${d.getDate()}</b></div>`).join('');
 
   const dr = $('#duerow'); dr.style.gridTemplateColumns = cols;
+  { // board header (02): date badge, title, count
+    const inWeek = today >= days[0] && today <= days[6];
+    const focus = dayMode ? days[selDay] : (inWeek ? today : days[0]);
+    const n = real ? per.reduce((t, l) => t + l.length, 0) : 0;
+    $('#bMonth').textContent = `${focus.getMonth()+1}月`; $('#bDay').textContent = focus.getDate();
+    if (dayMode) {
+      $('#range').textContent = `星期${WD[isoDow(focus)-1]}`;
+      $('#weekNo').textContent = `${+focus === +today ? '今天' : `${focus.getMonth()+1}/${focus.getDate()}`}・${real ? n + ' 個行程' : '範例行程'}`;
+    } else {
+      $('#range').textContent = `${days[0].getMonth()+1}/${days[0].getDate()} – ${end.getMonth()+1}/${end.getDate()}`;
+      $('#weekNo').textContent = `${inWeek ? '本週' : `${days[0].getFullYear()} 年`}・${real ? n + ' 個行程' : '範例行程'}`;
+    }
+  }
   const dueBy = shown.map(d => todosOn(ymd(d)));
   dr.hidden = !dueBy.some(l => l.length);
   dr.innerHTML = `<div>${compact ? '' : '待辦'}</div>` + dueBy.map(l => `<div>${l.map(todoPill).join('')}</div>`).join('');
@@ -776,10 +913,10 @@ function render(){
     for (const it of lanes(per[ci])) {
       const e = it.e, top = (it.s - minH*60) / 60 * HOUR, hgt = Math.max((it.en - it.s) / 60 * HOUR - 2, 18);
       const w = 100 / it.n, left = it.lane * w;
-      html += `<button type="button" class="ev ${e.color || colorFor(e.title)}${e.ghost?' ghost':''}" data-id="${esc(e.id)}" style="top:${top}px;height:${hgt}px;left:calc(${left}% + 2px);width:calc(${w}% - 4px)" title="${esc(e.title)} ${esc(e.start)}–${esc(e.end)}${e.location?' · '+esc(e.location):''}">
-        <strong>${esc(e.title)}</strong>${hgt > 30 ? `<span class="t">${esc(e.start)}–${esc(e.end)}</span>` : ''}${hgt > 48 && e.location ? `<span class="loc">${esc(e.location)}</span>` : ''}</button>`;
+      html += `<button type="button" class="ev ${e.color || colorFor(e.title)}${e.ghost?' ghost':''}${hgt < 34 ? ' short' : ''}" data-id="${esc(e.id)}" style="top:${top}px;height:${hgt}px;left:calc(${left}% + 2px);width:calc(${w}% - 4px)" title="${esc(e.title)} ${esc(e.start)}–${esc(e.end)}${e.location?' · '+esc(e.location):''}">
+        <i class="rule" aria-hidden="true"></i><span class="evb"><strong>${esc(e.title)}</strong>${hgt >= 38 ? `<span class="t">${esc(e.start)}–${esc(e.end)}</span>` : ''}${hgt >= 56 && e.location ? `<span class="loc">${esc(e.location)}</span>` : ''}</span></button>`;
     }
-    if (+d === +today) { const now = new Date(), m = now.getHours()*60 + now.getMinutes(); if (m >= minH*60 && m <= maxH*60) html += `<div class="now" style="top:${(m-minH*60)/60*HOUR}px"></div>`; }
+    if (+d === +today) { const now = new Date(), m = now.getHours()*60 + now.getMinutes(); if (m >= minH*60 && m <= maxH*60) html += `<div class="now" style="top:${(m-minH*60)/60*HOUR}px"><span>現在</span></div>`; }
     html += '</div>';
   });
   g.innerHTML = html;
@@ -916,7 +1053,7 @@ function applyLook(look){
   if (look === 'light' || look === 'dark') r.setAttribute('data-look', look); else r.removeAttribute('data-look');
   $('#themeBtn use').setAttribute('href', look === 'light' ? '#i-sun' : look === 'dark' ? '#i-moon' : '#i-auto');
   document.querySelectorAll('#themeMenu .mi').forEach(b => b.setAttribute('aria-checked', b.dataset.look === look));
-  metaTheme.forEach(([m, orig]) => m.setAttribute('content', look === 'light' ? '#f6f6f4' : look === 'dark' ? '#0e0e10' : orig));
+  metaTheme.forEach(([m, orig]) => m.setAttribute('content', look === 'light' ? '#E9ECF1' : look === 'dark' ? '#0E1117' : orig));
 }
 let look = (() => { try { return localStorage.getItem('planner.look') || 'system'; } catch { return 'system'; } })();
 applyLook(look);
@@ -1164,6 +1301,7 @@ function notifyStateText(){
 }
 function fillPrefs(){
   setTg('p-look', look);
+  setTg('p-evStyle', S.evStyle);
   P('p-weekStart').value = String(S.weekStart);
   P('p-dayStart').value = String(S.dayStart); P('p-dayEnd').value = String(S.dayEnd);
   setTg('p-view', view);
@@ -1186,6 +1324,7 @@ P('prefBtn').onclick = () => openPrefs();
 P('prefClose').onclick = closePrefs;
 P('prefScrim').addEventListener('mousedown', e => { if (e.target.id === 'prefScrim') closePrefs(); });
 P('p-look').onclick = e => { const b = e.target.closest('button'); if (!b) return; look = b.dataset.v; try { localStorage.setItem('planner.look', look); } catch {} applyLook(look); setTg('p-look', look); };
+P('p-evStyle').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.evStyle = b.dataset.v; savePrefs(); applyEvStyle(); setTg('p-evStyle', S.evStyle); };
 P('p-view').onclick = e => { const b = e.target.closest('button'); if (!b) return; setView(b.dataset.v); setTg('p-view', view); };
 P('p-weekStart').onchange = e => { S.weekStart = +e.target.value; savePrefs(); const ref = addDays(weekStart, selDay); weekStart = weekStartOf(ref); selDay = dayIndex(weekStart, ref); render(); };
 P('p-dayStart').onchange = e => { S.dayStart = +e.target.value; if (S.dayEnd <= S.dayStart) { S.dayEnd = S.dayStart + 1; P('p-dayEnd').value = String(S.dayEnd); } savePrefs(); render(); };
