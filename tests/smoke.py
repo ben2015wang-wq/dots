@@ -45,6 +45,7 @@ with sync_playwright() as p:
           and json.loads(pp.request.get(base + 'planner/manifest.webmanifest').text()).get('short_name') == '行程')
     check('planner: apple touch icon served', pp.request.get(base + 'planner/icons/apple-touch-icon.png').ok)
     check('planner: service worker served', pp.request.get(base + 'planner/sw.js').ok)
+    check('planner: widget script served', 'ListWidget' in pp.request.get(base + 'planner/widget.js').text())
     pp.fill('#t-new', '交報告 明天'); pp.press('#t-new', 'Enter'); pp.wait_for_timeout(200)
     check('planner: adding a todo works', pp.locator('#todoList li:has-text("交報告")').count() == 1)
     pp.reload(); pp.wait_for_timeout(1000)
