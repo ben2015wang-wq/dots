@@ -179,6 +179,8 @@ header.bar .c{color:var(--mu);font-size:13px}
 .sw::after{content:"";position:absolute;top:3px;left:3px;width:19px;height:19px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .15s}
 .sw:checked{background:var(--brand)}
 .sw:checked::after{transform:translateX(17px)}
+.steps{margin:2px 0 4px;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--sub)}
+.steps b{color:var(--tx);font-weight:600}
 .pnote{font-size:11.5px;color:var(--mu);margin:6px 2px 0}
 .pnote.err{color:var(--dang)}
 .pnote.ok{color:var(--brand)}
@@ -568,6 +570,21 @@ header.bar{border-bottom:0;padding-block:20px 4px}
         <div class="row"><button type="button" class="btn ghost" id="p-ics">匯出到行事曆（.ics）</button></div></div>
     </div>
     <p class="pnote" id="p-icsNote" hidden></p>
+
+    <h4 id="prefWidget">桌面小工具</h4>
+    <div class="pgroup">
+      <div class="prow stack"><span>在 iPhone 桌面直接看今天或整週的行程<small>用免費的 Scriptable App 顯示，行程從 iPhone「行事曆」讀取</small></span>
+        <ol class="steps">
+          <li>先按上面的<b>匯出到行事曆</b>，把行程加進 iPhone 行事曆。</li>
+          <li>安裝 <b>Scriptable</b>，再按<b>複製小工具程式碼</b>。</li>
+          <li>打開 Scriptable，點右上角 <b>＋</b>，貼上程式碼，把名稱改成「行程」。按一次 ▶︎ 執行，允許取用行事曆。</li>
+          <li>長按桌面空白處，點左上角 <b>＋</b>，搜尋 <b>Scriptable</b>，選大小後加入。</li>
+          <li>長按小工具 → <b>編輯小工具</b>：Script 選「行程」；Parameter 填 <b>day</b>（今天）或 <b>week</b>（整週），加上 <b>mono</b> 是無色版，例如 <b>week mono</b>。</li>
+        </ol>
+        <div class="row"><button type="button" class="btn" id="p-widgetCopy">複製小工具程式碼</button><a class="btn ghost" href="https://apps.apple.com/app/scriptable/id1405459188" target="_blank" rel="noopener">取得 Scriptable</a></div>
+      </div>
+    </div>
+    <p class="pnote" id="p-widgetNote" hidden></p>
 
     <div id="prefApp"></div>
 
@@ -1316,9 +1333,28 @@ function openPrefs(section, note){
   fillPrefs();
   const n = P('prefNote'); n.textContent = note || ''; n.hidden = !note;
   P('prefScrim').hidden = false;
+  loadWidgetCode();
   if (section) setTimeout(() => P(section)?.scrollIntoView({ block: 'start', behavior: 'smooth' }), 50);
 }
 window.__openPrefs = openPrefs;
+
+/* desktop widget (Scriptable) */
+const WIDGET_URL = 'https://ben2015wang-wq.github.io/dots/planner/widget.js';
+let widgetCode = null;
+async function loadWidgetCode(){
+  if (widgetCode) return;
+  for (const u of ['widget.js', WIDGET_URL]) {
+    try { const r = await fetch(u, { cache: 'no-cache' }); if (r.ok) { const t = await r.text(); if (t.includes('ListWidget')) { widgetCode = t; return; } } } catch {}
+  }
+}
+P('p-widgetCopy').onclick = () => {
+  const note = P('p-widgetNote'); note.hidden = false;
+  const manual = () => { note.className = 'pnote'; note.innerHTML = `這裡無法直接複製。請用 Safari 打開 <a href="${WIDGET_URL}" target="_blank" rel="noopener">${WIDGET_URL}</a>，長按文字 → 全選 → 拷貝。`; };
+  if (!widgetCode) { manual(); return; }
+  try {
+    navigator.clipboard.writeText(widgetCode).then(() => { note.className = 'pnote ok'; note.textContent = '已複製。打開 Scriptable，點右上角 ＋ 貼上。'; }, manual);
+  } catch { manual(); }
+};
 const closePrefs = () => { P('prefScrim').hidden = true; };
 P('prefBtn').onclick = () => openPrefs();
 P('prefClose').onclick = closePrefs;

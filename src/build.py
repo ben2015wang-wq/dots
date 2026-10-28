@@ -34,7 +34,7 @@ def build_planner(out):
     dst = os.path.join(out, 'planner')
     os.makedirs(os.path.join(dst, 'icons'), exist_ok=True)
     open(os.path.join(dst, 'index.html'), 'w', encoding='utf8').write(page)
-    for f in ('manifest.webmanifest', 'sw.js'):
+    for f in ('manifest.webmanifest', 'sw.js', 'widget.js'):
         shutil.copyfile(os.path.join(d, 'planner', f), os.path.join(dst, f))
     for f in os.listdir(os.path.join(d, 'planner', 'icons')):
         shutil.copyfile(os.path.join(d, 'planner', 'icons', f), os.path.join(dst, 'icons', f))
