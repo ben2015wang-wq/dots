@@ -20,6 +20,8 @@ self.addEventListener('fetch', e => {
   if (r.method !== 'GET') return;
   const u = new URL(r.url);
   if (u.origin !== location.origin) return;
+  // /planner/ is a separate app with its own service worker; never cache its pages as DOTS
+  if (u.pathname.includes('/planner/')) return;
   // pages: network first (so updates arrive), fall back to the cached copy when offline
   if (r.mode === 'navigate') {
     e.respondWith(

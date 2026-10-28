@@ -2,7 +2,8 @@
 
   python build.py            dev build: writes dots.js, app.html and standalone.html next to the sources
   python build.py --out dist release build: writes dist/index.html (the standalone app) plus the PWA files
-                             (manifest, service worker, icons, privacy policy, terms) into dist/
+                             (manifest, service worker, icons, privacy policy, terms) into dist/,
+                             and the schedule app (日常行程本) into dist/planner/
 """
 import os, sys, shutil
 
@@ -27,6 +28,18 @@ page = (r('pre.html') + '<style>' + r('dash.css') + '</style></head>' + r('body.
 page = fill(page)                      # the version without the standalone runtime (claude.ai artifact)
 standalone = page.replace('<title>', '<script>' + fill(r('shim.js')) + '</script><title>', 1)
 
+def build_planner(out):
+    """日常行程本: the installable schedule app, served at <site>/planner/."""
+    page = r('planner/head.html').replace('{{RUNTIME}}', r('planner/runtime.js')) + r('planner/page.html') + '\n</body></html>'
+    dst = os.path.join(out, 'planner')
+    os.makedirs(os.path.join(dst, 'icons'), exist_ok=True)
+    open(os.path.join(dst, 'index.html'), 'w', encoding='utf8').write(page)
+    for f in ('manifest.webmanifest', 'sw.js'):
+        shutil.copyfile(os.path.join(d, 'planner', f), os.path.join(dst, f))
+    for f in os.listdir(os.path.join(d, 'planner', 'icons')):
+        shutil.copyfile(os.path.join(d, 'planner', 'icons', f), os.path.join(dst, 'icons', f))
+    return len(page)
+
 if '--out' in sys.argv:
     out = os.path.abspath(sys.argv[sys.argv.index('--out') + 1])
     os.makedirs(out, exist_ok=True)
@@ -39,6 +52,7 @@ if '--out' in sys.argv:
             os.makedirs(os.path.dirname(dst), exist_ok=True)
             shutil.copyfile(src, dst)
     open(os.path.join(out, '.nojekyll'), 'w').close()
+    print('built planner', build_planner(out), 'bytes')
     left = [k for k in ('{{LOGO_DK}}', '{{LOGO_LT}}', '{{ICON}}', '{{ICON180}}', '{{LANDING}}') if k in standalone]
     if left:
         sys.exit('unreplaced placeholders: %s' % left)
