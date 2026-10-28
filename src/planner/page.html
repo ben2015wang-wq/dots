@@ -1,0 +1,981 @@
+<title>日常行程本</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;800&family=Noto+Sans+TC:wght@400;500;600&display=swap">
+<style>
+/* DOTS design language: dark-first neutrals, hairline rgba borders, white primary buttons, green brand dot.
+   Layout: left side panel (brand, today, import) + main week board; ≤800px stacks to one column. */
+:root{
+  --bg:#0e0e10; --side:#121214; --card:#1a1a1d; --pop:#212124;
+  --bd:rgba(255,255,255,.07); --bd2:rgba(255,255,255,.15);
+  --tx:#ececee; --mu:#8a8a93; --ac:#8197ff; --hv:rgba(255,255,255,.055); --sel:rgba(255,255,255,.08);
+  --dang:#ff8080; --brand:#22c55e;
+  --e0:#8197ff; --e1:#22c55e; --e2:#f472b6; --e3:#f5c542; --e4:#60a5fa; --e5:#ff8a8a;
+  --tint:16%;
+  --f-ui:Inter,-apple-system,"SF Pro Text","PingFang TC","Noto Sans TC","Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#f6f6f4; --side:#ffffff; --card:#ffffff; --pop:#ffffff;
+  --bd:rgba(0,0,0,.08); --bd2:rgba(0,0,0,.17);
+  --tx:#1b1b1d; --mu:#6e6e76; --ac:#3b6cf6; --hv:rgba(0,0,0,.05); --sel:rgba(0,0,0,.07);
+  --dang:#d63a3a; --brand:#16a34a;
+  --e0:#3b6cf6; --e1:#16a34a; --e2:#db2777; --e3:#b45309; --e4:#0284c7; --e5:#dc2626;
+  --tint:12%; color-scheme:light;
+}}
+:root[data-theme="light"]{
+  --bg:#f6f6f4; --side:#ffffff; --card:#ffffff; --pop:#ffffff;
+  --bd:rgba(0,0,0,.08); --bd2:rgba(0,0,0,.17);
+  --tx:#1b1b1d; --mu:#6e6e76; --ac:#3b6cf6; --hv:rgba(0,0,0,.05); --sel:rgba(0,0,0,.07);
+  --dang:#d63a3a; --brand:#16a34a;
+  --e0:#3b6cf6; --e1:#16a34a; --e2:#db2777; --e3:#b45309; --e4:#0284c7; --e5:#dc2626;
+  --tint:12%; color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--tx);font:13px/1.45 var(--f-ui);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.vh{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+.app{display:grid;grid-template-columns:288px minmax(0,1fr);min-height:100%}
+#side{background:var(--side);border-right:1px solid var(--bd);display:flex;flex-direction:column;gap:6px;padding-block:16px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:12px;position:sticky;top:0;height:100vh;overflow-y:auto}
+main{display:flex;flex-direction:column;min-width:0}
+#side{grid-column:1;grid-row:1}
+main{grid-column:2;grid-row:1}
+.logo{display:flex;align-items:center;gap:8px;padding:2px 8px 14px;font-family:var(--f-mono);font-weight:800;font-size:19px;letter-spacing:-.01em}
+.logo .gt{color:var(--mu);font-weight:500}
+.logo .dot{width:11px;height:11px;border-radius:50%;background:var(--brand);margin-left:2px}
+.logo small{font-family:var(--f-ui);font-weight:500;font-size:12px;color:var(--mu);margin-left:auto;letter-spacing:0}
+.sh{display:flex;justify-content:space-between;align-items:baseline;padding:16px 10px 6px;color:var(--mu);font-size:12px}
+.sh b{font-weight:500;color:var(--tx);font-size:13px}
+.sect{display:flex;flex-direction:column;gap:8px;padding:0 4px}
+.foot{margin-top:auto;padding:14px 8px 0;border-top:1px solid var(--bd);display:flex;flex-direction:column;gap:4px}
+.sync{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mu)}
+.sync i{width:7px;height:7px;border-radius:50%;background:var(--mu);flex:none}
+.sync.cloud i{background:var(--brand)}
+
+header.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-block:14px;padding-left:28px;padding-right:max(28px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--bd)}
+header.bar h1{margin:0;font-size:22px;font-weight:600;letter-spacing:-.2px;font-variant-numeric:tabular-nums}
+header.bar .c{color:var(--mu);font-size:13px}
+.fill{flex:1}
+.seg{display:flex;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:2px}
+.ib{width:30px;height:28px;border-radius:8px;border:1px solid transparent;background:none;display:grid;place-items:center;color:var(--mu)}
+.ib:hover{background:var(--hv);color:var(--tx)}
+.chip{border:1px solid var(--bd);background:none;border-radius:20px;padding:4px 12px;color:var(--mu);white-space:nowrap}
+.chip:hover{color:var(--tx);border-color:var(--bd2)}
+.btn{border:0;border-radius:10px;background:var(--tx);color:var(--bg);padding:8px 14px;font-weight:600;display:inline-flex;gap:6px;align-items:center;white-space:nowrap}
+.btn:hover{opacity:.88}
+.btn.ghost{background:var(--card);color:var(--tx);border:1px solid var(--bd);font-weight:500}
+.btn.ghost:hover{border-color:var(--bd2);opacity:1}
+.btn.danger{background:none;color:var(--dang);border:1px solid var(--bd);font-weight:500}
+.btn:disabled{opacity:.4;cursor:default}
+
+#ct{padding-block:22px 96px;padding-left:28px;padding-right:max(28px,env(safe-area-inset-right,0px))}
+.board{background:var(--card);border:1px solid var(--bd);border-radius:14px;overflow:hidden;min-width:0}
+.banner{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--bd);color:var(--mu);font-size:12.5px}
+.banner b{color:var(--tx);font-weight:500}
+.banner .dot{width:7px;height:7px;border-radius:50%;background:var(--e3);flex:none}
+.dayhead{display:grid;border-bottom:1px solid var(--bd)}
+.dayhead div{padding:10px 6px 9px;text-align:center;font-size:11.5px;color:var(--mu);border-left:1px solid var(--bd)}
+.dayhead div:first-child{border-left:0}
+.dayhead b{display:flex;justify-content:center;align-items:center;gap:5px;font-size:17px;font-weight:600;color:var(--tx);font-variant-numeric:tabular-nums;line-height:1.3}
+.dayhead .today b::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--brand)}
+.dayhead .today{color:var(--tx)}
+.grid{display:grid;position:relative}
+.gutter{position:relative}
+.gutter span{position:absolute;right:8px;transform:translateY(-50%);font-family:var(--f-mono);font-size:10.5px;color:var(--mu);font-variant-numeric:tabular-nums}
+.col{position:relative;border-left:1px solid var(--bd);cursor:copy}
+.col.weekend{background:var(--hv)}
+.hourline{position:absolute;left:0;right:0;border-top:1px solid var(--bd);pointer-events:none}
+.hourline.half{border-top-style:dotted;opacity:.7}
+.ev{position:absolute;border-radius:7px;padding:3px 7px;overflow:hidden;cursor:pointer;color:var(--tx);border:0;border-left:2.5px solid var(--k);background:color-mix(in srgb,var(--k) var(--tint),var(--card));font-size:11.5px;line-height:1.3;text-align:left}
+.ev strong{display:block;font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev .t{font-family:var(--f-mono);font-size:10px;color:var(--mu);font-variant-numeric:tabular-nums}
+.ev .loc{display:block;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev:hover{background:color-mix(in srgb,var(--k) calc(var(--tint) + 8%),var(--card))}
+.ev.ghost{opacity:.5;cursor:default;border-left-style:dashed}
+.c0{--k:var(--e0)}.c1{--k:var(--e1)}.c2{--k:var(--e2)}.c3{--k:var(--e3)}.c4{--k:var(--e4)}.c5{--k:var(--e5)}
+.now{position:absolute;left:-1px;right:0;border-top:1.5px solid var(--brand);pointer-events:none;z-index:3}
+.now::before{content:"";position:absolute;left:-4px;top:-4.5px;width:8px;height:8px;border-radius:50%;background:var(--brand)}
+.daytabs{display:none;gap:6px;padding:10px;border-bottom:1px solid var(--bd);overflow-x:auto}
+.daytabs button{flex:1 0 auto;border:1px solid var(--bd);background:none;border-radius:20px;padding:4px 10px;color:var(--mu);font-size:12px;display:flex;gap:4px;align-items:baseline;justify-content:center}
+.daytabs button b{font-weight:600;color:var(--tx);font-variant-numeric:tabular-nums}
+.daytabs button[aria-pressed="true"]{background:var(--tx);border-color:var(--tx);color:var(--bg)}
+.daytabs button[aria-pressed="true"] b{color:var(--bg)}
+.narrow .daytabs{display:flex}
+.narrow .dayhead{display:none}
+
+.nextup{font-size:12.5px;color:var(--mu);margin:0;padding:0 6px}
+.nextup b{color:var(--tx);font-weight:500}
+.agenda{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+.agenda li{display:grid;grid-template-columns:82px minmax(0,1fr);gap:6px;padding:7px 6px;border-radius:9px;cursor:pointer;align-items:baseline}
+.agenda li:hover{background:var(--hv)}
+.agenda .tm{font-family:var(--f-mono);font-size:10.5px;color:var(--mu);font-variant-numeric:tabular-nums}
+.agenda .nm{display:flex;gap:8px;align-items:center;min-width:0}
+.agenda .nm span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.agenda .dot{width:7px;height:7px;border-radius:50%;flex:none;background:var(--k)}
+.agenda li.past{opacity:.45}
+.agenda li.cur .tm{color:var(--brand)}
+.empty{color:var(--mu);font-size:12.5px;margin:0;padding:4px 6px}
+
+.drop{border:1.5px dashed var(--bd2);border-radius:12px;padding:16px 12px;text-align:center;cursor:pointer;color:var(--mu);font-size:12px;display:flex;flex-direction:column;gap:3px;align-items:center;-webkit-tap-highlight-color:transparent}
+.drop b{color:var(--tx);font-weight:500;font-size:13px}
+.drop.over,.drop:hover,.drop:focus-within{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 8%,transparent)}
+.drop svg.i{width:22px;height:22px;color:var(--ac);margin-bottom:4px}
+.thumbs{display:flex;flex-wrap:wrap;gap:8px}
+.thumbs figure{margin:0;position:relative;width:64px;height:64px;border-radius:10px;overflow:hidden;border:1px solid var(--bd);background:var(--pop)}
+.thumbs img{width:100%;height:100%;object-fit:cover;display:block}
+.thumbs button{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:7px;border:0;background:rgba(14,14,16,.62);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;display:grid;place-items:center;padding:0}
+.thumbs button svg.i{width:12px;height:12px}
+.thumbs .busy{display:grid;place-items:center;color:var(--mu);font-size:11px}
+textarea,.inp{width:100%;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:8px 10px;outline:none;min-width:0}
+textarea{min-height:64px;resize:vertical}
+textarea:focus,.inp:focus{border-color:var(--bd2)}
+textarea::placeholder,.inp::placeholder{color:var(--mu)}
+select.inp{appearance:none;-webkit-appearance:none;padding-right:26px;background-image:linear-gradient(45deg,transparent 50%,var(--mu) 50%),linear-gradient(135deg,var(--mu) 50%,transparent 50%);background-position:calc(100% - 14px) 52%,calc(100% - 10px) 52%;background-size:4px 4px;background-repeat:no-repeat}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.status{font-size:12px;color:var(--mu);margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.status.err{color:var(--dang)}
+.status.ok{color:var(--brand)}
+details summary{cursor:pointer;color:var(--mu);font-size:12px;padding:2px 0}
+details summary:hover{color:var(--tx)}
+
+/* modal (DOTS .modal/.mb) */
+.scrim{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.5);display:grid;place-items:center;padding:16px}
+.mb{background:var(--pop);border:1px solid var(--bd2);border-radius:16px;padding:18px 20px;width:min(480px,100%);max-height:88vh;overflow:auto;box-shadow:0 24px 60px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:12px}
+.mb.wide{width:min(880px,100%)}
+.mb h3{margin:0;font-size:16px;font-weight:600}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fields .full{grid-column:1/-1}
+@media (max-width:480px){.fields{grid-template-columns:1fr}}
+label.f{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--mu)}
+.tg{display:flex;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:2px;width:max-content}
+.tg button{border:0;background:none;border-radius:8px;padding:5px 14px;color:var(--mu)}
+.tg button[aria-pressed="true"]{background:var(--sel);color:var(--tx)}
+.swatches{display:flex;gap:8px;margin-top:6px}
+.swatches button{width:22px;height:22px;border-radius:50%;border:0;background:var(--k)}
+.swatches button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--pop),0 0 0 4px var(--k)}
+.actions{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;padding-top:4px}
+.actions .r{display:flex;gap:8px;margin-left:auto}
+
+.impwrap{overflow-x:auto;border:1px solid var(--bd);border-radius:12px}
+table.imp{border-collapse:collapse;width:100%;min-width:740px;font-size:12.5px}
+.imp th{text-align:left;font-weight:500;color:var(--mu);font-size:11.5px;padding:8px 6px;border-bottom:1px solid var(--bd)}
+.imp td{padding:5px 4px;border-bottom:1px solid var(--bd);vertical-align:middle}
+.imp tr:last-child td{border-bottom:0}
+.imp td:first-child,.imp th:first-child{padding-left:12px;width:34px}
+.imp tr.off td:not(:first-child){opacity:.35}
+.imp .inp{padding:6px 8px;border-radius:8px}
+.imp select.inp{padding-right:26px}
+.imp input[data-k=title]{min-width:9em}
+.imp .when{display:flex;gap:4px}
+.imp .when select{width:auto}
+.flag{font-size:11px;color:var(--e3);display:block;padding:2px 0 0 2px}
+.summary{background:var(--hv);border-radius:10px;padding:10px 12px;font-size:12.5px;margin:0}
+input[type=checkbox]{accent-color:var(--ac);width:15px;height:15px}
+
+.todos{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+.todos li{display:grid;grid-template-columns:20px minmax(0,1fr);gap:8px;padding:6px;border-radius:9px;align-items:start}
+.todos li:hover{background:var(--hv)}
+.todos li.tgrp,.todos li.empty{display:block;padding:10px 6px 2px;font-size:11px;color:var(--mu)}
+.todos li.tgrp:hover,.todos li.empty:hover{background:none}
+.todos li.tgrp.over{color:var(--dang)}
+.ck{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--bd2);background:none;display:grid;place-items:center;padding:0;margin-top:1px;color:transparent;flex:none}
+.ck:hover{border-color:var(--brand);color:var(--brand)}
+.ck.on{background:var(--brand);border-color:var(--brand);color:var(--bg)}
+.ck svg.i{width:11px;height:11px;stroke-width:2.8}
+.tt{min-width:0;cursor:pointer;background:none;border:0;padding:0;text-align:left;display:flex;flex-direction:column;gap:1px}
+.tt span{overflow-wrap:anywhere}
+.tt small{font-size:10.5px;color:var(--mu);font-family:var(--f-mono)}
+.tt small.note{font-family:var(--f-ui);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tt small.over{color:var(--dang)}
+.tt small.today{color:var(--brand)}
+li.done .tt span{text-decoration:line-through;color:var(--mu)}
+.tadd{display:flex;flex-direction:column;gap:6px}
+.tadd .row{flex-wrap:nowrap}
+.tadd input[type=date]{flex:1;width:auto;padding:6px 8px}
+.tadd .btn{padding:7px 12px}
+.hint{font-size:11px;color:var(--mu);margin:0}
+#doneBox summary{padding:6px}
+#doneBox .btn{margin:6px 0 0 6px;padding:5px 10px;font-size:12px}
+.duerow{display:grid;border-bottom:1px solid var(--bd)}
+.duerow>div{border-left:1px solid var(--bd);padding:5px 4px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.duerow>div:first-child{border-left:0;padding:9px 8px 0 0;align-items:flex-end;font-size:10.5px;color:var(--mu)}
+.tp{display:flex;align-items:center;gap:5px;font-size:11.5px;background:var(--hv);border-radius:7px;padding:3px 6px 3px 4px;min-width:0}
+.tp.over{background:color-mix(in srgb,var(--dang) 14%,transparent)}
+.tp .ck{width:14px;height:14px;margin:0;border-width:1.3px}
+.tp .ck svg.i{width:9px;height:9px}
+.tp .tl{border:0;background:none;padding:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;flex:1;min-width:0}
+.tp.done .tl{text-decoration:line-through;color:var(--mu)}
+.fab{display:none}
+@media (max-width:800px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  main{grid-column:1;grid-row:1}
+  #side{grid-column:1;grid-row:2;position:static;height:auto;border-right:0;border-top:1px solid var(--bd);order:2;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:8px 32px}
+  #side .logo{display:none}
+  header.bar{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  header.bar h1{font-size:18px}
+  #ct{padding-block:14px 20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .mlogo{display:flex!important}
+  .hide-m{display:none!important}
+  .fab{display:grid;position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));width:52px;height:52px;border-radius:16px;border:0;background:var(--tx);color:var(--bg);place-items:center;box-shadow:0 10px 30px rgba(0,0,0,.35);z-index:30}
+  .fab svg.i{width:22px;height:22px}
+}
+.mlogo{display:none;width:100%;padding:0}
+@media (max-width:800px) and (pointer:coarse){input,select,textarea{font-size:16px!important}}
+.mshow{display:none}
+@media (max-width:800px){.mshow{display:inline-flex}}
+@media (hover:none){.drop .desk{display:none}}
+@media (hover:hover){.drop .touch{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-l" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+  <symbol id="i-r" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-img" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-9 9"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></symbol>
+</svg>
+
+<div class="app">
+  <main>
+    <header class="bar">
+      <div class="logo mlogo" aria-hidden="true"><span class="gt">&gt;</span>行程<span class="dot"></span></div>
+      <h1 id="range"></h1>
+      <span class="c hide-m" id="weekNo"></span>
+      <span class="fill"></span>
+      <div class="seg">
+        <button class="ib" id="prev" aria-label="上一週"><svg class="i"><use href="#i-l"/></svg></button>
+        <button class="ib" id="next" aria-label="下一週"><svg class="i"><use href="#i-r"/></svg></button>
+      </div>
+      <button class="chip" id="todayBtn">本週</button>
+      <button class="chip mshow" id="todoJump">待辦</button>
+      <label class="btn ghost" for="file" id="importTop"><svg class="i"><use href="#i-img"/></svg>匯入課表</label>
+      <button class="btn hide-m" id="addBtn"><svg class="i"><use href="#i-plus"/></svg>新增行程</button>
+    </header>
+    <div id="ct">
+      <section class="board" id="board" aria-label="週行程表">
+        <div class="banner" id="demoBanner" hidden><i class="dot"></i><span>目前顯示的是<b>範例行程</b>。匯入課表圖片，或點選表格中的時段開始建立。</span></div>
+        <div class="daytabs" id="daytabs"></div>
+        <div class="dayhead" id="dayhead"></div>
+        <div class="duerow" id="duerow" hidden></div>
+        <div class="grid" id="grid"></div>
+      </section>
+    </div>
+  </main>
+
+  <aside id="side">
+    <div class="logo"><span class="gt">&gt;</span>行程<span class="dot"></span><small>日常行程本</small></div>
+
+    <div class="sh"><b>今天</b><span id="todayLabel"></span></div>
+    <div class="sect">
+      <p class="nextup" id="nextup"></p>
+      <ul class="agenda" id="agenda"></ul>
+    </div>
+
+    <div class="sh" id="todoCard"><b>待辦</b><span id="todoCount"></span></div>
+    <div class="sect">
+      <form class="tadd" id="todoAdd" autocomplete="off">
+        <input class="inp" id="t-new" maxlength="120" placeholder="新增待辦，按 Enter" aria-label="新增待辦">
+        <div class="row">
+          <input type="date" class="inp" id="t-newdue" aria-label="期限（可留空）">
+          <button class="btn ghost" type="submit">加入</button>
+        </div>
+        <p class="hint">輸入「明天」「週五」「11/3」會自動設定期限</p>
+      </form>
+      <ul class="todos" id="todoList"></ul>
+      <details id="doneBox" hidden>
+        <summary id="doneSum"></summary>
+        <ul class="todos" id="doneList"></ul>
+        <button class="btn ghost" id="clearDone" type="button">清除已完成</button>
+      </details>
+    </div>
+
+    <div class="sh" id="importCard"><b>匯入課表</b><span>AI 辨識</span></div>
+    <div class="sect">
+      <label class="drop" id="drop" for="file">
+        <svg class="i"><use href="#i-img"/></svg>
+        <b class="touch">點此選擇照片或截圖</b>
+        <b class="desk">拖曳、貼上或點此選擇圖片</b>
+        <span>課表、班表、行事曆、作業截止日都可以</span>
+      </label>
+      <input type="file" id="file" class="vh" accept="image/*" multiple>
+      <div class="thumbs" id="thumbs"></div>
+      <details id="textDetails">
+        <summary>或貼上文字行程</summary>
+        <textarea id="importText" placeholder="例：每週二 14:00-16:00 社團練習（體育館）&#10;11/3 19:00 讀書會"></textarea>
+      </details>
+      <div class="row">
+        <button class="btn" id="analyze" disabled><svg class="i"><use href="#i-spark"/></svg>分析並預覽</button>
+        <button class="btn ghost" id="cancelAnalyze" hidden>停止</button>
+      </div>
+      <p class="status" id="importStatus"></p>
+    </div>
+
+    <div class="foot">
+      <div class="sync" id="sync"><i></i><span>存在此瀏覽器</span></div>
+    </div>
+  </aside>
+</div>
+
+<button class="fab" id="fab" aria-label="新增行程"><svg class="i"><use href="#i-plus"/></svg></button>
+
+<div class="scrim" id="evScrim" hidden>
+  <form class="mb" id="evForm" autocomplete="off">
+    <h3 id="evTitle">新增行程</h3>
+    <div class="fields">
+      <label class="f full">名稱<input class="inp" id="f-title" required maxlength="80" placeholder="例：微積分"></label>
+      <div class="full">
+        <div class="tg" role="group" aria-label="重複方式">
+          <button type="button" id="f-once" aria-pressed="true">單次</button>
+          <button type="button" id="f-weekly" aria-pressed="false">每週重複</button>
+        </div>
+      </div>
+      <label class="f" id="w-date">日期<input class="inp" type="date" id="f-date"></label>
+      <label class="f" id="w-wd" hidden>星期<select class="inp" id="f-wd"></select></label>
+      <label class="f">開始<input class="inp" type="time" id="f-start" required step="300"></label>
+      <label class="f">結束<input class="inp" type="time" id="f-end" required step="300"></label>
+      <label class="f" id="w-from" hidden>從<input class="inp" type="date" id="f-from"></label>
+      <label class="f" id="w-until" hidden>到（可留空）<input class="inp" type="date" id="f-until"></label>
+      <label class="f full">地點<input class="inp" id="f-loc" maxlength="80" placeholder="例：理學院 301"></label>
+      <label class="f full">備註<textarea id="f-note" maxlength="500"></textarea></label>
+      <div class="full"><span style="font-size:12px;color:var(--mu)">顏色</span><div class="swatches" id="f-color"></div></div>
+    </div>
+    <p class="status err" id="evErr" hidden></p>
+    <div class="actions">
+      <button type="button" class="btn danger" id="evDelete" hidden>刪除</button>
+      <div class="r">
+        <button type="button" class="btn ghost" id="evCancel">取消</button>
+        <button type="submit" class="btn" id="evSave">儲存</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="scrim" id="tdScrim" hidden>
+  <form class="mb" id="tdForm" autocomplete="off">
+    <h3>編輯待辦</h3>
+    <div class="fields">
+      <label class="f full">內容<input class="inp" id="td-title" required maxlength="120"></label>
+      <label class="f">期限（可留空）<input class="inp" type="date" id="td-date"></label>
+      <label class="f">時間（可留空）<input class="inp" type="time" id="td-time" step="300"></label>
+      <label class="f full">備註<textarea id="td-note" maxlength="500"></textarea></label>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn danger" id="tdDelete">刪除</button>
+      <div class="r">
+        <button type="button" class="btn ghost" id="tdCancel">取消</button>
+        <button type="submit" class="btn">儲存</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="scrim" id="impScrim" hidden>
+  <div class="mb wide">
+    <h3>確認要加入的行程</h3>
+    <p class="summary" id="impSummary"></p>
+    <div class="row" id="impRange">
+      <span style="font-size:12px;color:var(--mu)">每週重複的期間</span>
+      <input type="date" id="imp-from" class="inp" style="width:auto">
+      <span style="color:var(--mu)">至</span>
+      <input type="date" id="imp-until" class="inp" style="width:auto">
+    </div>
+    <div class="impwrap"><table class="imp"><thead><tr><th><input type="checkbox" id="impAll" checked aria-label="全選"></th><th>名稱</th><th>時間</th><th>開始</th><th>結束</th><th>地點</th></tr></thead><tbody id="impBody"></tbody></table></div>
+    <div class="actions">
+      <span class="status" id="impCount"></span>
+      <div class="r">
+        <button class="btn ghost" id="impCancel">取消</button>
+        <button class="btn" id="impAdd">加入行程</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseYmd = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+const startOfDay = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const mondayOf = d => addDays(startOfDay(d), -((d.getDay()+6)%7));
+const isoDow = d => ((d.getDay()+6)%7)+1;
+const toMin = t => { const [h,m] = String(t).split(':').map(Number); return h*60+(m||0); };
+const fmtMin = m => `${pad(Math.floor(m/60))}:${pad(m%60)}`;
+const WD = ['一','二','三','四','五','六','日'];
+const uid = () => 'ev' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const validTime = t => /^([01]\d|2[0-3]):[0-5]\d$/.test(t);
+const validDate = s => /^\d{4}-\d{2}-\d{2}$/.test(s || '');
+const colorFor = title => { let h = 0; for (const ch of String(title)) h = (h*31 + ch.codePointAt(0)) >>> 0; return 'c' + (h % 6); };
+const HOUR = 52;
+
+/* ---------- state ---------- */
+let events = new Map();
+let todos = new Map();
+let weekStart = mondayOf(new Date());
+let selDay = isoDow(new Date()) - 1;
+let narrow = false;
+let col = null; // db collection when signed in
+const LS = 'dailyPlanner.events.v1';
+const LS_T = 'dailyPlanner.todos.v1';
+
+function loadLocal(){
+  try { const a = JSON.parse(localStorage.getItem(LS) || '[]'); events = new Map(a.map(e => [e.id, e])); } catch { events = new Map(); }
+  try { const a = JSON.parse(localStorage.getItem(LS_T) || '[]'); todos = new Map(a.map(t => [t.id, t])); } catch { todos = new Map(); }
+}
+function saveLocal(){ if (col) return; try { localStorage.setItem(LS, JSON.stringify([...events.values()])); localStorage.setItem(LS_T, JSON.stringify([...todos.values()])); } catch {} }
+
+async function persist(ev){
+  events.set(ev.id, ev); render();
+  if (col) { const { id, ...body } = ev; try { await col.doc(id).set(body); } catch (e) { showToast('儲存失敗：' + (e?.message || '請稍後再試')); } }
+  else saveLocal();
+}
+async function removeEv(id){
+  events.delete(id); render();
+  if (col) { try { await col.doc(id).delete(); } catch (e) { showToast('刪除失敗：' + (e?.message || '請稍後再試')); } }
+  else saveLocal();
+}
+
+async function initCloud(){
+  if (!window.claude?.use) return;
+  try {
+    const [db, user] = await Promise.all([claude.use('db'), claude.use('user')]);
+    if (!db || !user) return;
+    const id = await user.id();
+    if (!id) return;
+    const c = db.collection('data/users/' + id);
+    let first = true;
+    c.onSnapshot(snap => {
+      const local = first ? [...events.values(), ...todos.values()] : [];
+      col = c;
+      const all = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+      events = new Map(all.filter(x => x.kind !== 'todo').map(x => [x.id, x]));
+      todos = new Map(all.filter(x => x.kind === 'todo').map(x => [x.id, x]));
+      if (first && snap.empty && local.length) { // move browser-only entries into the account once
+        for (const ev of local) { const { id, ...body } = ev; (ev.kind === 'todo' ? todos : events).set(id, ev); c.doc(id).set(body).catch(()=>{}); }
+        try { localStorage.removeItem(LS); localStorage.removeItem(LS_T); } catch {}
+      }
+      first = false;
+      const s = $('#sync'); s.classList.add('cloud'); s.lastElementChild.textContent = '已存到你的帳號（僅你可見）';
+      render();
+    }, () => { const s = $('#sync'); s.classList.remove('cloud'); s.lastElementChild.textContent = '同步中斷，暫存在此瀏覽器'; col = null; saveLocal(); });
+  } catch {}
+}
+
+/* ---------- todos ---------- */
+const tid = () => 'td' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+async function persistTodo(t){
+  todos.set(t.id, t); render();
+  if (col) { const { id, ...body } = t; try { await col.doc(id).set(body); } catch (e) { showToast('待辦儲存失敗：' + (e?.message || '請稍後再試')); } }
+  else saveLocal();
+}
+async function removeTodo(id){
+  todos.delete(id); render();
+  if (col) { try { await col.doc(id).delete(); } catch (e) { showToast('刪除失敗：' + (e?.message || '請稍後再試')); } }
+  else saveLocal();
+}
+function toggleTodo(id){ const t = todos.get(id); if (t) persistTodo({ ...t, done: !t.done, doneAt: t.done ? null : Date.now() }); }
+const todoKey = t => (t.date || '9999-99-99') + (t.time || '99:99') + String(t.createdAt || 0).padStart(15, '0');
+function todosOn(ds){ return [...todos.values()].filter(t => t.date === ds).sort((a,b) => (a.done - b.done) || todoKey(a).localeCompare(todoKey(b))); }
+function dueState(t){
+  if (!t.date || t.done) return '';
+  const now = new Date(), ds = ymd(now);
+  if (t.date < ds) return 'over';
+  if (t.date === ds) return t.time && toMin(t.time) < now.getHours()*60 + now.getMinutes() ? 'over' : 'today';
+  return '';
+}
+function dueLabel(t){
+  if (!t.date) return '';
+  const d = parseYmd(t.date), diff = Math.round((d - startOfDay(new Date())) / 864e5);
+  let s = diff === 0 ? '今天' : diff === 1 ? '明天' : diff === -1 ? '昨天' : `${d.getMonth()+1}/${d.getDate()}（${WD[isoDow(d)-1]}）`;
+  return t.time ? s + ' ' + t.time : s;
+}
+function guessDate(s){
+  const t = startOfDay(new Date());
+  if (/今天|今日|今晚/.test(s)) return ymd(t);
+  if (/明天|明日|明晚/.test(s)) return ymd(addDays(t, 1));
+  if (/後天/.test(s)) return ymd(addDays(t, 2));
+  let m = s.match(/(下)?(?:週|周|星期|禮拜)([一二三四五六日天])/);
+  if (m) {
+    const target = Math.min('一二三四五六日天'.indexOf(m[2]), 6) + 1;
+    if (m[1]) return ymd(addDays(mondayOf(t), 7 + target - 1));
+    return ymd(addDays(t, (target - isoDow(t) + 7) % 7));
+  }
+  m = s.match(/(?:^|[^\d])(\d{1,2})\s*[\/月]\s*(\d{1,2})/);
+  if (m && +m[1] >= 1 && +m[1] <= 12 && +m[2] >= 1 && +m[2] <= 31) {
+    let d = new Date(t.getFullYear(), +m[1]-1, +m[2]);
+    if (d < addDays(t, -30)) d = new Date(t.getFullYear()+1, +m[1]-1, +m[2]);
+    return ymd(d);
+  }
+  return null;
+}
+function todoPill(t){
+  const st = dueState(t);
+  return `<div class="tp${t.done?' done':''}${st==='over'?' over':''}"><button type="button" class="ck${t.done?' on':''}" data-tid="${esc(t.id)}" aria-label="${t.done?'標示為未完成':'標示為完成'}"><svg class="i"><use href="#i-check"/></svg></button><button type="button" class="tl" data-tedit="${esc(t.id)}" title="${esc(t.title)}${t.time?' · '+esc(t.time):''}">${esc(t.title)}</button></div>`;
+}
+function todoItem(t){
+  const st = dueState(t);
+  return `<li class="${t.done?'done':''}"><button type="button" class="ck${t.done?' on':''}" data-tid="${esc(t.id)}" aria-label="${t.done?'標示為未完成':'標示為完成'}"><svg class="i"><use href="#i-check"/></svg></button><button type="button" class="tt" data-tedit="${esc(t.id)}"><span>${esc(t.title)}</span>${t.date?`<small class="${st}">${st==='over'?'已逾期 · ':''}${esc(dueLabel(t))}</small>`:''}${t.note?`<small class="note">${esc(t.note)}</small>`:''}</button></li>`;
+}
+function renderTodos(){
+  const all = [...todos.values()];
+  const open = all.filter(t => !t.done).sort((a,b) => todoKey(a).localeCompare(todoKey(b)));
+  const done = all.filter(t => t.done).sort((a,b) => (b.doneAt||0) - (a.doneAt||0));
+  const ds = ymd(new Date()), tm = ymd(addDays(new Date(), 1));
+  const groups = [['已逾期', t => dueState(t) === 'over', 'over'], ['今天', t => t.date === ds], ['明天', t => t.date === tm], ['之後', t => t.date && t.date > tm], ['沒有期限', t => !t.date]];
+  const used = new Set(); let html = '';
+  for (const [name, fn, cls] of groups) {
+    const l = open.filter(t => !used.has(t.id) && fn(t)); l.forEach(t => used.add(t.id));
+    if (l.length) html += `<li class="tgrp ${cls||''}">${name}</li>` + l.map(todoItem).join('');
+  }
+  $('#todoList').innerHTML = html || '<li class="empty">目前沒有待辦事項。</li>';
+  const overdue = open.filter(t => dueState(t) === 'over').length;
+  $('#todoCount').textContent = open.length ? `${open.length} 項未完成${overdue ? ` · ${overdue} 項逾期` : ''}` : '';
+  $('#todoJump').textContent = open.length ? `待辦 ${open.length}` : '待辦';
+  $('#doneBox').hidden = !done.length;
+  $('#doneSum').textContent = `已完成 ${done.length} 項`;
+  $('#doneList').innerHTML = done.slice(0, 50).map(todoItem).join('');
+}
+
+/* ---------- occurrences ---------- */
+function eventsOn(date){
+  const ds = ymd(date), dow = isoDow(date), out = [];
+  for (const e of events.values()) {
+    if (e.kind === 'weekly') {
+      if (e.weekday !== dow) continue;
+      if (e.from && ds < e.from) continue;
+      if (e.until && ds > e.until) continue;
+      out.push(e);
+    } else if (e.date === ds) out.push(e);
+  }
+  return out.sort((a,b) => toMin(a.start) - toMin(b.start));
+}
+const DEMO = [
+  { title:'微積分', kind:'weekly', weekday:1, start:'08:10', end:'10:00', location:'理學院 201', color:'c0' },
+  { title:'英文寫作', kind:'weekly', weekday:2, start:'10:20', end:'12:10', location:'文學院 105', color:'c3' },
+  { title:'程式設計', kind:'weekly', weekday:3, start:'13:20', end:'16:20', location:'電腦教室 B', color:'c2' },
+  { title:'微積分', kind:'weekly', weekday:4, start:'08:10', end:'09:00', location:'理學院 201', color:'c0' },
+  { title:'吉他社', kind:'weekly', weekday:4, start:'18:30', end:'20:30', location:'學生活動中心', color:'c4' },
+  { title:'咖啡店打工', kind:'weekly', weekday:6, start:'10:00', end:'15:00', location:'', color:'c1' },
+];
+function demoOn(date){ const dow = isoDow(date); return DEMO.filter(e => e.weekday === dow).map((e,i) => ({...e, id:'demo'+dow+i, ghost:true})); }
+
+/* ---------- layout overlapping events into lanes ---------- */
+function lanes(list){
+  const items = list.map(e => ({ e, s: toMin(e.start), en: Math.max(toMin(e.end), toMin(e.start)+20) }));
+  let cluster = [], clusterEnd = -1; const out = [];
+  const flush = () => {
+    const laneEnds = [];
+    for (const it of cluster) { let l = laneEnds.findIndex(x => x <= it.s); if (l < 0) { l = laneEnds.length; laneEnds.push(0); } laneEnds[l] = it.en; it.lane = l; }
+    cluster.forEach(it => { it.n = laneEnds.length; out.push(it); });
+    cluster = [];
+  };
+  for (const it of items) { if (it.s >= clusterEnd && cluster.length) flush(); cluster.push(it); clusterEnd = Math.max(clusterEnd, it.en); }
+  if (cluster.length) flush();
+  return out;
+}
+
+/* ---------- render ---------- */
+function render(){
+  const today = startOfDay(new Date());
+  const days = [...Array(7)].map((_,i) => addDays(weekStart, i));
+  const real = events.size > 0;
+  $('#demoBanner').hidden = real;
+  const end = days[6];
+  $('#range').textContent = `${weekStart.getMonth()+1}/${weekStart.getDate()} – ${end.getMonth()+1}/${end.getDate()}`;
+  $('#weekNo').textContent = `${weekStart.getFullYear()} 年 ${weekStart.getMonth()+1} 月`;
+
+  // day tabs (phone)
+  $('#daytabs').innerHTML = days.map((d,i) => `<button type="button" data-i="${i}" aria-pressed="${i===selDay}">週${WD[i]}<b>${d.getDate()}</b></button>`).join('');
+
+  const shown = narrow ? [days[selDay]] : days;
+  const per = shown.map(d => real ? eventsOn(d) : demoOn(d));
+  let minH = 7, maxH = 22;
+  per.flat().forEach(e => { minH = Math.min(minH, Math.floor(toMin(e.start)/60)); maxH = Math.max(maxH, Math.ceil(toMin(e.end)/60)); });
+  maxH = Math.min(maxH, 24);
+  const H = (maxH - minH) * HOUR;
+  const cols = `52px repeat(${shown.length}, minmax(0,1fr))`;
+
+  const dh = $('#dayhead'); dh.style.gridTemplateColumns = cols;
+  dh.innerHTML = '<div></div>' + shown.map(d => `<div class="${+d===+today?'today':''}">週${WD[isoDow(d)-1]}<b>${d.getDate()}</b></div>`).join('');
+
+  const dr = $('#duerow'); dr.style.gridTemplateColumns = cols;
+  const dueBy = shown.map(d => todosOn(ymd(d)));
+  dr.hidden = !dueBy.some(l => l.length);
+  dr.innerHTML = '<div>待辦</div>' + dueBy.map(l => `<div>${l.map(todoPill).join('')}</div>`).join('');
+
+  const g = $('#grid'); g.style.gridTemplateColumns = cols;
+  let html = `<div class="gutter" style="height:${H}px">`;
+  for (let h = minH+1; h < maxH; h++) html += `<span style="top:${(h-minH)*HOUR}px">${pad(h)}:00</span>`;
+  html += '</div>';
+  shown.forEach((d, ci) => {
+    const wk = isoDow(d) >= 6 ? ' weekend' : '';
+    html += `<div class="col${wk}" data-date="${ymd(d)}" style="height:${H}px">`;
+    for (let h = minH; h < maxH; h++) { if (h > minH) html += `<div class="hourline" style="top:${(h-minH)*HOUR}px"></div>`; html += `<div class="hourline half" style="top:${(h-minH)*HOUR+HOUR/2}px"></div>`; }
+    for (const it of lanes(per[ci])) {
+      const e = it.e, top = (it.s - minH*60) / 60 * HOUR, hgt = Math.max((it.en - it.s) / 60 * HOUR - 2, 18);
+      const w = 100 / it.n, left = it.lane * w;
+      html += `<button type="button" class="ev ${e.color || colorFor(e.title)}${e.ghost?' ghost':''}" data-id="${esc(e.id)}" style="top:${top}px;height:${hgt}px;left:calc(${left}% + 2px);width:calc(${w}% - 4px)" title="${esc(e.title)} ${esc(e.start)}–${esc(e.end)}${e.location?' · '+esc(e.location):''}">
+        <strong>${esc(e.title)}</strong>${hgt > 30 ? `<span class="t">${esc(e.start)}–${esc(e.end)}</span>` : ''}${hgt > 48 && e.location ? `<span class="loc">${esc(e.location)}</span>` : ''}</button>`;
+    }
+    if (+d === +today) { const now = new Date(), m = now.getHours()*60 + now.getMinutes(); if (m >= minH*60 && m <= maxH*60) html += `<div class="now" style="top:${(m-minH*60)/60*HOUR}px"></div>`; }
+    html += '</div>';
+  });
+  g.innerHTML = html;
+  g.dataset.minh = minH;
+
+  renderToday();
+  renderTodos();
+}
+
+function renderToday(){
+  const now = new Date(), today = startOfDay(now), m = now.getHours()*60 + now.getMinutes();
+  $('#todayLabel').textContent = `${today.getMonth()+1}月${today.getDate()}日 星期${WD[isoDow(today)-1]}`;
+  const real = events.size > 0;
+  const list = real ? eventsOn(today) : demoOn(today);
+  const ul = $('#agenda');
+  if (!list.length) { ul.innerHTML = `<li style="cursor:default"><span></span><p class="empty">今天沒有行程。</p></li>`; }
+  else ul.innerHTML = list.map(e => {
+    const s = toMin(e.start), en = toMin(e.end), cls = en <= m ? 'past' : (s <= m ? 'cur' : '');
+    return `<li class="${cls}" data-id="${esc(e.id)}"><span class="tm">${esc(e.start)}–${esc(e.end)}</span><span class="nm"><i class="dot ${e.color||colorFor(e.title)}"></i><span>${esc(e.title)}${e.location?` <small style="color:var(--muted)">· ${esc(e.location)}</small>`:''}</span></span></li>`;
+  }).join('');
+  // next up
+  let next = null;
+  for (let i = 0; i < 14 && !next; i++) {
+    const d = addDays(today, i), l = real ? eventsOn(d) : demoOn(d);
+    for (const e of l) { if (i > 0 || toMin(e.start) > m) { next = { e, d, i }; break; } }
+  }
+  const cur = list.find(e => toMin(e.start) <= m && toMin(e.end) > m);
+  const np = $('#nextup');
+  const pre = real ? '' : '（範例）';
+  if (cur) np.innerHTML = `${pre}進行中：<b>${esc(cur.title)}</b>，${esc(cur.end)} 結束`;
+  else if (next) {
+    const when = next.i === 0 ? `${Math.round((toMin(next.e.start)-m))} 分鐘後` : next.i === 1 ? `明天 ${next.e.start}` : `${next.d.getMonth()+1}/${next.d.getDate()}（${WD[isoDow(next.d)-1]}）${next.e.start}`;
+    const mins = toMin(next.e.start) - m;
+    const w2 = next.i === 0 && mins >= 60 ? `${Math.floor(mins/60)} 小時 ${mins%60} 分後` : when;
+    np.innerHTML = `${pre}下一個：<b>${esc(next.e.title)}</b>，${esc(w2)}`;
+  } else np.textContent = '接下來兩週沒有行程。';
+}
+
+/* ---------- event dialog ---------- */
+let editing = null, formKind = 'once', formColor = 'c0', delArmed = false;
+$('#f-wd').innerHTML = WD.map((w,i) => `<option value="${i+1}">星期${w}</option>`).join('');
+$('#f-color').innerHTML = [0,1,2,3,4,5].map(i => `<button type="button" class="c${i}" data-c="c${i}" aria-label="顏色 ${i+1}"></button>`).join('');
+function setKind(k){
+  formKind = k;
+  $('#f-once').setAttribute('aria-pressed', k === 'once'); $('#f-weekly').setAttribute('aria-pressed', k === 'weekly');
+  $('#w-date').hidden = k !== 'once'; $('#w-wd').hidden = k !== 'weekly'; $('#w-from').hidden = k !== 'weekly'; $('#w-until').hidden = k !== 'weekly';
+}
+function setColor(c){ formColor = c; document.querySelectorAll('#f-color button').forEach(b => b.setAttribute('aria-pressed', b.dataset.c === c)); }
+function openEditor(ev, preset){
+  editing = ev || null; delArmed = false;
+  const e = ev || { title:'', kind:'once', date: ymd(new Date()), weekday: isoDow(new Date()), start:'09:00', end:'10:00', location:'', note:'', color:null, ...preset };
+  $('#evTitle').textContent = ev ? '編輯行程' : '新增行程';
+  $('#f-title').value = e.title; $('#f-date').value = e.date || ymd(new Date()); $('#f-wd').value = e.weekday || isoDow(parseYmd(e.date || ymd(new Date())));
+  $('#f-start').value = e.start; $('#f-end').value = e.end; $('#f-loc').value = e.location || ''; $('#f-note').value = e.note || '';
+  $('#f-from').value = e.from || ''; $('#f-until').value = e.until || '';
+  setKind(e.kind || 'once'); setColor(e.color || colorFor(e.title || 'x'));
+  $('#evDelete').hidden = !ev; $('#evDelete').textContent = '刪除'; $('#evErr').hidden = true;
+  $('#evScrim').hidden = false; setTimeout(() => $('#f-title').focus(), 0);
+}
+function closeEditor(){ $('#evScrim').hidden = true; editing = null; }
+$('#f-once').onclick = () => setKind('once');
+$('#f-weekly').onclick = () => { if (!$('#f-from').value) $('#f-from').value = ymd(new Date()); setKind('weekly'); };
+$('#f-color').onclick = e => { const b = e.target.closest('button'); if (b) setColor(b.dataset.c); };
+$('#evCancel').onclick = closeEditor;
+$('#evScrim').addEventListener('mousedown', e => { if (e.target.id === 'evScrim') closeEditor(); });
+$('#evDelete').onclick = () => {
+  if (!editing) return;
+  if (!delArmed) { delArmed = true; $('#evDelete').textContent = editing.kind === 'weekly' ? '確定刪除整個每週行程？' : '確定刪除？'; return; }
+  removeEv(editing.id); closeEditor();
+};
+$('#evForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const start = $('#f-start').value, end = $('#f-end').value, err = $('#evErr');
+  if (toMin(end) <= toMin(start)) { err.textContent = '結束時間要晚於開始時間。'; err.hidden = false; return; }
+  const ev = { id: editing?.id || uid(), title: $('#f-title').value.trim(), kind: formKind, start, end,
+    location: $('#f-loc').value.trim(), note: $('#f-note').value.trim(), color: formColor, updatedAt: Date.now() };
+  if (formKind === 'once') { if (!validDate($('#f-date').value)) { err.textContent = '請選擇日期。'; err.hidden = false; return; } ev.date = $('#f-date').value; }
+  else { ev.weekday = +$('#f-wd').value; ev.from = $('#f-from').value || null; ev.until = $('#f-until').value || null;
+    if (ev.from && ev.until && ev.until < ev.from) { err.textContent = '結束日期要晚於開始日期。'; err.hidden = false; return; } }
+  persist(ev); closeEditor();
+});
+
+/* ---------- grid interactions ---------- */
+$('#grid').addEventListener('click', e => {
+  const b = e.target.closest('.ev');
+  if (b) { const ev = events.get(b.dataset.id); if (ev) openEditor(ev); return; }
+  const c = e.target.closest('.col'); if (!c) return;
+  const minH = +$('#grid').dataset.minh, y = e.clientY - c.getBoundingClientRect().top;
+  const m = Math.floor((minH*60 + y / HOUR * 60) / 30) * 30;
+  const dt = parseYmd(c.dataset.date);
+  openEditor(null, { date: c.dataset.date, weekday: isoDow(dt), start: fmtMin(m), end: fmtMin(Math.min(m+60, 23*60+55)) });
+});
+document.addEventListener('click', e => {
+  const ck = e.target.closest('[data-tid]'); if (ck) { toggleTodo(ck.dataset.tid); return; }
+  const ed = e.target.closest('[data-tedit]'); if (ed) openTodo(todos.get(ed.dataset.tedit));
+});
+$('#todoAdd').addEventListener('submit', e => {
+  e.preventDefault();
+  const title = $('#t-new').value.trim(); if (!title) return;
+  const date = $('#t-newdue').value || guessDate(title);
+  persistTodo({ id: tid(), kind: 'todo', title, date: date || null, time: null, note: '', done: false, createdAt: Date.now(), doneAt: null });
+  $('#t-new').value = ''; $('#t-newdue').value = '';
+});
+$('#todoJump').onclick = () => $('#todoCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+$('#clearDone').onclick = () => { for (const t of [...todos.values()]) if (t.done) removeTodo(t.id); };
+let tEditing = null, tDelArmed = false;
+function openTodo(t){
+  if (!t) return;
+  tEditing = t; tDelArmed = false;
+  $('#td-title').value = t.title; $('#td-date').value = t.date || ''; $('#td-time').value = t.time || ''; $('#td-note').value = t.note || '';
+  $('#tdDelete').textContent = '刪除';
+  $('#tdScrim').hidden = false; setTimeout(() => $('#td-title').focus(), 0);
+}
+function closeTodo(){ $('#tdScrim').hidden = true; tEditing = null; }
+$('#tdCancel').onclick = closeTodo;
+$('#tdScrim').addEventListener('mousedown', e => { if (e.target.id === 'tdScrim') closeTodo(); });
+$('#tdDelete').onclick = () => { if (!tEditing) return; if (!tDelArmed) { tDelArmed = true; $('#tdDelete').textContent = '確定刪除？'; return; } removeTodo(tEditing.id); closeTodo(); };
+$('#tdForm').addEventListener('submit', e => {
+  e.preventDefault(); if (!tEditing) return;
+  const date = $('#td-date').value || null;
+  persistTodo({ ...tEditing, title: $('#td-title').value.trim() || tEditing.title, date, time: date ? ($('#td-time').value || null) : null, note: $('#td-note').value.trim() });
+  closeTodo();
+});
+$('#agenda').addEventListener('click', e => { const li = e.target.closest('li[data-id]'); const ev = li && events.get(li.dataset.id); if (ev) openEditor(ev); });
+$('#daytabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { selDay = +b.dataset.i; render(); } });
+$('#prev').onclick = () => { weekStart = addDays(weekStart, -7); render(); };
+$('#next').onclick = () => { weekStart = addDays(weekStart, 7); render(); };
+$('#todayBtn').onclick = () => { weekStart = mondayOf(new Date()); selDay = isoDow(new Date())-1; render(); };
+$('#addBtn').onclick = $('#fab').onclick = () => openEditor(null, narrow ? { date: ymd(addDays(weekStart, selDay)) } : {});
+const mq = matchMedia('(max-width:800px)');
+const applyMq = () => { narrow = mq.matches; $('#board').classList.toggle('narrow', narrow); render(); };
+mq.addEventListener('change', applyMq);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (!$('#evScrim').hidden) closeEditor(); else if (!$('#tdScrim').hidden) closeTodo(); else if (!$('#impScrim').hidden) $('#impScrim').hidden = true; } });
+
+/* ---------- import (AI) ---------- */
+let sample = null, imgLimits = null, images = [], abort = null, proposals = [];
+const st = $('#importStatus');
+function setStatus(t, err){ st.textContent = t; st.classList.toggle('err', err === true); st.classList.toggle('ok', err === 'ok'); }
+function updateAnalyze(){ $('#analyze').disabled = !sample || adding || (!images.length && !$('#importText').value.trim()) || !!abort; }
+function renderThumbs(){
+  $('#thumbs').innerHTML = images.map((im,i) => `<figure><img src="${im.url}" alt="待分析圖片 ${i+1}"><button type="button" data-i="${i}" aria-label="移除"><svg class="i"><use href="#i-x"/></svg></button></figure>`).join('');
+  updateAnalyze();
+}
+async function toJpeg(file){
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error('decode')); im.src = url; });
+    const MAX = 2000; let w = img.naturalWidth, h = img.naturalHeight;
+    if (!w || !h) throw new Error('decode');
+    const k = Math.min(1, MAX / Math.max(w, h)); w = Math.round(w * k); h = Math.round(h * k);
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); ctx.drawImage(img, 0, 0, w, h);
+    const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.88));
+    if (!blob) throw new Error('encode');
+    return blob;
+  } finally { URL.revokeObjectURL(url); }
+}
+let adding = false;
+async function addFiles(list){
+  if (!imgLimits) { setStatus('這個檢視無法傳送圖片給 Claude，請改用「貼上文字行程」。', true); return; }
+  const files = [...list].filter(f => (f.type || '').startsWith('image/') || /\.(heic|heif|jpe?g|png|webp|gif)$/i.test(f.name || ''));
+  if (!files.length) { setStatus('請選擇圖片檔。', true); return; }
+  const max = imgLimits.maxCount || 5; let added = 0, failed = 0, full = false;
+  adding = true; updateAnalyze(); setStatus('處理圖片中…');
+  for (const f of files) {
+    if (images.length >= max) { full = true; break; }
+    try {
+      const blob = await toJpeg(f);
+      if (imgLimits.maxBytes && blob.size > imgLimits.maxBytes) { failed++; continue; }
+      images.push({ blob, url: URL.createObjectURL(blob) }); added++; renderThumbs();
+    } catch { failed++; }
+  }
+  adding = false; renderThumbs();
+  if (failed) setStatus(`有 ${failed} 張圖片無法讀取（可能是 HEIC 格式）。請改用截圖，或把相機格式改成「最相容」後再試。`, true);
+  else if (full) setStatus(`一次最多 ${max} 張圖片。`, true);
+  else if (added) setStatus(`已加入 ${images.length} 張圖片，按「分析並預覽」開始辨識。`);
+  if (added && narrow) $('#importCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+$('#thumbs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; const [r] = images.splice(+b.dataset.i, 1); URL.revokeObjectURL(r.url); renderThumbs(); });
+const drop = $('#drop');
+$('#file').onchange = e => { const fs = [...(e.target.files || [])]; e.target.value = ''; if (fs.length) addFiles(fs); };
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); addFiles(e.dataTransfer.files); });
+document.addEventListener('paste', e => { const fs = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith('image/')); if (fs.length && imgLimits) { addFiles(fs); setStatus('已貼上圖片。'); } });
+$('#importText').addEventListener('input', updateAnalyze);
+
+function buildPrompt(text){
+  const t = new Date();
+  return `你是行程表解析助手。今天是 ${ymd(t)}（星期${WD[isoDow(t)-1]}）。
+${images.length ? `附上的 ${images.length} 張圖片是使用者的課表、班表、行事曆、活動海報或其他圖表。` : ''}${text ? `\n使用者貼上的文字：\n"""\n${text}\n"""` : ''}
+
+請擷取其中所有行程，規則：
+- 每週固定的（課表、班表等）recurring=true，填 weekday（1=星期一 … 7=星期日），date 填 null。
+- 有特定日期的單次行程 recurring=false，填 date（YYYY-MM-DD；沒寫年份時取今天之後最接近的日期），weekday 填 null。
+- 時間用 24 小時制 "HH:MM"。課表只寫節次時，依圖中的節次時間對照；圖中沒有時間對照時，用合理推測並把 uncertain 設為 true。
+- 同一門課連續好幾節要合併成一筆（開始取第一節、結束取最後一節）。
+- 同一門課在不同天要分成多筆。
+- title 用圖中原本的名稱（保留原文語言），location 填教室或地點（沒有就空字串），note 填老師、班級等補充（沒有就空字串）。
+- 看不清楚或不確定的欄位，盡量填寫並把 uncertain 設為 true。
+- 空白格、午休、下課不要列出。
+- 只有截止日期、沒有時段的事項（作業繳交、報告截止、報名截止、要準備或要帶的東西）設 todo=true、recurring=false，date 填截止日（不知道就填 null），start 填截止時間（沒有就 null），end 填 null。有時段的考試、活動仍是一般行程（todo=false）。
+
+只回覆 JSON，格式：
+{"summary":"一句話說明辨識到什麼（繁體中文）","events":[{"title":"","recurring":true,"weekday":1,"date":null,"start":"08:10","end":"10:00","location":"","note":"","uncertain":false,"todo":false}]}`;
+}
+
+$('#analyze').onclick = async () => {
+  if (!sample) return;
+  const text = $('#importText').value.trim();
+  abort = new AbortController(); updateAnalyze();
+  $('#cancelAnalyze').hidden = false;
+  setStatus(images.length ? '正在閱讀圖片…' : '正在分析文字…');
+  try {
+    const opts = { signal: abort.signal, modelTier: 'default', onText: ({ text }) => { const n = (text.match(/"title"/g) || []).length; if (n) setStatus(`辨識中… 已找到 ${n} 筆`); } };
+    if (images.length) opts.images = images.map(i => i.blob);
+    const res = await sample.json(buildPrompt(text), opts);
+    const evs = Array.isArray(res?.events) ? res.events : [];
+    proposals = evs.map(normalize).filter(Boolean);
+    if (!proposals.length) { setStatus('沒有找到行程。試試更清楚的截圖，或只截取課表的部分。', true); return; }
+    setStatus('');
+    openReview(String(res?.summary || ''));
+  } catch (e) {
+    const c = e?.code;
+    if (c === 'aborted' || e?.name === 'AbortError') setStatus('已停止。');
+    else if (c === 'not_granted') setStatus('你沒有允許這個頁面使用 Claude，因此無法分析。可從頁面的權限選單重新開啟。', true);
+    else if (c === 'rate_limited') setStatus('目前使用量已達上限，請稍後再試。', true);
+    else if (c === 'invalid_json') setStatus('這次的分析結果格式不完整，請按「分析並預覽」再試一次。', true);
+    else if (c === 'image_rejected') setStatus('圖片無法讀取，請換成 PNG 或 JPG 再試。', true);
+    else setStatus('分析失敗：' + (e?.message || '請再試一次'), true);
+  } finally { abort = null; $('#cancelAnalyze').hidden = true; updateAnalyze(); }
+};
+$('#cancelAnalyze').onclick = () => abort?.abort();
+
+function normalize(e){
+  if (!e || typeof e !== 'object') return null;
+  const fixT = t => { const m = String(t || '').match(/(\d{1,2})[:：.](\d{2})/); return m ? `${pad(Math.min(+m[1],23))}:${m[2]}` : ''; };
+  if (e.todo === true) {
+    const date = validDate(e.date) ? e.date : null;
+    return { on: true, title: String(e.title || '未命名').slice(0,120), kind: 'todo', date, start: fixT(e.start), end: '', location: '',
+      note: String(e.note || '').slice(0,500), uncertain: !!e.uncertain };
+  }
+  let start = fixT(e.start), end = fixT(e.end);
+  if (!start) return null;
+  if (!end || toMin(end) <= toMin(start)) end = fmtMin(Math.min(toMin(start)+50, 23*60+59));
+  const recurring = e.recurring !== false && !validDate(e.date);
+  const wd = Math.round(+e.weekday);
+  const p = { on: true, title: String(e.title || '未命名').slice(0,80), kind: recurring ? 'weekly' : 'once', start, end,
+    location: String(e.location || '').slice(0,80), note: String(e.note || '').slice(0,500), uncertain: !!e.uncertain };
+  if (recurring) { p.weekday = wd >= 1 && wd <= 7 ? wd : 1; if (!(wd >= 1 && wd <= 7)) p.uncertain = true; }
+  else p.date = e.date;
+  return p;
+}
+
+function openReview(summary){
+  $('#impSummary').textContent = summary || `辨識到 ${proposals.length} 筆行程。`;
+  const hasWeekly = proposals.some(p => p.kind === 'weekly');
+  $('#impRange').hidden = !hasWeekly;
+  $('#imp-from').value = ymd(mondayOf(new Date()));
+  $('#imp-until').value = ymd(addDays(mondayOf(new Date()), 18*7 - 1));
+  renderReview();
+  $('#impScrim').hidden = false;
+}
+function renderReview(){
+  const wdOpts = v => WD.map((w,i) => `<option value="${i+1}"${v===i+1?' selected':''}>每週${w}</option>`).join('');
+  $('#impBody').innerHTML = proposals.map((p,i) => `<tr class="${p.on?'':'off'}" data-i="${i}">
+    <td><input type="checkbox" data-k="on" ${p.on?'checked':''} aria-label="加入此行程"></td>
+    <td><input class="inp" data-k="title" value="${esc(p.title)}" aria-label="名稱">${p.uncertain?'<span class="flag">請確認內容</span>':''}</td>
+    <td><div class="when"><select class="inp" data-k="kind" aria-label="重複"><option value="weekly"${p.kind==='weekly'?' selected':''}>每週</option><option value="once"${p.kind==='once'?' selected':''}>單次</option><option value="todo"${p.kind==='todo'?' selected':''}>待辦</option></select>
+      ${p.kind==='weekly' ? `<select class="inp" data-k="weekday" aria-label="星期">${wdOpts(p.weekday)}</select>` : `<input type="date" class="inp" data-k="date" value="${esc(p.date||'')}" aria-label="日期">`}</div></td>
+    <td><input type="time" class="inp" data-k="start" value="${esc(p.start)}" aria-label="開始"></td>
+    <td>${p.kind==='todo' ? '<span class="flag" style="color:var(--mu)">截止時間 ←</span>' : `<input type="time" class="inp" data-k="end" value="${esc(p.end)}" aria-label="結束">`}</td>
+    <td>${p.kind==='todo' ? '' : `<input class="inp" data-k="location" value="${esc(p.location)}" aria-label="地點">`}</td></tr>`).join('');
+  const n = proposals.filter(p => p.on).length;
+  $('#impCount').textContent = `已選 ${n} / ${proposals.length} 筆`;
+  $('#impAdd').textContent = `加入 ${n} 筆`; $('#impAdd').disabled = !n;
+  $('#impAll').checked = n === proposals.length;
+  $('#impRange').hidden = !proposals.some(p => p.kind === 'weekly');
+}
+$('#impBody').addEventListener('change', e => {
+  const el = e.target, tr = el.closest('tr'); if (!tr) return;
+  const p = proposals[+tr.dataset.i], k = el.dataset.k;
+  if (k === 'on') p.on = el.checked;
+  else if (k === 'weekday') p.weekday = +el.value;
+  else if (k === 'kind') {
+    p.kind = el.value;
+    if (p.kind === 'once' && !p.date) p.date = ymd(addDays(weekStart, (p.weekday||1)-1));
+    if (p.kind === 'weekly' && !p.weekday) p.weekday = validDate(p.date) ? isoDow(parseYmd(p.date)) : 1;
+    if (p.kind !== 'todo') { if (!validTime(p.start)) p.start = '09:00'; if (!validTime(p.end) || toMin(p.end) <= toMin(p.start)) p.end = fmtMin(Math.min(toMin(p.start)+50, 23*60+59)); }
+  }
+  else p[k] = el.value;
+  if (k === 'on' || k === 'kind') renderReview();
+});
+$('#impAll').onchange = e => { proposals.forEach(p => p.on = e.target.checked); renderReview(); };
+$('#impCancel').onclick = () => { $('#impScrim').hidden = true; };
+$('#impAdd').onclick = async () => {
+  const from = $('#imp-from').value || null, until = $('#imp-until').value || null;
+  const chosen = proposals.filter(p => p.on && p.title.trim() && (p.kind === 'todo' || (validTime(p.start) && validTime(p.end) && (p.kind === 'weekly' || validDate(p.date)))));
+  let nTodo = 0;
+  const colorByTitle = {};
+  let firstDate = null;
+  for (const p of chosen) {
+    if (p.kind === 'todo') {
+      const t = { id: tid(), kind: 'todo', title: p.title.trim(), date: validDate(p.date) ? p.date : null, time: validDate(p.date) && validTime(p.start) ? p.start : null,
+        note: p.note || '', done: false, createdAt: Date.now(), doneAt: null, source: 'import' };
+      todos.set(t.id, t); nTodo++;
+      if (col) { const { id, ...body } = t; col.doc(id).set(body).catch(() => showToast('部分待辦儲存失敗，請重新整理後確認。')); }
+      continue;
+    }
+    const color = colorByTitle[p.title] ||= colorFor(p.title);
+    const ev = { id: uid(), title: p.title.trim(), kind: p.kind, start: p.start, end: toMin(p.end) > toMin(p.start) ? p.end : fmtMin(toMin(p.start)+50),
+      location: p.location.trim(), note: p.note || '', color, updatedAt: Date.now(), source: 'import' };
+    if (p.kind === 'weekly') { ev.weekday = p.weekday; ev.from = from; ev.until = until; }
+    else { ev.date = p.date; if (!firstDate || p.date < firstDate) firstDate = p.date; }
+    events.set(ev.id, ev);
+    if (col) { const { id, ...body } = ev; col.doc(id).set(body).catch(() => showToast('部分行程儲存失敗，請重新整理後確認。')); }
+  }
+  saveLocal();
+  $('#impScrim').hidden = true;
+  images.forEach(i => URL.revokeObjectURL(i.url)); images = []; renderThumbs(); $('#importText').value = '';
+  if (!chosen.some(p => p.kind === 'weekly') && firstDate) weekStart = mondayOf(parseYmd(firstDate));
+  else if (from && parseYmd(from) > addDays(weekStart, 6)) weekStart = mondayOf(parseYmd(from));
+  render();
+  const nEv = chosen.length - nTodo;
+  setStatus(nTodo ? `已加入 ${nEv} 筆行程、${nTodo} 項待辦。` : `已加入 ${nEv} 筆行程。`, 'ok');
+};
+
+function showToast(msg){ setStatus(msg, true); }
+
+async function initSample(){
+  if (!window.claude?.use) { drop.hidden = true; $('#importTop').hidden = true; $('#textDetails').open = true; setStatus('請在 claude.ai 開啟此頁面以使用 AI 辨識；手動新增行程仍可使用。'); return; }
+  try {
+    sample = await claude.use('sample');
+    if (!sample) { drop.hidden = true; $('#importTop').hidden = true; setStatus('這個檢視無法使用 AI 辨識；手動新增行程仍可使用。'); $('#analyze').disabled = true; return; }
+    const lim = await sample.limits().catch(() => null);
+    imgLimits = lim?.images || null;
+    if (!imgLimits) { drop.hidden = true; $('#importTop').hidden = true; $('#textDetails').open = true; setStatus('這個檢視無法傳送圖片，可改貼上文字行程。'); }
+    updateAnalyze();
+  } catch { setStatus('AI 辨識暫時無法使用；手動新增行程仍可使用。'); }
+}
+
+/* ---------- boot ---------- */
+loadLocal();
+applyMq();
+setInterval(render, 60000);
+initCloud();
+initSample();
+})();
+</script>

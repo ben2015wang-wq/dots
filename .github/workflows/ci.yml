@@ -18,7 +18,7 @@ jobs:
           node-version: '20'
       - name: JavaScript syntax check
         run: |
-          for f in src/*.js src/parts/*.js src/pwa/sw.js; do node --check "$f"; done
+          for f in src/*.js src/parts/*.js src/pwa/sw.js src/planner/runtime.js src/planner/sw.js; do node --check "$f"; done
       - name: Build
         run: python src/build.py --out dist
       - name: Install browser for the smoke test
