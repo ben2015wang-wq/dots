@@ -33,6 +33,24 @@
   --e0:#3b6cf6; --e1:#16a34a; --e2:#db2777; --e3:#b45309; --e4:#0284c7; --e5:#dc2626;
   --tint:12%; color-scheme:light;
 }
+/* viewer-chosen appearance (外觀) wins over system and host theme */
+:root[data-look="light"]{
+  --bg:#f6f6f4; --side:#ffffff; --card:#ffffff; --pop:#ffffff;
+  --bd:rgba(0,0,0,.08); --bd2:rgba(0,0,0,.17);
+  --tx:#1b1b1d; --mu:#6e6e76; --ac:#3b6cf6; --hv:rgba(0,0,0,.05); --sel:rgba(0,0,0,.07);
+  --dang:#d63a3a; --brand:#16a34a;
+  --e0:#3b6cf6; --e1:#16a34a; --e2:#db2777; --e3:#b45309; --e4:#0284c7; --e5:#dc2626;
+  --tint:12%; color-scheme:light;
+}
+:root[data-look="dark"]{
+  --bg:#0e0e10; --side:#121214; --card:#1a1a1d; --pop:#212124;
+  --bd:rgba(255,255,255,.07); --bd2:rgba(255,255,255,.15);
+  --tx:#ececee; --mu:#8a8a93; --ac:#8197ff; --hv:rgba(255,255,255,.055); --sel:rgba(255,255,255,.08);
+  --dang:#ff8080; --brand:#22c55e;
+  --e0:#8197ff; --e1:#22c55e; --e2:#f472b6; --e3:#f5c542; --e4:#60a5fa; --e5:#ff8a8a;
+  --tint:16%;
+  color-scheme:dark;
+}
 *,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
 body{background:var(--bg);color:var(--tx);font:13px/1.45 var(--f-ui);-webkit-font-smoothing:antialiased}
@@ -102,13 +120,35 @@ header.bar .c{color:var(--mu);font-size:13px}
 .c0{--k:var(--e0)}.c1{--k:var(--e1)}.c2{--k:var(--e2)}.c3{--k:var(--e3)}.c4{--k:var(--e4)}.c5{--k:var(--e5)}
 .now{position:absolute;left:-1px;right:0;border-top:1.5px solid var(--brand);pointer-events:none;z-index:3}
 .now::before{content:"";position:absolute;left:-4px;top:-4.5px;width:8px;height:8px;border-radius:50%;background:var(--brand)}
-.daytabs{display:none;gap:6px;padding:10px;border-bottom:1px solid var(--bd);overflow-x:auto}
+.viewbar{display:none;gap:8px;align-items:center;padding:10px;border-bottom:1px solid var(--bd)}
+.viewbar .tg{flex:none}
+.viewbar .tg button{padding:4px 12px}
+.daytabs{display:none;gap:6px;overflow-x:auto;flex:1;min-width:0}
+.viewhint{color:var(--mu);font-size:11.5px}
 .daytabs button{flex:1 0 auto;border:1px solid var(--bd);background:none;border-radius:20px;padding:4px 10px;color:var(--mu);font-size:12px;display:flex;gap:4px;align-items:baseline;justify-content:center}
 .daytabs button b{font-weight:600;color:var(--tx);font-variant-numeric:tabular-nums}
 .daytabs button[aria-pressed="true"]{background:var(--tx);border-color:var(--tx);color:var(--bg)}
 .daytabs button[aria-pressed="true"] b{color:var(--bg)}
-.narrow .daytabs{display:flex}
-.narrow .dayhead{display:none}
+.narrow .viewbar{display:flex}
+.dayview .daytabs{display:flex}
+.dayview .dayhead{display:none}
+.compact .dayhead div{padding:7px 0 6px;font-size:10px;cursor:pointer}
+.compact .dayhead b{font-size:14px;gap:3px}
+.compact .dayhead .today b::after{width:5px;height:5px}
+.compact .gutter span{right:5px;font-size:9.5px}
+.compact .ev{padding:2px 3px;border-left-width:2px;border-radius:5px}
+.compact .ev strong{white-space:normal;word-break:break-all;font-size:10px;line-height:1.2;font-weight:500}
+.compact .ev .t,.compact .ev .loc{display:none}
+.compact .duerow>div{padding:3px 2px}
+.compact .duerow>div:first-child{padding:6px 4px 0 0;font-size:9.5px}
+.compact .tp{padding:2px 3px;gap:3px;border-radius:5px}
+.compact .tp .tl{font-size:9.5px}
+.compact .tp .ck{width:11px;height:11px}
+.menu{position:fixed;z-index:80;background:var(--pop);border:1px solid var(--bd2);border-radius:12px;padding:4px;min-width:150px;box-shadow:0 16px 40px rgba(0,0,0,.35);display:flex;flex-direction:column}
+.mi{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;border:0;background:none;text-align:left;color:var(--tx)}
+.mi:hover{background:var(--hv)}
+.mi .ok{margin-left:auto;color:var(--brand);visibility:hidden}
+.mi[aria-checked="true"] .ok{visibility:visible}
 
 .nextup{font-size:12.5px;color:var(--mu);margin:0;padding:0 6px}
 .nextup b{color:var(--tx);font-weight:500}
@@ -242,6 +282,9 @@ li.done .tt span{text-decoration:line-through;color:var(--mu)}
   <symbol id="i-img" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-9 9"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/></symbol>
+  <symbol id="i-auto" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17a8.5 8.5 0 000-17z" fill="currentColor"/></symbol>
   <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></symbol>
 </svg>
 
@@ -256,6 +299,7 @@ li.done .tt span{text-decoration:line-through;color:var(--mu)}
         <button class="ib" id="prev" aria-label="上一週"><svg class="i"><use href="#i-l"/></svg></button>
         <button class="ib" id="next" aria-label="下一週"><svg class="i"><use href="#i-r"/></svg></button>
       </div>
+      <button class="ib" id="themeBtn" aria-label="外觀" title="外觀" aria-haspopup="menu"><svg class="i"><use href="#i-auto"/></svg></button>
       <button class="chip" id="todayBtn">本週</button>
       <button class="chip mshow" id="todoJump">待辦</button>
       <label class="btn ghost" for="file" id="importTop"><svg class="i"><use href="#i-img"/></svg>匯入課表</label>
@@ -264,7 +308,14 @@ li.done .tt span{text-decoration:line-through;color:var(--mu)}
     <div id="ct">
       <section class="board" id="board" aria-label="週行程表">
         <div class="banner" id="demoBanner" hidden><i class="dot"></i><span>目前顯示的是<b>範例行程</b>。匯入課表圖片，或點選表格中的時段開始建立。</span></div>
-        <div class="daytabs" id="daytabs"></div>
+        <div class="viewbar">
+          <div class="tg" role="group" aria-label="檢視方式">
+            <button type="button" id="vDay" aria-pressed="true">日</button>
+            <button type="button" id="vWeek" aria-pressed="false">週</button>
+          </div>
+          <div class="daytabs" id="daytabs"></div>
+          <span class="viewhint" id="viewHint" hidden>點日期可切換到那一天</span>
+        </div>
         <div class="dayhead" id="dayhead"></div>
         <div class="duerow" id="duerow" hidden></div>
         <div class="grid" id="grid"></div>
@@ -324,6 +375,12 @@ li.done .tt span{text-decoration:line-through;color:var(--mu)}
       <div class="sync" id="sync"><i></i><span>存在此瀏覽器</span></div>
     </div>
   </aside>
+</div>
+
+<div class="menu" id="themeMenu" role="menu" hidden>
+  <button class="mi" role="menuitemradio" data-look="system"><svg class="i"><use href="#i-auto"/></svg>跟隨系統<svg class="i ok"><use href="#i-check"/></svg></button>
+  <button class="mi" role="menuitemradio" data-look="light"><svg class="i"><use href="#i-sun"/></svg>淺色<svg class="i ok"><use href="#i-check"/></svg></button>
+  <button class="mi" role="menuitemradio" data-look="dark"><svg class="i"><use href="#i-moon"/></svg>深色<svg class="i ok"><use href="#i-check"/></svg></button>
 </div>
 
 <button class="fab" id="fab" aria-label="新增行程"><svg class="i"><use href="#i-plus"/></svg></button>
@@ -418,7 +475,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const validTime = t => /^([01]\d|2[0-3]):[0-5]\d$/.test(t);
 const validDate = s => /^\d{4}-\d{2}-\d{2}$/.test(s || '');
 const colorFor = title => { let h = 0; for (const ch of String(title)) h = (h*31 + ch.codePointAt(0)) >>> 0; return 'c' + (h % 6); };
-const HOUR = 52;
+let HOUR = 52;
 
 /* ---------- state ---------- */
 let events = new Map();
@@ -426,6 +483,7 @@ let todos = new Map();
 let weekStart = mondayOf(new Date());
 let selDay = isoDow(new Date()) - 1;
 let narrow = false;
+let view = (() => { try { return localStorage.getItem('planner.view') || 'day'; } catch { return 'day'; } })();
 let col = null; // db collection when signed in
 const LS = 'dailyPlanner.events.v1';
 const LS_T = 'dailyPlanner.todos.v1';
@@ -599,25 +657,29 @@ function render(){
   // day tabs (phone)
   $('#daytabs').innerHTML = days.map((d,i) => `<button type="button" data-i="${i}" aria-pressed="${i===selDay}">週${WD[i]}<b>${d.getDate()}</b></button>`).join('');
 
-  const shown = narrow ? [days[selDay]] : days;
+  const dayMode = narrow && view === 'day', compact = narrow && !dayMode;
+  const board = $('#board'); board.classList.toggle('dayview', dayMode); board.classList.toggle('compact', compact);
+  $('#vDay').setAttribute('aria-pressed', dayMode); $('#vWeek').setAttribute('aria-pressed', compact); $('#viewHint').hidden = !compact;
+  HOUR = compact ? 38 : 52;
+  const shown = dayMode ? [days[selDay]] : days;
   const per = shown.map(d => real ? eventsOn(d) : demoOn(d));
   let minH = 7, maxH = 22;
   per.flat().forEach(e => { minH = Math.min(minH, Math.floor(toMin(e.start)/60)); maxH = Math.max(maxH, Math.ceil(toMin(e.end)/60)); });
   maxH = Math.min(maxH, 24);
   const H = (maxH - minH) * HOUR;
-  const cols = `52px repeat(${shown.length}, minmax(0,1fr))`;
+  const cols = `${compact ? 30 : 52}px repeat(${shown.length}, minmax(0,1fr))`;
 
   const dh = $('#dayhead'); dh.style.gridTemplateColumns = cols;
-  dh.innerHTML = '<div></div>' + shown.map(d => `<div class="${+d===+today?'today':''}">週${WD[isoDow(d)-1]}<b>${d.getDate()}</b></div>`).join('');
+  dh.innerHTML = '<div></div>' + shown.map(d => `<div class="${+d===+today?'today':''}" data-i="${isoDow(d)-1}">${compact ? '' : '週'}${WD[isoDow(d)-1]}<b>${d.getDate()}</b></div>`).join('');
 
   const dr = $('#duerow'); dr.style.gridTemplateColumns = cols;
   const dueBy = shown.map(d => todosOn(ymd(d)));
   dr.hidden = !dueBy.some(l => l.length);
-  dr.innerHTML = '<div>待辦</div>' + dueBy.map(l => `<div>${l.map(todoPill).join('')}</div>`).join('');
+  dr.innerHTML = `<div>${compact ? '' : '待辦'}</div>` + dueBy.map(l => `<div>${l.map(todoPill).join('')}</div>`).join('');
 
   const g = $('#grid'); g.style.gridTemplateColumns = cols;
   let html = `<div class="gutter" style="height:${H}px">`;
-  for (let h = minH+1; h < maxH; h++) html += `<span style="top:${(h-minH)*HOUR}px">${pad(h)}:00</span>`;
+  for (let h = minH+1; h < maxH; h++) html += `<span style="top:${(h-minH)*HOUR}px">${compact ? pad(h) : pad(h) + ':00'}</span>`;
   html += '</div>';
   shown.forEach((d, ci) => {
     const wk = isoDow(d) >= 6 ? ' weekend' : '';
@@ -754,6 +816,40 @@ $('#tdForm').addEventListener('submit', e => {
   closeTodo();
 });
 $('#agenda').addEventListener('click', e => { const li = e.target.closest('li[data-id]'); const ev = li && events.get(li.dataset.id); if (ev) openEditor(ev); });
+function setView(v){ view = v; try { localStorage.setItem('planner.view', v); } catch {} render(); }
+$('#vDay').onclick = () => setView('day');
+$('#vWeek').onclick = () => setView('week');
+$('#dayhead').addEventListener('click', e => { const c = e.target.closest('[data-i]'); if (c && narrow) { selDay = +c.dataset.i; setView('day'); } });
+
+/* appearance (外觀) */
+const metaTheme = [...document.querySelectorAll('meta[name="theme-color"]')].map(m => [m, m.getAttribute('content')]);
+function applyLook(look){
+  const r = document.documentElement;
+  if (look === 'light' || look === 'dark') r.setAttribute('data-look', look); else r.removeAttribute('data-look');
+  $('#themeBtn use').setAttribute('href', look === 'light' ? '#i-sun' : look === 'dark' ? '#i-moon' : '#i-auto');
+  document.querySelectorAll('#themeMenu .mi').forEach(b => b.setAttribute('aria-checked', b.dataset.look === look));
+  metaTheme.forEach(([m, orig]) => m.setAttribute('content', look === 'light' ? '#f6f6f4' : look === 'dark' ? '#0e0e10' : orig));
+}
+let look = (() => { try { return localStorage.getItem('planner.look') || 'system'; } catch { return 'system'; } })();
+applyLook(look);
+const menu = $('#themeMenu');
+$('#themeBtn').onclick = e => {
+  e.stopPropagation();
+  if (!menu.hidden) { menu.hidden = true; return; }
+  menu.hidden = false;
+  const r = $('#themeBtn').getBoundingClientRect(), w = menu.offsetWidth;
+  menu.style.top = (r.bottom + 6) + 'px';
+  menu.style.left = Math.max(8, Math.min(r.right - w, innerWidth - w - 8)) + 'px';
+  menu.querySelector('[aria-checked="true"]')?.focus();
+};
+menu.addEventListener('click', e => {
+  const b = e.target.closest('.mi'); if (!b) return;
+  look = b.dataset.look; try { localStorage.setItem('planner.look', look); } catch {}
+  applyLook(look); menu.hidden = true;
+});
+document.addEventListener('click', e => { if (!menu.hidden && !e.target.closest('#themeMenu')) menu.hidden = true; });
+addEventListener('resize', () => { menu.hidden = true; });
+
 $('#daytabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { selDay = +b.dataset.i; render(); } });
 $('#prev').onclick = () => { weekStart = addDays(weekStart, -7); render(); };
 $('#next').onclick = () => { weekStart = addDays(weekStart, 7); render(); };
@@ -762,7 +858,7 @@ $('#addBtn').onclick = $('#fab').onclick = () => openEditor(null, narrow ? { dat
 const mq = matchMedia('(max-width:800px)');
 const applyMq = () => { narrow = mq.matches; $('#board').classList.toggle('narrow', narrow); render(); };
 mq.addEventListener('change', applyMq);
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (!$('#evScrim').hidden) closeEditor(); else if (!$('#tdScrim').hidden) closeTodo(); else if (!$('#impScrim').hidden) $('#impScrim').hidden = true; } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { menu.hidden = true; if (!$('#evScrim').hidden) closeEditor(); else if (!$('#tdScrim').hidden) closeTodo(); else if (!$('#impScrim').hidden) $('#impScrim').hidden = true; } });
 
 /* ---------- import (AI) ---------- */
 let sample = null, imgLimits = null, images = [], abort = null, proposals = [];
