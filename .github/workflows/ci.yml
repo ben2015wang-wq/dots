@@ -17,8 +17,11 @@ jobs:
         with:
           node-version: '20'
       - name: JavaScript syntax check
+        # src/parts/*.js are pieces of one script and shim.js holds build placeholders,
+        # so check the editor as the build joins it (src/dots.js) instead of piece by piece.
         run: |
-          for f in src/*.js src/parts/*.js src/pwa/sw.js src/planner/runtime.js src/planner/sw.js; do node --check "$f"; done
+          python src/build.py
+          for f in src/dots.js src/dash.new.js src/pwa/sw.js src/planner/runtime.js src/planner/sw.js; do node --check "$f"; done
       - name: Build
         run: python src/build.py --out dist
       - name: Install browser for the smoke test
